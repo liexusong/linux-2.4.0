@@ -25,8 +25,8 @@ typedef struct zone_struct {
 	/*
 	 * Commonly accessed fields:
 	 */
-	spinlock_t		lock;
-	unsigned long		offset;
+	spinlock_t			lock;
+	unsigned long		offset; // 表示当前区在mem_map中的起始页面号
 	unsigned long		free_pages;
 	unsigned long		inactive_clean_pages;
 	unsigned long		inactive_dirty_pages;
@@ -36,12 +36,12 @@ typedef struct zone_struct {
 	 * free areas of different sizes
 	 */
 	struct list_head	inactive_clean_list;
-	free_area_t		free_area[MAX_ORDER];
+	free_area_t			free_area[MAX_ORDER]; // 用于伙伴分配算法
 
 	/*
 	 * rarely used fields:
 	 */
-	char			*name;
+	char				*name;
 	unsigned long		size;
 	/*
 	 * Discontig memory support fields.
@@ -49,11 +49,11 @@ typedef struct zone_struct {
 	struct pglist_data	*zone_pgdat;
 	unsigned long		zone_start_paddr;
 	unsigned long		zone_start_mapnr;
-	struct page		*zone_mem_map;
+	struct page			*zone_mem_map;
 } zone_t;
 
-#define ZONE_DMA		0
-#define ZONE_NORMAL		1
+#define ZONE_DMA			0
+#define ZONE_NORMAL			1
 #define ZONE_HIGHMEM		2
 #define MAX_NR_ZONES		3
 
@@ -69,7 +69,7 @@ typedef struct zone_struct {
  * footprint of this construct is very small.
  */
 typedef struct zonelist_struct {
-	zone_t * zones [MAX_NR_ZONES+1]; // NULL delimited
+	zone_t * zones[MAX_NR_ZONES+1]; // NULL delimited
 	int gfp_mask;
 } zonelist_t;
 

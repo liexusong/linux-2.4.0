@@ -465,6 +465,7 @@ void __init paging_init(void)
 		unsigned long zones_size[MAX_NR_ZONES] = {0, 0, 0};
 		unsigned int max_dma, high, low;
 
+		// MAX_DMA_ADDRESS 等于16MB
 		max_dma = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
 		low = max_low_pfn;
 		high = highend_pfn;
