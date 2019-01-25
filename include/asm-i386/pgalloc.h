@@ -121,18 +121,18 @@ extern inline pte_t * pte_alloc(pmd_t * pmd, unsigned long address)
 {
 	address = (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
 
-	if (pmd_none(*pmd))
+	if (pmd_none(*pmd)) // 如果页表还没有申请
 		goto getnew;
 	if (pmd_bad(*pmd))
 		goto fix;
-	return (pte_t *)pmd_page(*pmd) + address;
+	return (pte_t *)pmd_page(*pmd) + address; // 获取页表项地址
 getnew:
 {
-	unsigned long page = (unsigned long) get_pte_fast();
+	unsigned long page = (unsigned long) get_pte_fast(); // 快速申请一个页表
 	
 	if (!page)
-		return get_pte_slow(pmd, address);
-	set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(page)));
+		return get_pte_slow(pmd, address); // 快速申请失败使用阻塞模式申请
+	set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(page))); // 设置页中间项的页表地址
 	return (pte_t *)page + address;
 }
 fix:

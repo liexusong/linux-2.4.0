@@ -115,7 +115,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 	siginfo_t info;
 
 	/* get the address */
-	__asm__("movl %%cr2,%0":"=r" (address));
+	__asm__("movl %%cr2,%0":"=r" (address)); // 获取发生错误的虚拟地址
 
 	tsk = current;
 
@@ -128,7 +128,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 	 * only copy the information from the master page table,
 	 * nothing more.
 	 */
-	if (address >= TASK_SIZE)
+	if (address >= TASK_SIZE) // 不是用户空间的地址
 		goto vmalloc_fault;
 
 	mm = tsk->mm;
@@ -143,14 +143,14 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 
 	down(&mm->mmap_sem);
 
-	vma = find_vma(mm, address);
+	vma = find_vma(mm, address); // 查找第一个结束地址比address大的vma
 	if (!vma)
 		goto bad_area;
-	if (vma->vm_start <= address)
+	if (vma->vm_start <= address) // address在vma管理的范围内
 		goto good_area;
-	if (!(vma->vm_flags & VM_GROWSDOWN))
+	if (!(vma->vm_flags & VM_GROWSDOWN)) // 如果vma不是栈空间, 那说明用户访问了错误的内存地址
 		goto bad_area;
-	if (error_code & 4) {
+	if (error_code & 4) { // 如果在用户态
 		/*
 		 * accessing the stack below %esp is always a bug.
 		 * The "+ 32" is there due to some instructions (like
@@ -160,7 +160,7 @@ asmlinkage void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 		if (address + 32 < regs->esp)
 			goto bad_area;
 	}
-	if (expand_stack(vma, address))
+	if (expand_stack(vma, address)) // 扩大栈空间的vma管理范围
 		goto bad_area;
 /*
  * Ok, we have a good vm_area for this memory access, so
@@ -193,7 +193,7 @@ good_area:
 	 * make sure we exit gracefully rather than endlessly redo
 	 * the fault.
 	 */
-	switch (handle_mm_fault(mm, vma, address, write)) {
+	switch (handle_mm_fault(mm, vma, address, write)) { // 这里是进行物理内存映射的地方
 	case 1:
 		tsk->min_flt++;
 		break;
@@ -226,7 +226,7 @@ bad_area:
 
 bad_area_nosemaphore:
 	/* User mode accesses just cause a SIGSEGV */
-	if (error_code & 4) {
+	if (error_code & 4) { // 用户空间触发的虚拟内存地址越界访问, 发送SIGSEGV信息(段错误)
 		tsk->thread.cr2 = address;
 		tsk->thread.error_code = error_code;
 		tsk->thread.trap_no = 14;
@@ -254,6 +254,7 @@ bad_area_nosemaphore:
 
 no_context:
 	/* Are we prepared to handle this kernel fault?  */
+	// 修正指令
 	if ((fixup = search_exception_table(regs->eip)) != 0) {
 		regs->eip = fixup;
 		return;

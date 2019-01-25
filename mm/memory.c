@@ -1094,7 +1094,7 @@ static int do_no_page(struct mm_struct * mm, struct vm_area_struct * vma,
 	struct page * new_page;
 	pte_t entry;
 
-	if (!vma->vm_ops || !vma->vm_ops->nopage)
+	if (!vma->vm_ops || !vma->vm_ops->nopage) // 如果内存管理区没有指定的nopage接口, 那么直接申请一个匿名内存页
 		return do_anonymous_page(mm, vma, page_table, write_access, address);
 
 	/*
@@ -1162,18 +1162,19 @@ static inline int handle_pte_fault(struct mm_struct *mm,
 	 */
 	spin_lock(&mm->page_table_lock);
 	entry = *pte;
-	if (!pte_present(entry)) {
+	if (!pte_present(entry)) { // 如果内存页不在物理内存中
 		/*
 		 * If it truly wasn't present, we know that kswapd
 		 * and the PTE updates will not touch it later. So
 		 * drop the lock.
 		 */
 		spin_unlock(&mm->page_table_lock);
-		if (pte_none(entry))
+		if (pte_none(entry)) // 内存页还没申请
 			return do_no_page(mm, vma, address, write_access, pte);
-		return do_swap_page(mm, vma, address, pte, pte_to_swp_entry(entry), write_access);
+		return do_swap_page(mm, vma, address, pte, pte_to_swp_entry(entry), write_access); // 内存页被交换到磁盘中
 	}
 
+	// 到这里表示内存页在物理内存中
 	if (write_access) {
 		if (!pte_write(entry))
 			return do_wp_page(mm, vma, address, pte, entry);
@@ -1196,8 +1197,8 @@ int handle_mm_fault(struct mm_struct *mm, struct vm_area_struct * vma,
 	pgd_t *pgd;
 	pmd_t *pmd;
 
-	pgd = pgd_offset(mm, address);
-	pmd = pmd_alloc(pgd, address);
+	pgd = pgd_offset(mm, address); // 页目录项
+	pmd = pmd_alloc(pgd, address); // 页中间项(x86与页目录相同, 详细参考:include/asm-i386/pgalloc-2level.h), pmd == pgd
 
 	if (pmd) {
 		pte_t * pte = pte_alloc(pmd, address);
