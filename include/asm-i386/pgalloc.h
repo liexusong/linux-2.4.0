@@ -35,6 +35,7 @@ extern __inline__ pgd_t *get_pgd_slow(void)
 #else
 		memset(ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
 #endif
+		// 复制内核空间页目录项
 		memcpy(ret + USER_PTRS_PER_PGD, swapper_pg_dir + USER_PTRS_PER_PGD, (PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 	}
 	return ret;
@@ -131,7 +132,7 @@ getnew:
 	unsigned long page = (unsigned long) get_pte_fast(); // 快速申请一个页表
 	
 	if (!page)
-		return get_pte_slow(pmd, address); // 快速申请失败使用阻塞模式申请
+		return get_pte_slow(pmd, address); // 快速申请失败使用阻塞模式申请(get_free_pages
 	set_pmd(pmd, __pmd(_PAGE_TABLE + __pa(page))); // 设置页中间项的页表地址
 	return (pte_t *)page + address;
 }

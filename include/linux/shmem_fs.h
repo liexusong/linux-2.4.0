@@ -13,6 +13,14 @@
  * We have to move it here, since not every user of fs.h is including
  * mm.h, but m.h is including fs.h via sched .h :-/
  */
+/*
++------------------------+-------+-+
+|xxxxxxxxxxxxxxxxxxxxxxxx|xxxxxxx|0|
++------------------------+-------+-+
+\________offset__________/\_type_/
+
+因为交换区页面一定不在物理内存中, 所以最低位一定是0
+*/
 typedef struct {
 	unsigned long val;
 } swp_entry_t;

@@ -92,25 +92,25 @@ static void __free_pages_ok (struct page *page, unsigned long order)
 
 	zone = page->zone;
 
-	mask = (~0UL) << order;
-	base = mem_map + zone->offset;
-	page_idx = page - base;
-	if (page_idx & ~mask)
-		BUG();
-	index = page_idx >> (1 + order);
+	mask = (~0UL) << order;        // 获取一个后order个位为0的长整型数字
+    base = mem_map + zone->offset; // 获取内存管理区管理的开始内存页
+    page_idx = page - base;        // 当前页面在内存管理区的索引
+    if (page_idx & ~mask)
+        BUG();
+    index = page_idx >> (1 + order); // 伙伴标记位索引
 
-	area = zone->free_area + order;
+    area = zone->free_area + order;  // 内存块所在的空闲链表
 
-	spin_lock_irqsave(&zone->lock, flags);
+    spin_lock_irqsave(&zone->lock, flags);
 
-	zone->free_pages -= mask;
+    zone->free_pages -= mask;  // 添加释放的内存块所占用的内存页数
 
-	while (mask + (1 << (MAX_ORDER-1))) {
+	while (mask + (1 << (MAX_ORDER-1))) { // 遍历(MAX_ORDER-order)次
 		struct page *buddy1, *buddy2;
 
 		if (area >= zone->free_area + MAX_ORDER)
 			BUG();
-		if (!test_and_change_bit(index, area->map))
+		if (!test_and_change_bit(index, area->map)) // 如果伙伴内存块在使用状态, 那么退出循环
 			/*
 			 * the buddy page is still allocated.
 			 */
@@ -118,16 +118,23 @@ static void __free_pages_ok (struct page *page, unsigned long order)
 		/*
 		 * Move the buddy up one level.
 		 */
-		buddy1 = base + (page_idx ^ -mask);
-		buddy2 = base + page_idx;
+		/*
+		 * 因为 mask + (-mask) == 0
+		 * 所以:
+		 * 如果 mask == 111111111111111111111111111100000
+		 * 那么-mask == 000000000000000000000000000100000
+		 * 所以-mask == 1 << order
+		 */
+		buddy1 = base + (page_idx ^ -mask); // 伙伴内存块(只影响order位)
+		buddy2 = base + page_idx;           // 当前内存块
 		if (BAD_RANGE(zone,buddy1))
 			BUG();
 		if (BAD_RANGE(zone,buddy2))
 			BUG();
 
-		memlist_del(&buddy1->list);
+		memlist_del(&buddy1->list); // 把伙伴内存块从空闲链表中删除(因为要合并为更大的内存块, 所以要从当前的空闲链表中删除)
 		mask <<= 1;
-		area++;
+		area++;  // 向更大的空闲链表进行合并操作
 		index >>= 1;
 		page_idx &= mask;
 	}
@@ -171,7 +178,7 @@ static inline struct page * expand (zone_t *zone, struct page *page,
 static FASTCALL(struct page * rmqueue(zone_t *zone, unsigned long order));
 static struct page * rmqueue(zone_t *zone, unsigned long order)
 {
-	free_area_t * area = zone->free_area + order;
+	free_area_t * area = zone->free_area + order; // 获取申请对应大小内存块的空闲列表
 	unsigned long curr_order = order;
 	struct list_head *head, *curr;
 	unsigned long flags;
@@ -179,20 +186,21 @@ static struct page * rmqueue(zone_t *zone, unsigned long order)
 
 	spin_lock_irqsave(&zone->lock, flags);
 	do {
-		head = &area->free_list;
+		head = &area->free_list; // 空闲内存块链表
 		curr = memlist_next(head);
 
-		if (curr != head) {
+		if (curr != head) { // 如果链表不为空
 			unsigned int index;
 
-			page = memlist_entry(curr, struct page, list);
+			page = memlist_entry(curr, struct page, list); // 当前内存块
 			if (BAD_RANGE(zone,page))
 				BUG();
 			memlist_del(curr);
-			index = (page - mem_map) - zone->offset;
-			MARK_USED(index, curr_order, area);
-			zone->free_pages -= 1 << order;
+			index = (page - mem_map) - zone->offset; // 内存块所在内存管理区的索引
+			MARK_USED(index, curr_order, area); // 标记伙伴标志位为已用
+			zone->free_pages -= 1 << order; // 减去内存块所占用的内存页数
 
+			// 把更大的内存块分裂为申请大小的内存块
 			page = expand(zone, page, index, order, curr_order, area);
 			spin_unlock_irqrestore(&zone->lock, flags);
 
@@ -202,7 +210,8 @@ static struct page * rmqueue(zone_t *zone, unsigned long order)
 			DEBUG_ADD_PAGE
 			return page;
 		}
-		curr_order++;
+		// 如果在当前空闲链表中没有空闲的内存块, 那么向空间更大的的空闲内存块链表中申请
+		curr_order++; 
 		area++;
 	} while (curr_order < MAX_ORDER);
 	spin_unlock_irqrestore(&zone->lock, flags);
@@ -252,6 +261,7 @@ static struct page * __alloc_pages_limit(zonelist_t *zonelist,
 		if (z->free_pages + z->inactive_clean_pages > water_mark) {
 			struct page *page = NULL;
 			/* If possible, reclaim a page directly. */
+			// 从干净非活跃的lru链表中回收一个页面
 			if (direct_reclaim && z->free_pages < z->pages_min + 8)
 				page = reclaim_page(z);
 			/* If that fails, fall back to rmqueue. */
@@ -302,6 +312,7 @@ struct page * __alloc_pages(zonelist_t *zonelist, unsigned long order)
 	 * If we are about to get low on free pages and we also have
 	 * an inactive page shortage, wake up kswapd.
 	 */
+	// 如果可用的内存页短缺, 唤醒kswapd内核线程
 	if (inactive_shortage() > inactive_target / 2 && free_shortage())
 		wakeup_kswapd(0);
 	/*
@@ -857,9 +868,9 @@ void __init free_area_init_core(int nid, pg_data_t *pgdat, struct page **gmap,
 		 * for people who require it to catch load spikes in eg.
 		 * gigabit ethernet routing...
 		 */
-		freepages.min += mask;
-		freepages.low += mask*2;
-		freepages.high += mask*3;
+		freepages.min += mask;    // 最低水位
+		freepages.low += mask*2;  // 需要开始回收水位
+		freepages.high += mask*3; // 最高水位
 		zone->zone_mem_map = mem_map + offset;
 		zone->zone_start_mapnr = offset;
 		zone->zone_start_paddr = zone_start_paddr;
@@ -867,23 +878,24 @@ void __init free_area_init_core(int nid, pg_data_t *pgdat, struct page **gmap,
 		for (i = 0; i < size; i++) {
 			struct page *page = mem_map + offset + i;
 			page->zone = zone;
-			if (j != ZONE_HIGHMEM) {
+			if (j != ZONE_HIGHMEM) { // 不是高端内存都使用直接映射方式(物理地址+page_offset)
 				page->virtual = __va(zone_start_paddr);
 				zone_start_paddr += PAGE_SIZE;
 			}
 		}
 
 		offset += size;
-		mask = -1;
-		for (i = 0; i < MAX_ORDER; i++) {
+		mask = -1; // 其实这个值等于0xffffffff
+		for (i = 0; i < MAX_ORDER; i++) { // 初始化free_area
 			unsigned long bitmap_size;
 
-			memlist_init(&zone->free_area[i].free_list);
-			mask += mask;
-			size = (size + ~mask) & mask;
-			bitmap_size = size >> i;
-			bitmap_size = (bitmap_size + 7) >> 3;
+			memlist_init(&zone->free_area[i].free_list); // 初始化空闲链表
+			mask += mask; // 这里等于: mask = mask << 1;
+			size = (size + ~mask) & mask; // 用于向上对齐
+			bitmap_size = size >> i;      // 内存块个数
+			bitmap_size = (bitmap_size + 7) >> 3; // 因为一个字节有8个位, 所以要除以8
 			bitmap_size = LONG_ALIGN(bitmap_size);
+			// 申请位图内存
 			zone->free_area[i].map =
 			  (unsigned int *) alloc_bootmem_node(pgdat, bitmap_size);
 		}

@@ -1175,13 +1175,16 @@ static inline int handle_pte_fault(struct mm_struct *mm,
 	}
 
 	// 到这里表示内存页在物理内存中
-	if (write_access) {
-		if (!pte_write(entry))
+
+	if (write_access) { // 如果因为写内存页导致的
+		if (!pte_write(entry)) // 如果因为没有写权限
 			return do_wp_page(mm, vma, address, pte, entry);
 
-		entry = pte_mkdirty(entry);
+		// 这里有没有可能发生呢? 答案是有的, 因为在多核CPU系统中, 有可能多个CPU同时在修复这个错误
+		// 当其中一个CPU修复好后, 另外的CPU就会进入这里
+		entry = pte_mkdirty(entry); // 设置内存页为脏的
 	}
-	entry = pte_mkyoung(entry);
+	entry = pte_mkyoung(entry); // 设置内存页为年轻的
 	establish_pte(vma, address, pte, entry);
 	spin_unlock(&mm->page_table_lock);
 	return 1;

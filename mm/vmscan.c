@@ -805,6 +805,7 @@ int free_shortage(void)
 /*
  * How many inactive pages are we short?
  */
+// 这个函数计算系统中希望有多少可以的内存页
 int inactive_shortage(void)
 {
 	int shortage = 0;
@@ -988,7 +989,7 @@ int kswapd(void *unused)
 		static int recalc = 0;
 
 		/* If needed, try to free some memory. */
-		if (inactive_shortage() || free_shortage()) {
+		if (inactive_shortage() || free_shortage()) { // 如果可用的内存页短缺, 调用do_try_to_free_pages()释放一些内存页
 			int wait = 0;
 			/* Do we need to do some synchronous flushing? */
 			if (waitqueue_active(&kswapd_done))
@@ -1028,7 +1029,7 @@ int kswapd(void *unused)
 		 * We go to sleep for one second, but if it's needed
 		 * we'll be woken up earlier...
 		 */
-		if (!free_shortage() || !inactive_shortage()) {
+		if (!free_shortage() || !inactive_shortage()) { // 如果可用内存页足够, 那么休眠kswapd内核线程
 			interruptible_sleep_on_timeout(&kswapd_wait, HZ);
 		/*
 		 * If we couldn't free enough memory, we see if it was

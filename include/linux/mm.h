@@ -455,10 +455,10 @@ extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int);
 /*
  * GFP bitmasks..
  */
-#define __GFP_WAIT	0x01
-#define __GFP_HIGH	0x02
-#define __GFP_IO	0x04
-#define __GFP_DMA	0x08
+#define __GFP_WAIT	0x01  // 是否阻塞标志
+#define __GFP_HIGH	0x02  // 
+#define __GFP_IO	0x04  //
+#define __GFP_DMA	0x08  // 是否DMA内存区
 #ifdef CONFIG_HIGHMEM
 #define __GFP_HIGHMEM	0x10
 #else
@@ -466,13 +466,13 @@ extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int);
 #endif
 
 
-#define GFP_BUFFER	(__GFP_HIGH | __GFP_WAIT)
-#define GFP_ATOMIC	(__GFP_HIGH)
-#define GFP_USER	(             __GFP_WAIT | __GFP_IO)
-#define GFP_HIGHUSER	(             __GFP_WAIT | __GFP_IO | __GFP_HIGHMEM)
-#define GFP_KERNEL	(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
-#define GFP_NFS		(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
-#define GFP_KSWAPD	(                          __GFP_IO)
+#define GFP_BUFFER		(__GFP_HIGH | __GFP_WAIT)
+#define GFP_ATOMIC		(__GFP_HIGH)  // 不能阻塞的内存申请
+#define GFP_USER		(__GFP_WAIT | __GFP_IO)
+#define GFP_HIGHUSER	(__GFP_WAIT | __GFP_IO | __GFP_HIGHMEM)
+#define GFP_KERNEL		(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
+#define GFP_NFS			(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
+#define GFP_KSWAPD		(__GFP_IO)
 
 /* Flag - indicates that the buffer will be suitable for DMA.  Ignored on some
    platforms, used as appropriate on others */
