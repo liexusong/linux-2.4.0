@@ -577,6 +577,7 @@ void free_pages(unsigned long addr, unsigned long order)
 
 /*
  * Total amount of free (allocatable) RAM:
+ * 计算每个内存节点中所有内存管理区的空闲页面
  */
 unsigned int nr_free_pages (void)
 {
@@ -595,6 +596,7 @@ unsigned int nr_free_pages (void)
 
 /*
  * Total amount of inactive_clean (allocatable) RAM:
+ * 计算每个内存节点的所有内存管理区中的不活跃干净页面
  */
 unsigned int nr_inactive_clean_pages (void)
 {

@@ -1063,7 +1063,7 @@ static int do_anonymous_page(struct mm_struct * mm, struct vm_area_struct * vma,
 	struct page *page = NULL;
 	pte_t entry = pte_wrprotect(mk_pte(ZERO_PAGE(addr), vma->vm_page_prot));
 	if (write_access) {
-		page = alloc_page(GFP_HIGHUSER);
+		page = alloc_page(GFP_HIGHUSER); // 申请一个内存页
 		if (!page)
 			return -1;
 		clear_user_highpage(page, addr);

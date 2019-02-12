@@ -150,7 +150,7 @@ static struct task_struct * select_bad_process(void)
 void oom_kill(void)
 {
 
-	struct task_struct *p = select_bad_process();
+	struct task_struct *p = select_bad_process(); // 牺牲一个进程
 
 	/* Found nothing?!?! Either we hang forever, or we panic. */
 	if (p == NULL)

@@ -334,7 +334,7 @@ static int swap_out(unsigned int priority, int gfp_mask)
 	select:
 		spin_lock(&mmlist_lock);
 		p = init_mm.mmlist.next;
-		for (; p != &init_mm.mmlist; p = p->next) {
+		for (; p != &init_mm.mmlist; p = p->next) { // 遍历所有内存管理结构
 			struct mm_struct *mm = list_entry(p, struct mm_struct, mmlist);
 	 		if (mm->rss <= 0)
 				continue;
@@ -481,6 +481,7 @@ out:
  * This code is heavily inspired by the FreeBSD source code. Thanks
  * go out to Matthew Dillon.
  */
+// 这个函数的作用是把非活跃脏页面链表的内存页写到磁盘中
 #define MAX_LAUNDER 		(4 * (1 << page_cluster))
 int page_launder(int gfp_mask, int sync)
 {
@@ -493,7 +494,7 @@ int page_launder(int gfp_mask, int sync)
 	 * We can only grab the IO locks (eg. for flushing dirty
 	 * buffers to disk) if __GFP_IO is set.
 	 */
-	can_get_io_locks = gfp_mask & __GFP_IO;
+	can_get_io_locks = gfp_mask & __GFP_IO; // 是否需要进行IO操作
 
 	launder_loop = 0;
 	maxlaunder = 0;
@@ -507,7 +508,7 @@ dirty_page_rescan:
 		page = list_entry(page_lru, struct page, lru);
 
 		/* Wrong page on list?! (list corruption, should not happen) */
-		if (!PageInactiveDirty(page)) {
+		if (!PageInactiveDirty(page)) { // 没有设置 `PG_inactive_dirty` 标志
 			printk("VM: page_launder, wrong page on list.\n");
 			list_del(page_lru);
 			nr_inactive_dirty_pages--;
@@ -516,9 +517,11 @@ dirty_page_rescan:
 		}
 
 		/* Page is or was in use?  Move it to the active list. */
-		if (PageTestandClearReferenced(page) || page->age > 0 ||
-				(!page->buffers && page_count(page) > 1) ||
-				page_ramdisk(page)) {
+		// 如果满足以下的任意一个条件, 都表示内存页在使用中, 把他移动到活跃链表
+		if (PageTestandClearReferenced(page) ||             // 如果设置了 `PG_referenced` 标志
+				page->age > 0 ||                            // 如果age大于0, 表示页面被访问过
+				(!page->buffers && page_count(page) > 1) || // 如果页面被其他进程映射
+				page_ramdisk(page)) {                       // 如果用于内存磁盘的页面
 			del_page_from_inactive_dirty_list(page);
 			add_page_to_active_list(page);
 			continue;
@@ -528,7 +531,7 @@ dirty_page_rescan:
 		 * The page is locked. IO in progress?
 		 * Move it to the back of the list.
 		 */
-		if (TryLockPage(page)) {
+		if (TryLockPage(page)) { // 把内存页上锁
 			list_del(page_lru);
 			list_add(page_lru, &inactive_dirty_list);
 			continue;
@@ -538,7 +541,7 @@ dirty_page_rescan:
 		 * Dirty swap-cache page? Write it out if
 		 * last copy..
 		 */
-		if (PageDirty(page)) {
+		if (PageDirty(page)) { // 如果页面是脏的, 那么应该把页面写到磁盘中
 			int (*writepage)(struct page *) = page->mapping->a_ops->writepage;
 			int result;
 
@@ -546,7 +549,7 @@ dirty_page_rescan:
 				goto page_active;
 
 			/* First time through? Move it to the back of the list */
-			if (!launder_loop) {
+			if (!launder_loop) { // 第一次只把页面移动到链表的头部
 				list_del(page_lru);
 				list_add(page_lru, &inactive_dirty_list);
 				UnlockPage(page);
@@ -704,6 +707,7 @@ page_active:
  * This function will scan a portion of the active list to find
  * unused pages, those pages will then be moved to the inactive list.
  */
+// 这个函数会把一些活跃链表的页面放置到非活跃脏页面链表中
 int refill_inactive_scan(unsigned int priority, int oneshot)
 {
 	struct list_head * page_lru;
@@ -743,7 +747,7 @@ int refill_inactive_scan(unsigned int priority, int oneshot)
 			 */
 			if (page->age == 0 && page_count(page) <=
 						(page->buffers ? 2 : 1)) {
-				deactivate_page_nolock(page);
+				deactivate_page_nolock(page); // 把页面放置到非活跃脏页面链表
 				page_active = 0;
 			} else {
 				page_active = 1;
@@ -855,7 +859,7 @@ static int refill_inactive(unsigned int gfp_mask, int user)
 			schedule();
 		}
 
-		while (refill_inactive_scan(priority, 1)) {
+		while (refill_inactive_scan(priority, 1)) { // 把活跃页面链表中的页面放置到非活跃脏页面链表中
 			made_progress = 1;
 			if (--count <= 0)
 				goto done;
@@ -872,7 +876,7 @@ static int refill_inactive(unsigned int gfp_mask, int user)
 		/*
 		 * Then, try to page stuff out..
 		 */
-		while (swap_out(priority, gfp_mask)) {
+		while (swap_out(priority, gfp_mask)) { // 选择一个合适的内存管理结构, 放置到活跃页面链表中
 			made_progress = 1;
 			if (--count <= 0)
 				goto done;
@@ -919,7 +923,7 @@ static int do_try_to_free_pages(unsigned int gfp_mask, int user)
 	 */
 	if (free_shortage() || nr_inactive_dirty_pages > nr_free_pages() +
 			nr_inactive_clean_pages())
-		ret += page_launder(gfp_mask, user);
+		ret += page_launder(gfp_mask, user); // 把非活跃脏页面链表的页面刷新到磁盘中, 然后放置到非活跃干净页面链表中
 
 	/*
 	 * If needed, we move pages from the active list
