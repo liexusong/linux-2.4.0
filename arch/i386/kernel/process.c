@@ -438,6 +438,10 @@ void release_segments(struct mm_struct *mm)
  */
 int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 {
+	// d0的作用是为了保证regs结构的完整性,
+	// 因为kernel_thread()函数是在内核态调用的,
+	// 所以当调用系统调用时(int 0x80)并不会压入es和esp寄存器到栈中
+	// 当regs结构是有es和esp定义的, 所以定义d0保证了regs的结构完整
 	long retval, d0;
 
 	__asm__ __volatile__(

@@ -134,20 +134,20 @@ ENOSYS = 38
 	andl %esp, reg
 
 ENTRY(lcall7)
-	pushfl			# We get a different stack layout with call gates,
-	pushl %eax		# which has to be cleaned up later..
+	pushfl			// We get a different stack layout with call gates,
+	pushl %eax		// which has to be cleaned up later..
 	SAVE_ALL
-	movl EIP(%esp),%eax	# due to call gates, this is eflags, not eip..
-	movl CS(%esp),%edx	# this is eip..
-	movl EFLAGS(%esp),%ecx	# and this is cs..
+	movl EIP(%esp),%eax	// due to call gates, this is eflags, not eip..
+	movl CS(%esp),%edx	// this is eip..
+	movl EFLAGS(%esp),%ecx	// and this is cs..
 	movl %eax,EFLAGS(%esp)	#
-	movl %edx,EIP(%esp)	# Now we move them to their "normal" places
+	movl %edx,EIP(%esp)	// Now we move them to their "normal" places
 	movl %ecx,CS(%esp)	#
 	movl %esp,%ebx
 	pushl %ebx
-	andl $-8192,%ebx	# GET_CURRENT
-	movl exec_domain(%ebx),%edx	# Get the execution domain
-	movl 4(%edx),%edx	# Get the lcall7 handler for the domain
+	andl $-8192,%ebx	// GET_CURRENT
+	movl exec_domain(%ebx),%edx	// Get the execution domain
+	movl 4(%edx),%edx	// Get the lcall7 handler for the domain
 	pushl $0x7
 	call *%edx
 	addl $4, %esp
@@ -155,20 +155,20 @@ ENTRY(lcall7)
 	jmp ret_from_sys_call
 
 ENTRY(lcall27)
-	pushfl			# We get a different stack layout with call gates,
-	pushl %eax		# which has to be cleaned up later..
+	pushfl			// We get a different stack layout with call gates,
+	pushl %eax		// which has to be cleaned up later..
 	SAVE_ALL
-	movl EIP(%esp),%eax	# due to call gates, this is eflags, not eip..
-	movl CS(%esp),%edx	# this is eip..
-	movl EFLAGS(%esp),%ecx	# and this is cs..
+	movl EIP(%esp),%eax	// due to call gates, this is eflags, not eip..
+	movl CS(%esp),%edx	// this is eip..
+	movl EFLAGS(%esp),%ecx	// and this is cs..
 	movl %eax,EFLAGS(%esp)	#
-	movl %edx,EIP(%esp)	# Now we move them to their "normal" places
+	movl %edx,EIP(%esp)	// Now we move them to their "normal" places
 	movl %ecx,CS(%esp)	#
 	movl %esp,%ebx
 	pushl %ebx
-	andl $-8192,%ebx	# GET_CURRENT
-	movl exec_domain(%ebx),%edx	# Get the execution domain
-	movl 4(%edx),%edx	# Get the lcall7 handler for the domain
+	andl $-8192,%ebx	// GET_CURRENT
+	movl exec_domain(%ebx),%edx	// Get the execution domain
+	movl 4(%edx),%edx	// Get the lcall7 handler for the domain
 	pushl $0x27
 	call *%edx
 	addl $4, %esp
@@ -181,7 +181,7 @@ ENTRY(ret_from_fork)
 	call SYMBOL_NAME(schedule_tail)
 	addl $4, %esp
 	GET_CURRENT(%ebx)
-	testb $0x02,tsk_ptrace(%ebx)	# PT_TRACESYS
+	testb $0x02,tsk_ptrace(%ebx)	// PT_TRACESYS
 	jne tracesys_exit
 	jmp	ret_from_sys_call
 
@@ -193,24 +193,24 @@ ENTRY(ret_from_fork)
  */
 
 ENTRY(system_call)
-	pushl %eax			# save orig_eax
+	pushl %eax			// save orig_eax
 	SAVE_ALL
 	GET_CURRENT(%ebx)
 	cmpl $(NR_syscalls),%eax
 	jae badsys
-	testb $0x02,tsk_ptrace(%ebx)	# PT_TRACESYS
+	testb $0x02,tsk_ptrace(%ebx)	// PT_TRACESYS
 	jne tracesys
 	call *SYMBOL_NAME(sys_call_table)(,%eax,4)
-	movl %eax,EAX(%esp)		# save the return value
+	movl %eax,EAX(%esp)		// save the return value
 ENTRY(ret_from_sys_call)
 #ifdef CONFIG_SMP
 	movl processor(%ebx),%eax
 	shll $CONFIG_X86_L1_CACHE_SHIFT,%eax
-	movl SYMBOL_NAME(irq_stat)(,%eax),%ecx		# softirq_active
-	testl SYMBOL_NAME(irq_stat)+4(,%eax),%ecx	# softirq_mask
+	movl SYMBOL_NAME(irq_stat)(,%eax),%ecx		// softirq_active
+	testl SYMBOL_NAME(irq_stat)+4(,%eax),%ecx	// softirq_mask
 #else
-	movl SYMBOL_NAME(irq_stat),%ecx		# softirq_active
-	testl SYMBOL_NAME(irq_stat)+4,%ecx	# softirq_mask
+	movl SYMBOL_NAME(irq_stat),%ecx		// softirq_active
+	testl SYMBOL_NAME(irq_stat)+4,%ecx	// softirq_mask
 #endif
 	jne   handle_softirq
 	
@@ -224,7 +224,7 @@ restore_all:
 
 	ALIGN
 signal_return:
-	sti				# we can get here from an interrupt handler
+	sti				// we can get here from an interrupt handler
 	testl $(VM_MASK),EFLAGS(%esp)
 	movl %esp,%eax
 	jne v86_signal_return
@@ -248,7 +248,7 @@ tracesys:
 	cmpl $(NR_syscalls),%eax
 	jae tracesys_exit
 	call *SYMBOL_NAME(sys_call_table)(,%eax,4)
-	movl %eax,EAX(%esp)		# save the return value
+	movl %eax,EAX(%esp)		// save the return value
 tracesys_exit:
 	call SYMBOL_NAME(syscall_trace)
 	jmp ret_from_sys_call
@@ -262,19 +262,19 @@ ret_from_exception:
 	GET_CURRENT(%ebx)
 	movl processor(%ebx),%eax
 	shll $CONFIG_X86_L1_CACHE_SHIFT,%eax
-	movl SYMBOL_NAME(irq_stat)(,%eax),%ecx		# softirq_active
-	testl SYMBOL_NAME(irq_stat)+4(,%eax),%ecx	# softirq_mask
+	movl SYMBOL_NAME(irq_stat)(,%eax),%ecx		// softirq_active
+	testl SYMBOL_NAME(irq_stat)+4(,%eax),%ecx	// softirq_mask
 #else
-	movl SYMBOL_NAME(irq_stat),%ecx		# softirq_active
-	testl SYMBOL_NAME(irq_stat)+4,%ecx	# softirq_mask
+	movl SYMBOL_NAME(irq_stat),%ecx		// softirq_active
+	testl SYMBOL_NAME(irq_stat)+4,%ecx	// softirq_mask
 #endif
 	jne   handle_softirq
 
 ENTRY(ret_from_intr)
 	GET_CURRENT(%ebx)
-	movl EFLAGS(%esp),%eax		# mix EFLAGS and CS
+	movl EFLAGS(%esp),%eax		// mix EFLAGS and CS
 	movb CS(%esp),%al
-	testl $(VM_MASK | 3),%eax	# return to VM86 mode or non-supervisor?
+	testl $(VM_MASK | 3),%eax	// return to VM86 mode or non-supervisor?
 	jne ret_with_reschedule
 	jmp restore_all
 
@@ -285,11 +285,11 @@ handle_softirq:
 	
 	ALIGN
 reschedule:
-	call SYMBOL_NAME(schedule)    # test
+	call SYMBOL_NAME(schedule)    // test
 	jmp ret_from_sys_call
 
 ENTRY(divide_error)
-	pushl $0		# no error code
+	pushl $0		// no error code
 	pushl $ SYMBOL_NAME(do_divide_error)
 	ALIGN
 error_code:
@@ -300,18 +300,18 @@ error_code:
 	pushl %edi
 	pushl %esi
 	pushl %edx
-	decl %eax			# eax = -1
+	decl %eax			// eax = -1
 	pushl %ecx
 	pushl %ebx
 	cld
 	movl %es,%ecx
-	movl ORIG_EAX(%esp), %esi	# get the error code
-	movl ES(%esp), %edi		# get the function address
+	movl ORIG_EAX(%esp), %esi	// get the error code
+	movl ES(%esp), %edi		// get the function address
 	movl %eax, ORIG_EAX(%esp)
 	movl %ecx, ES(%esp)
 	movl %esp,%edx
-	pushl %esi			# push the error code
-	pushl %edx			# push the pt_regs pointer
+	pushl %esi			// push the error code
+	pushl %edx			// push the pt_regs pointer
 	movl $(__KERNEL_DS),%edx
 	movl %edx,%ds
 	movl %edx,%es
@@ -331,14 +331,14 @@ ENTRY(simd_coprocessor_error)
 	jmp error_code
 
 ENTRY(device_not_available)
-	pushl $-1		# mark this as an int
+	pushl $-1		// mark this as an int
 	SAVE_ALL
 	GET_CURRENT(%ebx)
 	pushl $ret_from_exception
 	movl %cr0,%eax
-	testl $0x4,%eax			# EM (math emulation bit)
+	testl $0x4,%eax			// EM (math emulation bit)
 	je SYMBOL_NAME(math_state_restore)
-	pushl $0		# temporary storage for ORIG_EIP
+	pushl $0		// temporary storage for ORIG_EIP
 	call  SYMBOL_NAME(math_emulate)
 	addl $4,%esp
 	ret

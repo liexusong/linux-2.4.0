@@ -776,7 +776,7 @@ static int init(void * unused)
 
 	(void) dup(0);
 	(void) dup(0);
-	
+
 	/*
 	 * We try each of these until one succeeds.
 	 *
