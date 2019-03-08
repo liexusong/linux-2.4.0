@@ -445,20 +445,20 @@ int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 	long retval, d0;
 
 	__asm__ __volatile__(
-		"movl %%esp,%%esi\n\t"
-		"int $0x80\n\t"		/* Linux/i386 system call */
-		"cmpl %%esp,%%esi\n\t"	/* child or parent? */
-		"je 1f\n\t"		/* parent - jump */
+		"movl %%esp,%%esi\n\t"   // 保存当前栈地址到esi寄存器中
+		"int $0x80\n\t"		/* Linux/i386 system call */ // 调用sys_clone()系统调用
+		"cmpl %%esp,%%esi\n\t"	/* child or parent? */ // 比较栈是否发生变化, 如果变化了说明是子进程
+		"je 1f\n\t"		/* parent - jump */ // 如果没变化说明是父进程
 		/* Load the argument into eax, and push it.  That way, it does
 		 * not matter whether the called function is compiled with
 		 * -mregparm or not.  */
 		"movl %4,%%eax\n\t"
-		"pushl %%eax\n\t"		
+		"pushl %%eax\n\t"
 		"call *%5\n\t"		/* call fn */
 		"movl %3,%0\n\t"	/* exit */
 		"int $0x80\n"
 		"1:\t"
-		:"=&a" (retval), "=&S" (d0)
+		:"=&a" (retval), "=&S" (d0) // 把esi输出到d0变量中
 		:"0" (__NR_clone), "i" (__NR_exit),
 		 "r" (arg), "r" (fn),
 		 "b" (flags | CLONE_VM)
@@ -536,6 +536,7 @@ int copy_thread(int nr, unsigned long clone_flags, unsigned long esp,
 {
 	struct pt_regs * childregs;
 
+	// 新进程的内核栈
 	childregs = ((struct pt_regs *) (THREAD_SIZE + (unsigned long) p)) - 1;
 	struct_cpy(childregs, regs);
 	childregs->eax = 0;
@@ -704,7 +705,7 @@ asmlinkage int sys_clone(struct pt_regs regs)
 	clone_flags = regs.ebx;
 	newsp = regs.ecx;
 	if (!newsp)
-		newsp = regs.esp;
+		newsp = regs.esp; // kernel_thread()函数的d0局部变量的值
 	return do_fork(clone_flags, newsp, &regs, 0);
 }
 

@@ -733,9 +733,9 @@ static void __init do_basic_setup(void)
 #endif
 
 	/* Mount the root filesystem.. */
-	mount_root();
+	mount_root(); // 挂载根目录文件系统
 
-	mount_devfs_fs ();
+	mount_devfs_fs (); // 挂载设备文件系统
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	root_mountflags = real_root_mountflags;
@@ -786,7 +786,7 @@ static int init(void * unused)
 
 	if (execute_command)
 		execve(execute_command,argv_init,envp_init);
-	execve("/sbin/init",argv_init,envp_init);
+	execve("/sbin/init",argv_init,envp_init); // 调用这个函数之后, init进程就会变成用户态进程
 	execve("/etc/init",argv_init,envp_init);
 	execve("/bin/init",argv_init,envp_init);
 	execve("/bin/sh",argv_init,envp_init);
