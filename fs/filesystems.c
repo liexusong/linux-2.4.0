@@ -27,7 +27,7 @@ extern int init_devpts_fs(void);
 
 void __init filesystem_setup(void)
 {
-	init_devfs_fs();  /*  Header file may make this empty  */
+	init_devfs_fs();  /*  Header file may make this empty  */ // 注册dev文件系统
 
 #ifdef CONFIG_NFS_FS
 	init_nfs_fs();

@@ -173,7 +173,7 @@ int vfs_permission(struct inode * inode,int mask)
 
 	/* read and search access */
 	if ((mask == S_IROTH) ||
-	    (S_ISDIR(inode->i_mode)  && !(mask & ~(S_IROTH | S_IXOTH))))
+	    (S_ISDIR(inode->i_mode) && !(mask & ~(S_IROTH | S_IXOTH))))
 		if (capable(CAP_DAC_READ_SEARCH))
 			return 0;
 
@@ -278,13 +278,13 @@ static struct dentry * real_lookup(struct dentry * parent, struct qstr * name, i
 	 * FIXME! This could use version numbering or similar to
 	 * avoid unnecessary cache lookups.
 	 */
-	result = d_lookup(parent, name);
+	result = d_lookup(parent, name); // 这里再从缓存中读一遍, 因为有可能在上锁时其他进程已经读到内存了
 	if (!result) {
-		struct dentry * dentry = d_alloc(parent, name);
+		struct dentry * dentry = d_alloc(parent, name); // 申请一个dentry结构
 		result = ERR_PTR(-ENOMEM);
 		if (dentry) {
 			lock_kernel();
-			result = dir->i_op->lookup(dir, dentry);
+			result = dir->i_op->lookup(dir, dentry); // 调用指定文件系统的lookup方法读取目录
 			unlock_kernel();
 			if (result)
 				dput(dentry);
@@ -354,7 +354,7 @@ static inline int __follow_down(struct vfsmount **mnt, struct dentry **dentry)
 	struct list_head *p;
 	spin_lock(&dcache_lock);
 	p = (*dentry)->d_vfsmnt.next;
-	while (p != &(*dentry)->d_vfsmnt) {
+	while (p != &(*dentry)->d_vfsmnt) { // 因为挂载点有可能是多重挂载, 所以要通过这种方式来处理
 		struct vfsmount *tmp;
 		tmp = list_entry(p, struct vfsmount, mnt_clash);
 		if (tmp->mnt_parent == *mnt) {
@@ -376,7 +376,8 @@ int follow_down(struct vfsmount **mnt, struct dentry **dentry)
 {
 	return __follow_down(mnt,dentry);
 }
- 
+
+// 处理 ".." (父)目录
 static inline void follow_dotdot(struct nameidata *nd)
 {
 	while(1) {
@@ -384,31 +385,33 @@ static inline void follow_dotdot(struct nameidata *nd)
 		struct dentry *dentry;
 		read_lock(&current->fs->lock);
 		if (nd->dentry == current->fs->root &&
-		    nd->mnt == current->fs->rootmnt)  {
+		    nd->mnt == current->fs->rootmnt)  { // 如果当前目录是根目录, 那么直接返回(因为根目录没有父目录)
 			read_unlock(&current->fs->lock);
 			break;
 		}
 		read_unlock(&current->fs->lock);
 		spin_lock(&dcache_lock);
-		if (nd->dentry != nd->mnt->mnt_root) {
+		if (nd->dentry != nd->mnt->mnt_root) { // 如果当前目录不是一个挂载点, 那么进入父目录
 			dentry = dget(nd->dentry->d_parent);
 			spin_unlock(&dcache_lock);
 			dput(nd->dentry);
 			nd->dentry = dentry;
 			break;
 		}
-		parent=nd->mnt->mnt_parent;
-		if (parent == nd->mnt) {
+		// 到这里说明当前目录是一个挂载点
+		parent=nd->mnt->mnt_parent; // 当前挂载点的父挂载点
+		if (parent == nd->mnt) {    // 如果当前挂载点的父挂载点就是本身, 说明是根挂载点(直接返回)
 			spin_unlock(&dcache_lock);
 			break;
 		}
-		mntget(parent);
+		mntget(parent); // 切换到父挂载点(上一级的挂载点)
 		dentry=dget(nd->mnt->mnt_mountpoint);
 		spin_unlock(&dcache_lock);
 		dput(nd->dentry);
 		nd->dentry = dentry;
 		mntput(nd->mnt);
 		nd->mnt = parent;
+		// 处理多级挂载...
 	}
 }
 /*
@@ -419,6 +422,7 @@ static inline void follow_dotdot(struct nameidata *nd)
  *
  * We expect 'base' to be positive and a directory.
  */
+// 这个函数用于搜索目录直到
 int path_walk(const char * name, struct nameidata *nd)
 {
 	struct dentry *dentry;
@@ -432,7 +436,7 @@ int path_walk(const char * name, struct nameidata *nd)
 		goto return_base;
 
 	inode = nd->dentry->d_inode;
-	if (current->link_count)
+	if (current->link_count) // 从连接进入的?
 		lookup_flags = LOOKUP_FOLLOW;
 
 	/* At this point we know we have a real path component. */
@@ -454,15 +458,15 @@ int path_walk(const char * name, struct nameidata *nd)
 			name++;
 			hash = partial_name_hash(c, hash);
 			c = *(const unsigned char *)name;
-		} while (c && (c != '/'));
+		} while (c && (c != '/')); // 一级级目录搜索
 		this.len = name - (const char *) this.name;
 		this.hash = end_name_hash(hash);
 
 		/* remove trailing slashes? */
-		if (!c)
+		if (!c)     // 最后一个目录(文件)
 			goto last_component;
 		while (*++name == '/');
-		if (!*name)
+		if (!*name) // 目录后面没有子目录(文件)
 			goto last_with_slashes;
 
 		/*
@@ -470,11 +474,11 @@ int path_walk(const char * name, struct nameidata *nd)
 		 * to be able to know about the current root directory and
 		 * parent relationships.
 		 */
-		if (this.name[0] == '.') switch (this.len) {
+		if (this.name[0] == '.') switch (this.len) { // 如果当前目录(文件)名是以"."开头
 			default:
 				break;
 			case 2:	
-				if (this.name[1] != '.')
+				if (this.name[1] != '.') // 处理 ".." 文件名
 					break;
 				follow_dotdot(nd);
 				inode = nd->dentry->d_inode;
@@ -492,15 +496,15 @@ int path_walk(const char * name, struct nameidata *nd)
 				break;
 		}
 		/* This does the actual lookups.. */
-		dentry = cached_lookup(nd->dentry, &this, LOOKUP_CONTINUE);
-		if (!dentry) {
-			dentry = real_lookup(nd->dentry, &this, LOOKUP_CONTINUE);
+		dentry = cached_lookup(nd->dentry, &this, LOOKUP_CONTINUE);   // 从缓存中读取目录的dentry结构
+		if (!dentry) { // 如果缓存中没有
+			dentry = real_lookup(nd->dentry, &this, LOOKUP_CONTINUE); // 从磁盘中读取目录的dentry结构
 			err = PTR_ERR(dentry);
 			if (IS_ERR(dentry))
 				break;
 		}
 		/* Check mountpoints.. */
-		while (d_mountpoint(dentry) && __follow_down(&nd->mnt, &dentry))
+		while (d_mountpoint(dentry) && __follow_down(&nd->mnt, &dentry)) // 如果目录是一个挂载点, 切换到新挂载点
 			;
 
 		err = -ENOENT;
@@ -525,7 +529,7 @@ int path_walk(const char * name, struct nameidata *nd)
 				break;
 		} else {
 			dput(nd->dentry);
-			nd->dentry = dentry;
+			nd->dentry = dentry; // 设置新的目录dentry结构
 		}
 		err = -ENOTDIR; 
 		if (!inode->i_op->lookup)
@@ -555,6 +559,7 @@ last_component:
 			if (err < 0)
 				break;
 		}
+		// 查找最后一级目录(文件)
 		dentry = cached_lookup(nd->dentry, &this, 0);
 		if (!dentry) {
 			dentry = real_lookup(nd->dentry, &this, 0);
@@ -579,9 +584,9 @@ last_component:
 		err = -ENOENT;
 		if (!inode)
 			goto no_inode;
-		if (lookup_flags & LOOKUP_DIRECTORY) {
-			err = -ENOTDIR; 
-			if (!inode->i_op || !inode->i_op->lookup)
+		if (lookup_flags & LOOKUP_DIRECTORY) { // 如果必须是一个目录
+			err = -ENOTDIR;
+			if (!inode->i_op || !inode->i_op->lookup) // 如果没有提供lookup方法, 表示不是一个目录
 				break;
 		}
 		goto return_base;
@@ -688,11 +693,12 @@ walk_init_root(const char *name, struct nameidata *nd)
 }
 
 /* SMP-safe */
+// 初始化nameidata
 int path_init(const char *name, unsigned int flags, struct nameidata *nd)
 {
 	nd->last_type = LAST_ROOT; /* if there are only slashes... */
 	nd->flags = flags;
-	if (*name=='/')
+	if (*name=='/') // 如果是绝对路径
 		return walk_init_root(name,nd);
 	read_lock(&current->fs->lock);
 	nd->mnt = mntget(current->fs->pwdmnt);
@@ -1992,6 +1998,6 @@ int page_follow_link(struct dentry *dentry, struct nameidata *nd)
 }
 
 struct inode_operations page_symlink_inode_operations = {
-	readlink:	page_readlink,
-	follow_link:	page_follow_link,
+	readlink:    page_readlink,
+	follow_link: page_follow_link,
 };

@@ -454,9 +454,9 @@ struct inode {
 		struct udf_inode_info		udf_i;
 		struct ncp_inode_info		ncpfs_i;
 		struct proc_inode_info		proc_i;
-		struct socket			socket_i;
-		struct usbdev_inode_info        usbdev_i;
-		void				*generic_ip;
+		struct socket				socket_i;
+		struct usbdev_inode_info	usbdev_i;
+		void						*generic_ip;
 	} u;
 };
 
@@ -496,23 +496,23 @@ struct fown_struct {
 };
 
 struct file {
-	struct list_head	f_list;
-	struct dentry		*f_dentry;
+	struct list_head		f_list;
+	struct dentry			*f_dentry;
 	struct vfsmount         *f_vfsmnt;
 	struct file_operations	*f_op;
-	atomic_t		f_count;
-	unsigned int 		f_flags;
-	mode_t			f_mode;
-	loff_t			f_pos;
-	unsigned long 		f_reada, f_ramax, f_raend, f_ralen, f_rawin;
-	struct fown_struct	f_owner;
-	unsigned int		f_uid, f_gid;
-	int			f_error;
+	atomic_t				f_count;
+	unsigned int 			f_flags;
+	mode_t					f_mode;
+	loff_t					f_pos;
+	unsigned long 			f_reada, f_ramax, f_raend, f_ralen, f_rawin;
+	struct fown_struct		f_owner;
+	unsigned int			f_uid, f_gid;
+	int						f_error;
 
-	unsigned long		f_version;
+	unsigned long			f_version;
 
 	/* needed for tty driver, and maybe others */
-	void			*private_data;
+	void					*private_data;
 };
 extern spinlock_t files_lock;
 #define file_list_lock() spin_lock(&files_lock);
@@ -664,7 +664,7 @@ extern struct list_head super_blocks;
 #define sb_entry(list)	list_entry((list), struct super_block, s_list)
 struct super_block {
 	struct list_head	s_list;		/* Keep this first */
-	kdev_t			s_dev;
+	kdev_t				s_dev;
 	unsigned long		s_blocksize;
 	unsigned char		s_blocksize_bits;
 	unsigned char		s_lock;
@@ -846,14 +846,14 @@ struct file_system_type {
 };
 
 #define DECLARE_FSTYPE(var,type,read,flags) \
-struct file_system_type var = { \
-	name:		type, \
-	read_super:	read, \
-	fs_flags:	flags, \
-	owner:		THIS_MODULE, \
+struct file_system_type var = { 			\
+	name:		type, 						\
+	read_super:	read, 						\
+	fs_flags:	flags, 						\
+	owner:		THIS_MODULE, 				\
 }
 
-#define DECLARE_FSTYPE_DEV(var,type,read) \
+#define DECLARE_FSTYPE_DEV(var,type,read) 	\
 	DECLARE_FSTYPE(var,type,read,FS_REQUIRES_DEV)
 
 /* Alas, no aliases. Too much hassle with bringing module.h everywhere */

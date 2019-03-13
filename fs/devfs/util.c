@@ -88,18 +88,16 @@ void __init devfs_make_root (const char *name)
 {
     char dest[64];
 
-    if ( (strncmp (name, "sd/", 3) == 0) || (strncmp (name, "sr/", 3) == 0) )
-    {
-	strcpy (dest, "../scsi");
-	_devfs_convert_name (dest + 7, name + 3, (name[1] == 'd') ? 1 : 0);
+    if ((strncmp(name, "sd/", 3) == 0) || (strncmp(name, "sr/", 3) == 0)) {
+	    strcpy (dest, "../scsi");
+	    _devfs_convert_name (dest + 7, name + 3, (name[1] == 'd') ? 1 : 0);
     }
-    else if ( (strncmp (name, "ide/hd/", 7) == 0) ||
-	      (strncmp (name, "ide/cd/", 7) == 0) )
-    {
-	strcpy (dest, "..");
-	_devfs_convert_name (dest + 2, name + 7, (name[4] == 'h') ? 1 : 0);
+    else if ((strncmp (name, "ide/hd/", 7) == 0) || (strncmp (name, "ide/cd/", 7) == 0)) {
+	    strcpy (dest, "..");
+	    _devfs_convert_name (dest + 2, name + 7, (name[4] == 'h') ? 1 : 0);
     }
     else return;
+
     devfs_mk_symlink (NULL, name, DEVFS_FL_DEFAULT, dest, NULL, NULL);
 }   /*  End Function devfs_make_root  */
 

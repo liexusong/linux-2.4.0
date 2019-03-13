@@ -656,7 +656,7 @@ static struct inode * get_new_inode(struct super_block *sb, unsigned long ino, s
 {
 	struct inode * inode;
 
-	inode = alloc_inode();
+	inode = alloc_inode(); // 申请一个新的inode对象
 	if (inode) {
 		struct inode * old;
 

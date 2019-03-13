@@ -15,7 +15,7 @@
  *  Added kerneld support: Jacques Gelinas and Bjorn Ekwall
  *  Added change_root: Werner Almesberger & Hans Lermen, Feb '96
  *  Added options to /proc/mounts:
- *    Torbj�rn Lindh (torbjorn.lindh@gopta.se), April 14, 1996.
+ *    Torbjörn Lindh (torbjorn.lindh@gopta.se), April 14, 1996.
  *  Added devfs support: Richard Gooch <rgooch@atnf.csiro.au>, 13-JAN-1998
  *  Heavily rewritten for 'one fs - one tree' dcache architecture. AV, Mar 2000
  */
@@ -329,7 +329,7 @@ static struct vfsmount *add_vfsmnt(struct nameidata *nd,
 	}
 	mnt->mnt_owner = current->uid;
 	atomic_set(&mnt->mnt_count,1);
-	mnt->mnt_sb = sb;
+	mnt->mnt_sb = sb;  // 挂载点的超级块
 
 	spin_lock(&dcache_lock);
 	if (nd && !IS_ROOT(nd->dentry) && d_unhashed(nd->dentry))
@@ -346,8 +346,8 @@ static struct vfsmount *add_vfsmnt(struct nameidata *nd,
 		INIT_LIST_HEAD(&mnt->mnt_clash);
 	}
 	INIT_LIST_HEAD(&mnt->mnt_mounts);
-	list_add(&mnt->mnt_instances, &sb->s_mounts);
-	list_add(&mnt->mnt_list, vfsmntlist.prev);
+	list_add(&mnt->mnt_instances, &sb->s_mounts); // 因为一个超级块可以挂载多个目录
+	list_add(&mnt->mnt_list, vfsmntlist.prev);    // 把挂载点添加到全局链表中
 	spin_unlock(&dcache_lock);
 out:
 	return mnt;
@@ -723,7 +723,7 @@ static struct super_block * read_super(kdev_t dev, struct block_device *bdev,
 				       void *data, int silent)
 {
 	struct super_block * s;
-	s = get_empty_super();
+	s = get_empty_super();  // 获取一个空的超级块对象
 	if (!s)
 		goto out;
 	s->s_dev = dev;
@@ -967,14 +967,17 @@ static int do_remount_sb(struct super_block *sb, int flags, char *data)
 	return 0;
 }
 
+//
+// kern_mount() 函数会把文件系统挂载到任意的设备号中
+//
 struct vfsmount *kern_mount(struct file_system_type *type)
 {
-	kdev_t dev = get_unnamed_dev();
+	kdev_t dev = get_unnamed_dev(); // 找到一个没有使用的设备号
 	struct super_block *sb;
 	struct vfsmount *mnt;
 	if (!dev)
 		return ERR_PTR(-EMFILE);
-	sb = read_super(dev, NULL, type, 0, NULL, 0);
+	sb = read_super(dev, NULL, type, 0, NULL, 0); // 读取超级块
 	if (!sb) {
 		put_unnamed_dev(dev);
 		return ERR_PTR(-EINVAL);
@@ -984,7 +987,7 @@ struct vfsmount *kern_mount(struct file_system_type *type)
 		kill_super(sb, 0);
 		return ERR_PTR(-ENOMEM);
 	}
-	type->kern_mnt = mnt;
+	type->kern_mnt = mnt; // 保存挂载点
 	return mnt;
 }
 
@@ -1364,7 +1367,7 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 	/* ... and mountpoint. Do the lookup first to force automounting. */
 	if (path_init(dir_name,
 		      LOOKUP_FOLLOW|LOOKUP_POSITIVE|LOOKUP_DIRECTORY, &nd))
-		retval = path_walk(dir_name, &nd);
+		retval = path_walk(dir_name, &nd); // 读取路径的信息
 	if (retval)
 		goto fs_out;
 
@@ -1471,7 +1474,7 @@ void __init mount_root(void)
 	char path[64];
 	int path_start = -1;
 
-#ifdef CONFIG_ROOT_NFS
+#ifdef CONFIG_ROOT_NFS  // 是否有网络文件系统启动
 	void *data;
 	if (MAJOR(ROOT_DEV) != UNNAMED_MAJOR)
 		goto skip_nfs;
@@ -1547,7 +1550,7 @@ skip_nfs:
 	if (!ROOT_DEV)
 		panic("I have no root and I want to scream");
 
-	bdev = bdget(kdev_t_to_nr(ROOT_DEV));
+	bdev = bdget(kdev_t_to_nr(ROOT_DEV)); // 获取块设备对象
 	if (!bdev)
 		panic(__FUNCTION__ ": unable to allocate root device");
 	bdev->bd_op = devfs_get_ops (handle);
@@ -1573,7 +1576,7 @@ skip_nfs:
 	}
 
 	check_disk_change(ROOT_DEV);
-	sb = get_super(ROOT_DEV);
+	sb = get_super(ROOT_DEV); // 获取根目录超级块
 	if (sb) {
 		fs_type = sb->s_type;
 		goto mount_it;
@@ -1586,8 +1589,8 @@ skip_nfs:
 		if (!try_inc_mod_count(fs_type->owner))
 			continue;
 		read_unlock(&file_systems_lock);
-  		sb = read_super(ROOT_DEV,bdev,fs_type,root_mountflags,NULL,1);
-		if (sb) 
+  		sb = read_super(ROOT_DEV,bdev,fs_type,root_mountflags,NULL,1); // 读取根目录超级块
+		if (sb)
 			goto mount_it;
 		read_lock(&file_systems_lock);
 		put_filesystem(fs_type);
@@ -1606,7 +1609,7 @@ mount_it:
 		vfsmnt = add_vfsmnt(NULL, sb->s_root, path + path_start);
 	}
 	else
-		vfsmnt = add_vfsmnt(NULL, sb->s_root, "/dev/root");
+		vfsmnt = add_vfsmnt(NULL, sb->s_root, "/dev/root"); // 将根目录dentry挂载到设备文件"/dev/root"中
 	/* FIXME: if something will try to umount us right now... */
 	if (vfsmnt) {
 		set_fs_root(current->fs, vfsmnt, sb->s_root);

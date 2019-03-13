@@ -1,2 +1,1 @@
-sys_brk();
-kswapd();
+path_init();

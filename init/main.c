@@ -296,6 +296,7 @@ kdev_t __init name_to_kdev_t(char *line)
 	return to_kdev_t(base + simple_strtoul(line,NULL,base?10:16));
 }
 
+// 设置设备文件系统根目录
 static int __init root_dev_setup(char *line)
 {
 	int i;
@@ -303,7 +304,7 @@ static int __init root_dev_setup(char *line)
 
 	ROOT_DEV = name_to_kdev_t(line);
 	memset (root_device_name, 0, sizeof root_device_name);
-	if (strncmp (line, "/dev/", 5) == 0) line += 5;
+	if (strncmp (line, "/dev/", 5) == 0) line += 5; // 跳过 "/dev/"
 	for (i = 0; i < sizeof root_device_name - 1; ++i)
 	{
 	    ch = line[i];
@@ -733,8 +734,7 @@ static void __init do_basic_setup(void)
 #endif
 
 	/* Mount the root filesystem.. */
-	mount_root(); // 挂载根目录文件系统
-
+	mount_root();      // 挂载根目录文件系统
 	mount_devfs_fs (); // 挂载设备文件系统
 
 #ifdef CONFIG_BLK_DEV_INITRD
