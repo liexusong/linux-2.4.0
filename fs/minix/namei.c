@@ -122,7 +122,7 @@ static struct dentry *minix_lookup(struct inode * dir, struct dentry *dentry)
 #endif
 	bh = minix_find_entry(dir, dentry->d_name.name, dentry->d_name.len, &de);
 	if (bh) {
-		int ino = de->inode;
+		int ino = de->inode; // inode号
 		brelse (bh);
 		inode = iget(dir->i_sb, ino);
  

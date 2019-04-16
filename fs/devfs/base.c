@@ -744,14 +744,14 @@ static struct devfs_entry *search_for_entry_in_dir (struct devfs_entry *parent,
 
     if ( !S_ISDIR (parent->mode) )
     {
-  printk ("%s: entry is not a directory\n", DEVFS_NAME);
-  return NULL;
+      printk ("%s: entry is not a directory\n", DEVFS_NAME);
+      return NULL;
     }
     for (curr = parent->u.dir.first; curr != NULL; curr = curr->next)
     {
-  if (curr->namelen != namelen) continue;
-  if (memcmp (curr->name, name, namelen) == 0) break;
-  /*  Not found: try the next one  */
+      if (curr->namelen != namelen) continue;
+      if (memcmp (curr->name, name, namelen) == 0) break;
+      /*  Not found: try the next one  */
     }
     if (curr == NULL) return NULL;
     if (!S_ISLNK (curr->mode) || !traverse_symlink) return curr;
@@ -1767,7 +1767,7 @@ void *devfs_get_ops (devfs_handle_t de)
     if (de == NULL) return NULL;
     if (!de->registered) return NULL;
     if ( S_ISCHR (de->mode) || S_ISBLK (de->mode) || S_ISREG (de->mode) )
-  return de->u.fcb.ops;
+      return de->u.fcb.ops;
     return NULL;
 }   /*  End Function devfs_get_ops  */
 
@@ -2922,8 +2922,8 @@ static int devfs_mkdir (struct inode *dir, struct dentry *dentry, int mode)
     if (de == NULL) return -ENOMEM;
     if (de->registered)
     {
-  printk ("%s: mkdir(): existing entry\n", DEVFS_NAME);
-  return -EEXIST;
+      printk ("%s: mkdir(): existing entry\n", DEVFS_NAME);
+      return -EEXIST;
     }
     de->registered = TRUE;
     de->hide = FALSE;
@@ -3020,25 +3020,25 @@ static int devfs_mknod (struct inode *dir, struct dentry *dentry, int mode,
     if (de == NULL) return -ENOMEM;
     if (!de->registered)
     {
-  /*  Since we created the devfs entry we get to choose things  */
-  de->info = NULL;
-  de->mode = mode;
-  if ( S_ISBLK (mode) || S_ISCHR (mode) )
-  {
-      de->u.fcb.u.device.major = MAJOR (rdev);
-      de->u.fcb.u.device.minor = MINOR (rdev);
-      de->u.fcb.default_uid = current->euid;
-      de->u.fcb.default_gid = current->egid;
-      de->u.fcb.ops = NULL;
-      de->u.fcb.auto_owner = FALSE;
-      de->u.fcb.aopen_notify = FALSE;
-      de->u.fcb.open = FALSE;
-  }
-  else if ( S_ISFIFO (mode) )
-  {
-      de->u.fifo.uid = current->euid;
-      de->u.fifo.gid = current->egid;
-  }
+      /*  Since we created the devfs entry we get to choose things  */
+      de->info = NULL;
+      de->mode = mode;
+      if ( S_ISBLK (mode) || S_ISCHR (mode) )
+      {
+          de->u.fcb.u.device.major = MAJOR (rdev);
+          de->u.fcb.u.device.minor = MINOR (rdev);
+          de->u.fcb.default_uid = current->euid;
+          de->u.fcb.default_gid = current->egid;
+          de->u.fcb.ops = NULL;
+          de->u.fcb.auto_owner = FALSE;
+          de->u.fcb.aopen_notify = FALSE;
+          de->u.fcb.open = FALSE;
+      }
+      else if ( S_ISFIFO (mode) )
+      {
+          de->u.fifo.uid = current->euid;
+          de->u.fifo.gid = current->egid;
+      }
     }
     de->registered = TRUE;
     de->show_unreg = FALSE;
@@ -3050,7 +3050,7 @@ static int devfs_mknod (struct inode *dir, struct dentry *dentry, int mode,
     de->inode.mtime = CURRENT_TIME;
     de->inode.ctime = CURRENT_TIME;
     if ( ( inode = get_vfs_inode (dir->i_sb, de, dentry) ) == NULL )
-  return -ENOMEM;
+      return -ENOMEM;
 #ifdef CONFIG_DEVFS_DEBUG
     if (devfs_debug & DEBUG_I_MKNOD)
   printk ("%s:   new VFS inode(%u): %p  dentry: %p\n",
@@ -3363,6 +3363,7 @@ int __init init_devfs_fs (void)
     return err;
 }   /*  End Function init_devfs_fs  */
 
+// 在init/main.c中被调用
 void __init mount_devfs_fs (void)
 {
     int err;

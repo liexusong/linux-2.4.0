@@ -57,12 +57,12 @@ static inline int ext2_match (int len, const char * const name,
  * itself (as a parameter - res_dir). It does NOT read the inode of the
  * entry - you'll have to do that yourself if you want to.
  */
-static struct buffer_head * ext2_find_entry (struct inode * dir,
+static struct buffer_head * ext2_find_entry(struct inode * dir,
 					     const char * const name, int namelen,
 					     struct ext2_dir_entry_2 ** res_dir)
 {
 	struct super_block * sb;
-	struct buffer_head * bh_use[NAMEI_RA_SIZE];
+	struct buffer_head * bh_use[NAMEI_RA_SIZE];   // NAMEI_RA_SIZE == 8
 	struct buffer_head * bh_read[NAMEI_RA_SIZE];
 	unsigned long offset;
 	int block, toread, i, err;
@@ -73,14 +73,15 @@ static struct buffer_head * ext2_find_entry (struct inode * dir,
 	if (namelen > EXT2_NAME_LEN)
 		return NULL;
 
-	memset (bh_use, 0, sizeof (bh_use));
+	memset(bh_use, 0, sizeof (bh_use));
 	toread = 0;
+
 	for (block = 0; block < NAMEI_RA_SIZE; ++block) {
 		struct buffer_head * bh;
 
-		if ((block << EXT2_BLOCK_SIZE_BITS (sb)) >= dir->i_size)
+		if ((block << EXT2_BLOCK_SIZE_BITS(sb)) >= dir->i_size)
 			break;
-		bh = ext2_getblk (dir, block, 0, &err);
+		bh = ext2_getblk(dir, block, 0, &err);
 		bh_use[block] = bh;
 		if (bh && !buffer_uptodate(bh))
 			bh_read[toread++] = bh;
@@ -169,12 +170,13 @@ static struct dentry *ext2_lookup(struct inode * dir, struct dentry *dentry)
 	if (dentry->d_name.len > EXT2_NAME_LEN)
 		return ERR_PTR(-ENAMETOOLONG);
 
-	bh = ext2_find_entry (dir, dentry->d_name.name, dentry->d_name.len, &de);
+	// 在dir目录中查找dentry指定的文件
+	bh = ext2_find_entry(dir, dentry->d_name.name, dentry->d_name.len, &de);
 	inode = NULL;
 	if (bh) {
-		unsigned long ino = le32_to_cpu(de->inode);
+		unsigned long ino = le32_to_cpu(de->inode); // 找到的只是文件的inode号
 		brelse (bh);
-		inode = iget(dir->i_sb, ino);
+		inode = iget(dir->i_sb, ino); // 所以这里还要把inode从磁盘读取到内存中
 
 		if (!inode)
 			return ERR_PTR(-EACCES);

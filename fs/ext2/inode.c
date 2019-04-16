@@ -231,10 +231,10 @@ static int ext2_block_to_path(struct inode *inode, long i_block, int offsets[4])
  *	the whole chain, all way to the data (returns %NULL, *err == 0).
  */
 static inline Indirect *ext2_get_branch(struct inode *inode,
-					int depth,
-					int *offsets,
-					Indirect chain[4],
-					int *err)
+										int depth,
+										int *offsets,
+										Indirect chain[4],
+										int *err)
 {
 	kdev_t dev = inode->i_dev;
 	int size = inode->i_sb->s_blocksize;
@@ -320,10 +320,10 @@ static inline unsigned long ext2_find_near(struct inode *inode, Indirect *ind)
  */
 
 static inline int ext2_find_goal(struct inode *inode,
-				 long block,
-				 Indirect chain[4],
-				 Indirect *partial,
-				 unsigned long *goal)
+								 long block,
+								 Indirect chain[4],
+								 Indirect *partial,
+								 unsigned long *goal)
 {
 	/* Writer: ->i_next_alloc* */
 	if (block == inode->u.ext2_i.i_next_alloc_block + 1) {
@@ -373,10 +373,10 @@ static inline int ext2_find_goal(struct inode *inode,
  */
 
 static int ext2_alloc_branch(struct inode *inode,
-			     int num,
-			     unsigned long goal,
-			     int *offsets,
-			     Indirect *branch)
+						     int num,
+						     unsigned long goal,
+						     int *offsets,
+						     Indirect *branch)
 {
 	int blocksize = inode->i_sb->s_blocksize;
 	int n = 0;
@@ -440,10 +440,10 @@ static int ext2_alloc_branch(struct inode *inode,
  */
 
 static inline int ext2_splice_branch(struct inode *inode,
-				     long block,
-				     Indirect chain[4],
-				     Indirect *where,
-				     int num)
+								     long block,
+								     Indirect chain[4],
+								     Indirect *where,
+								     int num)
 {
 	int i;
 
@@ -723,10 +723,10 @@ static inline int all_zeroes(u32 *p, u32 *q)
  */
 
 static Indirect *ext2_find_shared(struct inode *inode,
-				int depth,
-				int offsets[4],
-				Indirect chain[4],
-				u32 *top)
+								  int depth,
+								  int offsets[4],
+								  Indirect chain[4],
+								  u32 *top)
 {
 	Indirect *partial, *p;
 	int k, err;

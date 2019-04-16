@@ -6,7 +6,7 @@
  *  GK 2/5/95  -  Changed to support mounting root fs via NFS
  *  Added initrd & change_root: Werner Almesberger & Hans Lermen, Feb '96
  *  Moan early if gcc is old, avoiding bogus kernels - Paul Gortmaker, May '96
- *  Simplified starting of init:  Michael A. Griffith <grif@acm.org> 
+ *  Simplified starting of init:  Michael A. Griffith <grif@acm.org>
  */
 
 #define __KERNEL_SYSCALLS__
@@ -191,7 +191,7 @@ static struct dev_name_struct {
 	{ "add",     0x1c30 },
 	{ "ade",     0x1c40 },
 	{ "fd",      0x0200 },
-	{ "md",      0x0900 },	     
+	{ "md",      0x0900 },
 	{ "xda",     0x0d00 },
 	{ "xdb",     0x0d40 },
 	{ "ram",     0x0100 },
@@ -376,7 +376,7 @@ void __init calibrate_delay(void)
 			loops_per_jiffy &= ~loopbit;
 	}
 
-/* Round the value and print it */	
+/* Round the value and print it */
 	printk("%lu.%02lu BogoMIPS\n",
 		loops_per_jiffy/(500000/HZ),
 		(loops_per_jiffy/(5000/HZ)) % 100);
@@ -466,7 +466,7 @@ static void __init parse_options(char *line)
 		}
 		if (checksetup(line))
 			continue;
-		
+
 		/*
 		 * Then check if it's an environment variable or
 		 * an option.
@@ -510,14 +510,14 @@ static void __init smp_init(void)
 	smp_boot_cpus();
 	smp_threads_ready=1;
 	smp_commence();
-}		
+}
 
 #endif
 
 /*
  *	Activate the first processor.
  */
- 
+
 asmlinkage void __init start_kernel(void)
 {
 	char * command_line;
@@ -552,7 +552,7 @@ asmlinkage void __init start_kernel(void)
 		/* only text is profiled */
 		prof_len = (unsigned long) &_etext - (unsigned long) &_stext;
 		prof_len >>= prof_shift;
-		
+
 		size = prof_len * sizeof(unsigned int) + PAGE_SIZE-1;
 		prof_buffer = (unsigned int *) alloc_bootmem(size);
 	}
@@ -596,8 +596,8 @@ asmlinkage void __init start_kernel(void)
 	check_bugs();
 	printk("POSIX conformance testing by UNIFIX\n");
 
-	/* 
-	 *	We count on the initial thread going ok 
+	/*
+	 *	We count on the initial thread going ok
 	 *	Like idlers init is an unlocked kernel thread, which will
 	 *	make syscalls (and thus be locked).
 	 */
@@ -710,7 +710,7 @@ static void __init do_basic_setup(void)
 	tc_init();
 #endif
 
-	/* Networking initialization needs a process context */ 
+	/* Networking initialization needs a process context */
 	sock_init();
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -735,7 +735,7 @@ static void __init do_basic_setup(void)
 
 	/* Mount the root filesystem.. */
 	mount_root();      // 挂载根目录文件系统
-	mount_devfs_fs (); // 挂载设备文件系统
+	mount_devfs_fs();  // 挂载设备文件系统
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	root_mountflags = real_root_mountflags;
@@ -780,7 +780,7 @@ static int init(void * unused)
 	/*
 	 * We try each of these until one succeeds.
 	 *
-	 * The Bourne shell can be used instead of init if we are 
+	 * The Bourne shell can be used instead of init if we are
 	 * trying to recover a really broken machine.
 	 */
 

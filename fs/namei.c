@@ -284,7 +284,7 @@ static struct dentry * real_lookup(struct dentry * parent, struct qstr * name, i
 		result = ERR_PTR(-ENOMEM);
 		if (dentry) {
 			lock_kernel();
-			result = dir->i_op->lookup(dir, dentry); // 调用指定文件系统的lookup方法读取目录
+			result = dir->i_op->lookup(dir, dentry); // 调用真实文件系统的lookup方法读取目录(如minix文件系统是: minix_lookup)
 			unlock_kernel();
 			if (result)
 				dput(dentry);
@@ -354,7 +354,7 @@ static inline int __follow_down(struct vfsmount **mnt, struct dentry **dentry)
 	struct list_head *p;
 	spin_lock(&dcache_lock);
 	p = (*dentry)->d_vfsmnt.next;
-	while (p != &(*dentry)->d_vfsmnt) { // 因为挂载点有可能是多重挂载, 所以要通过这种方式来处理
+	while (p != &(*dentry)->d_vfsmnt) { // 因为同一个文件系统有可能被挂载到不同的目录中
 		struct vfsmount *tmp;
 		tmp = list_entry(p, struct vfsmount, mnt_clash);
 		if (tmp->mnt_parent == *mnt) {
@@ -363,7 +363,7 @@ static inline int __follow_down(struct vfsmount **mnt, struct dentry **dentry)
 			mntput(tmp->mnt_parent);
 			/* tmp holds the mountpoint, so... */
 			dput(*dentry);
-			*dentry = dget(tmp->mnt_root);
+			*dentry = dget(tmp->mnt_root); // 切换到挂载点的根目录
 			return 1;
 		}
 		p = p->next;
@@ -445,7 +445,7 @@ int path_walk(const char * name, struct nameidata *nd)
 		struct qstr this;
 		unsigned int c;
 
-		err = permission(inode, MAY_EXEC);
+		err = permission(inode, MAY_EXEC); // 验证权限(是否能执行)
 		dentry = ERR_PTR(err);
  		if (err)
 			break;
@@ -509,7 +509,7 @@ int path_walk(const char * name, struct nameidata *nd)
 
 		err = -ENOENT;
 		inode = dentry->d_inode;
-		if (!inode)
+		if (!inode) // 如果找不到inode, 说明有错误
 			goto out_dput;
 		err = -ENOTDIR; 
 		if (!inode->i_op)
@@ -531,11 +531,13 @@ int path_walk(const char * name, struct nameidata *nd)
 			dput(nd->dentry);
 			nd->dentry = dentry; // 设置新的目录dentry结构
 		}
-		err = -ENOTDIR; 
+		err = -ENOTDIR; // 如果不是一个目录
 		if (!inode->i_op->lookup)
 			break;
 		continue;
 		/* here ends the main loop */
+
+		// 处理最后一级目录(文件)
 
 last_with_slashes:
 		lookup_flags |= LOOKUP_FOLLOW | LOOKUP_DIRECTORY;
@@ -559,7 +561,6 @@ last_component:
 			if (err < 0)
 				break;
 		}
-		// 查找最后一级目录(文件)
 		dentry = cached_lookup(nd->dentry, &this, 0);
 		if (!dentry) {
 			dentry = real_lookup(nd->dentry, &this, 0);
@@ -595,7 +596,7 @@ no_inode:
 		if (lookup_flags & (LOOKUP_POSITIVE|LOOKUP_DIRECTORY))
 			break;
 		goto return_base;
-lookup_parent:
+lookup_parent: // 获取父目录dentry
 		nd->last = this;
 		nd->last_type = LAST_NORM;
 		if (this.name[0] != '.')
@@ -967,7 +968,7 @@ int open_namei(const char * pathname, int flag, int mode, struct nameidata *nd)
 	/*
 	 * Create - we need to know the parent.
 	 */
-	if (path_init(pathname, LOOKUP_PARENT, nd))
+	if (path_init(pathname, LOOKUP_PARENT, nd)) // 获取父目录的dentry
 		error = path_walk(pathname, nd);
 	if (error)
 		return error;
@@ -1032,7 +1033,8 @@ do_last:
 	error = -EISDIR;
 	if (dentry->d_inode && S_ISDIR(dentry->d_inode->i_mode))
 		goto exit;
-ok:
+
+ok: // 验证权限
 	error = -ENOENT;
 	inode = dentry->d_inode;
 	if (!inode)
@@ -1041,7 +1043,7 @@ ok:
 	error = -ELOOP;
 	if (S_ISLNK(inode->i_mode))
 		goto exit;
-	
+
 	error = -EISDIR;
 	if (S_ISDIR(inode->i_mode) && (flag & FMODE_WRITE))
 		goto exit;

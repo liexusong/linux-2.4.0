@@ -304,8 +304,8 @@ static LIST_HEAD(vfsmntlist);
  */
 
 static struct vfsmount *add_vfsmnt(struct nameidata *nd,
-				struct dentry *root,
-				const char *dev_name)
+									struct dentry *root,
+									const char *dev_name)
 {
 	struct vfsmount *mnt;
 	struct super_block *sb = root->d_inode->i_sb;
@@ -334,9 +334,9 @@ static struct vfsmount *add_vfsmnt(struct nameidata *nd,
 	spin_lock(&dcache_lock);
 	if (nd && !IS_ROOT(nd->dentry) && d_unhashed(nd->dentry))
 		goto fail;
-	mnt->mnt_root = dget(root);
-	mnt->mnt_mountpoint = nd ? dget(nd->dentry) : dget(root);
-	mnt->mnt_parent = nd ? mntget(nd->mnt) : mnt;
+	mnt->mnt_root = dget(root);                               // 挂载的根目录
+	mnt->mnt_mountpoint = nd ? dget(nd->dentry) : dget(root); // 挂载所在的目录
+	mnt->mnt_parent = nd ? mntget(nd->mnt) : mnt;             // 父挂载点
 
 	if (nd) {
 		list_add(&mnt->mnt_child, &nd->mnt->mnt_mounts);
@@ -346,7 +346,7 @@ static struct vfsmount *add_vfsmnt(struct nameidata *nd,
 		INIT_LIST_HEAD(&mnt->mnt_clash);
 	}
 	INIT_LIST_HEAD(&mnt->mnt_mounts);
-	list_add(&mnt->mnt_instances, &sb->s_mounts); // 因为一个超级块可以挂载多个目录
+	list_add(&mnt->mnt_instances, &sb->s_mounts);
 	list_add(&mnt->mnt_list, vfsmntlist.prev);    // 把挂载点添加到全局链表中
 	spin_unlock(&dcache_lock);
 out:
@@ -737,7 +737,7 @@ static struct super_block * read_super(kdev_t dev, struct block_device *bdev,
 	sema_init(&s->s_dquot.dqoff_sem, 1);
 	s->s_dquot.flags = 0;
 	lock_super(s);
-	if (!type->read_super(s, data, silent))
+	if (!type->read_super(s, data, silent)) // 如果是minix文件系统对应的是minix_read_super()
 		goto out_fail;
 	unlock_super(s);
 	/* tell bdcache that we are going to keep this one */
@@ -941,7 +941,7 @@ static void kill_super(struct super_block *sb, int umount_root)
 static int do_remount_sb(struct super_block *sb, int flags, char *data)
 {
 	int retval;
-	
+
 	if (!(flags & MS_RDONLY) && sb->s_dev && is_read_only(sb->s_dev))
 		return -EACCES;
 		/*flags |= MS_RDONLY;*/
@@ -968,7 +968,7 @@ static int do_remount_sb(struct super_block *sb, int flags, char *data)
 }
 
 //
-// kern_mount() 函数会把文件系统挂载到任意的设备号中
+// 特殊文件系统挂载(譬如devfs,proc), kern_mount() 函数会把文件系统挂载到任意的设备号中
 //
 struct vfsmount *kern_mount(struct file_system_type *type)
 {
@@ -1313,7 +1313,7 @@ static int copy_mount_options (const void *data, unsigned long *where)
  * 0xC0ED. If this magic number is present, the high word is discarded.
  */
 long do_mount(char * dev_name, char * dir_name, char *type_page,
-		  unsigned long flags, void *data_page)
+			  unsigned long flags, void *data_page)
 {
 	struct file_system_type * fstype;
 	struct nameidata nd;
@@ -1360,18 +1360,19 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 		return -EPERM;
 
 	/* ... filesystem driver... */
-	fstype = get_fs_type(type_page);
-	if (!fstype)		
+	fstype = get_fs_type(type_page); // 获取文件系统驱动
+	if (!fstype)
 		return -ENODEV;
 
 	/* ... and mountpoint. Do the lookup first to force automounting. */
 	if (path_init(dir_name,
 		      LOOKUP_FOLLOW|LOOKUP_POSITIVE|LOOKUP_DIRECTORY, &nd))
-		retval = path_walk(dir_name, &nd); // 读取路径的信息
+		retval = path_walk(dir_name, &nd); // 读取要挂载的目录信息
 	if (retval)
 		goto fs_out;
 
 	/* get superblock, locks mount_sem on success */
+	// 读取文件系统的超级块
 	if (fstype->fs_flags & FS_NOMOUNT)
 		sb = ERR_PTR(-EINVAL);
 	else if (fstype->fs_flags & FS_REQUIRES_DEV)
@@ -1386,6 +1387,7 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 		goto dput_out;
 
 	/* Something was mounted here while we slept */
+	// 切换到新的挂载点根目录
 	while(d_mountpoint(nd.dentry) && follow_down(&nd.mnt, &nd.dentry))
 		;
 

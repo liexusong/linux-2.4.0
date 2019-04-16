@@ -664,7 +664,7 @@ void d_instantiate(struct dentry *entry, struct inode * inode)
 {
 	spin_lock(&dcache_lock);
 	if (inode)
-		list_add(&entry->d_alias, &inode->i_dentry);
+		list_add(&entry->d_alias, &inode->i_dentry); // 把目录dentry结构添加到inode的i_dentry列表中
 	entry->d_inode = inode;
 	spin_unlock(&dcache_lock);
 }
@@ -716,7 +716,7 @@ struct dentry * d_lookup(struct dentry * parent, struct qstr * name)
 	unsigned int len = name->len;
 	unsigned int hash = name->hash;
 	const unsigned char *str = name->name;
-	struct list_head *head = d_hash(parent,hash);
+	struct list_head *head = d_hash(parent,hash); // hash表的链表头
 	struct list_head *tmp;
 
 	spin_lock(&dcache_lock);

@@ -200,7 +200,7 @@ extern void d_rehash(struct dentry *);
 static __inline__ void d_add(struct dentry * entry, struct inode * inode)
 {
 	d_instantiate(entry, inode);
-	d_rehash(entry);
+	d_rehash(entry); // 把dentry结构添加到全局hash表中
 }
 
 /* used for rename() and baskets */

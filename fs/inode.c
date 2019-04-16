@@ -676,7 +676,7 @@ static struct inode * get_new_inode(struct super_block *sb, unsigned long ino, s
 			spin_unlock(&inode_lock);
 
 			clean_inode(inode);
-			sb->s_op->read_inode(inode);
+			sb->s_op->read_inode(inode); // 调用超级块中的read_inode()
 
 			/*
 			 * This is special!  We do not need the spinlock
