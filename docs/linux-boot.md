@@ -81,17 +81,17 @@ bootloader程序是为计算机加载（load）计算机操作系统的。boot�
 GRUB（GRand Unified Bootloader）是当前linux诸多发行版本默认的引导程序。嵌入式系统上，最常见的bootloader是U-BOOT。这样的bootloader一般位于MBR的最前部。在linux系统中，bootloader也可以写入文件系统所在分区中。比如，grub程序就非常强大。Gurb运行后，将初始化设置内核运行所需的环境。然后加载内核镜像。
 
 grub磁盘引导全过程：
-*（1）stage1: grub读取磁盘第一个512字节（硬盘的0道0面1扇区，被称为MBR（主引导记录）,也称为bootsect）。MBR由一部分bootloader的引导代码、分区表和魔数三部分组成。
-*（2）stage1_5: 识别各种不同的文件系统格式。这使得grub识别到文件系统。
-*（3）stage2: 加载系统引导菜单(/boot/grub/menu.lst或grub.lst)，加载内核vmlinuz和RAM磁盘initrd。
+* （1）stage1: grub读取磁盘第一个512字节（硬盘的0道0面1扇区，被称为MBR（主引导记录）,也称为bootsect）。MBR由一部分bootloader的引导代码、分区表和魔数三部分组成。
+* （2）stage1_5: 识别各种不同的文件系统格式。这使得grub识别到文件系统。
+* （3）stage2: 加载系统引导菜单(/boot/grub/menu.lst或grub.lst)，加载内核vmlinuz和RAM磁盘initrd。
 
 ## 4、内核启动过程
 
 内核映像文件vmlinuz：包含有linux内核的静态链接的可执行文件，传统上，vmlinux被称为可引导的内核镜像。vmlinuz是vmlinux的压缩文件。其构成如下：
 
-*（1）第一个512字节（以前是在arch/i386/boot/bootsect.S）;
-*（2）第二个，一段代码，若干个不多于512字节的段（以前是在arch/i386/boot/setup.S）;
-*（3）保护模式下的内核代码(在arch/x86/boot/main.c)。
+* （1）第一个512字节（以前是在arch/i386/boot/bootsect.S）;
+* （2）第二个，一段代码，若干个不多于512字节的段（以前是在arch/i386/boot/setup.S）;
+* （3）保护模式下的内核代码(在arch/x86/boot/main.c)。
 
 bzImage文件：使用make bzImage命令编译内核源代码，可以得到采用zlib算法压缩的zImage文件，即big zImage文件。老的zImage解压缩内核到低端内存，bzImage则解压缩内核到高端内存（1M（0x100000）以上），在保护模式下执行。bzImage文件一般包含有vmlinuz、bootsect.o、setup.o、解压缩程序misc.o、以及其他一些相关文件（如piggy.o）。注意，在Linux 2.6内核中，bootsect.S和setup.S被整合为header.S。
 
@@ -380,9 +380,9 @@ start_kernel()在最后会调用rest_init()，这个函数会启动一个内核�
 
 kernel_init()用于完成初始化rootfs、加载内核模块、挂载真正的根文件系统。根据Documentation/early-userspace/README的描述，目前2.6的kernel支持三方式来挂载最终的根文件系统：
 
-*（1）所有需要的设备和文件系统驱动被编译进内核，没有initrd。通过“root="参数指定的根设备，init/main.c:kernel_init()将调用prepare_namespace()直接在指定的根设备上挂载最终的根文件系统。通过可选的"init="选项，还可以运行用户指定的init程序。
-*（2）一些设备和文件驱动作为模块来构建并存放的initrd中。initrd被称为ramdisk，是一个独立的小型文件系统。它需要包含/linuxrc程序（或脚本），用于加载这些驱动模块，并挂载最终的根文件系统（结合使用pivot_root系统调用），然后initrd被卸载。initrd由prepare_namespace()挂载和运行。内核必须要使用CONFIG_BLK_DEV_RAM（支持ramdisk）和CONFIG_BLK_DEV_INITRD（支持initrd）选项进行编译才能支持initrd。initrd文件通过在grub引导时用initrd命令指定。它有两种格式，一种是类似于linux2.4内核使用的传统格式的文件系统镜像，称之为image-initrd，它的制作方法同Linux2.4内核的initrd一样，其核心文件就是 /linuxrc。另外一种格式的initrd是cpio格式的，这种格式的initrd从linux 2.5起开始引入，使用cpio工具生成，其核心文件不再是/linuxrc，而是/init，这种 initrd称为cpio-initrd。为了向后兼容，linux2.6内核对cpio-initrd和image-initrd这两种格式的initrd 均支持，但对其处理流程有着显著的区别。cpio-initrd的处理与initramfs类似，会直接跳过prepare_namespace(),image-initrd的处理则由prepare_namespace()进行。
-*（3）使用initramfs。prepare_namespace()调用会被跳过。这意味着必须有一个程序来完成这些工作。这个程序是通过修改usr/gen_init_cpio.c的方式，或通过新的initrd格式（一个cpio归档文件）存放在initramfs中的，它必须是"/init"。这个程序负责prepare_namespace()所做的所有工作。为了保持向后兼容，在现在的内核中，/init程序只有是来自cpio归档的情况才会被运行。如果不是来自cpio归档，init/main.c:kernel_init()将运行prepare_namespace()来挂载最终的根文件系统，并运行一个预先定义的init程序（或者是用户通过init=指定的，或者是/sbin/init，/etc/init，/bin/init）。
+* （1）所有需要的设备和文件系统驱动被编译进内核，没有initrd。通过“root="参数指定的根设备，init/main.c:kernel_init()将调用prepare_namespace()直接在指定的根设备上挂载最终的根文件系统。通过可选的"init="选项，还可以运行用户指定的init程序。
+* （2）一些设备和文件驱动作为模块来构建并存放的initrd中。initrd被称为ramdisk，是一个独立的小型文件系统。它需要包含/linuxrc程序（或脚本），用于加载这些驱动模块，并挂载最终的根文件系统（结合使用pivot_root系统调用），然后initrd被卸载。initrd由prepare_namespace()挂载和运行。内核必须要使用CONFIG_BLK_DEV_RAM（支持ramdisk）和CONFIG_BLK_DEV_INITRD（支持initrd）选项进行编译才能支持initrd。initrd文件通过在grub引导时用initrd命令指定。它有两种格式，一种是类似于linux2.4内核使用的传统格式的文件系统镜像，称之为image-initrd，它的制作方法同Linux2.4内核的initrd一样，其核心文件就是 /linuxrc。另外一种格式的initrd是cpio格式的，这种格式的initrd从linux 2.5起开始引入，使用cpio工具生成，其核心文件不再是/linuxrc，而是/init，这种 initrd称为cpio-initrd。为了向后兼容，linux2.6内核对cpio-initrd和image-initrd这两种格式的initrd 均支持，但对其处理流程有着显著的区别。cpio-initrd的处理与initramfs类似，会直接跳过prepare_namespace(),image-initrd的处理则由prepare_namespace()进行。
+* （3）使用initramfs。prepare_namespace()调用会被跳过。这意味着必须有一个程序来完成这些工作。这个程序是通过修改usr/gen_init_cpio.c的方式，或通过新的initrd格式（一个cpio归档文件）存放在initramfs中的，它必须是"/init"。这个程序负责prepare_namespace()所做的所有工作。为了保持向后兼容，在现在的内核中，/init程序只有是来自cpio归档的情况才会被运行。如果不是来自cpio归档，init/main.c:kernel_init()将运行prepare_namespace()来挂载最终的根文件系统，并运行一个预先定义的init程序（或者是用户通过init=指定的，或者是/sbin/init，/etc/init，/bin/init）。
 
 initramfs是从2.5 kernel开始引入的一种新的实现机制。顾名思义，initramfs只是一种RAM filesystem而不是disk。initramfs实际是一个包含在内核映像内部的cpio归档，启动所需的用户程序和驱动模块被归档成一个文件。因此，不需要cache，也不需要文件系统。 编译2.6版本的linux内核时，编译系统总会创建initramfs，然后通过连接脚本arch\x86\kernel\vmlinux.lds.S把它与编译好的内核连接成一个文件，它被链接到地址__initramfs_start~__initramfs_end处。
 
@@ -487,10 +487,10 @@ static int __init populate_rootfs(void)
 }
 ```
 
-*（1）第一行的upack_to_rootfs()用来把内核映像中的initramfs释放到rootfs。它实际上有两个功能，一个是检测是否是属于cpio包，另外一个就是解压并释放cpio包。注意如果__initramfs_start和__initramfs_end的值相等，则initramfs长度为零，unpack_to_rootfs()不会做任何处理，直接返回。
-*（2）if(initrd_start)判断是否加载了initrd。无论哪种格式的initrd，都会被boot loader加载到地址initrd_start处。当然，如果是initramfs的情况下，该值肯定为空了。
-*（3）第二个unpack_to_rootfs()把cpio-initrd镜像释放到rootfs，以此作为initramfs。这其中有/init脚本程序。
-*（4）如果不是cpio-initrd,则认为是一个image-initrd，将其内容保存到/initrd.image中。image-initrd由prepare_namespace()函数来处理。传统的image-initrd中使用/linuxrc脚本程序进行初始化。
+* （1）第一行的upack_to_rootfs()用来把内核映像中的initramfs释放到rootfs。它实际上有两个功能，一个是检测是否是属于cpio包，另外一个就是解压并释放cpio包。注意如果__initramfs_start和__initramfs_end的值相等，则initramfs长度为零，unpack_to_rootfs()不会做任何处理，直接返回。
+* （2）if(initrd_start)判断是否加载了initrd。无论哪种格式的initrd，都会被boot loader加载到地址initrd_start处。当然，如果是initramfs的情况下，该值肯定为空了。
+* （3）第二个unpack_to_rootfs()把cpio-initrd镜像释放到rootfs，以此作为initramfs。这其中有/init脚本程序。
+* （4）如果不是cpio-initrd,则认为是一个image-initrd，将其内容保存到/initrd.image中。image-initrd由prepare_namespace()函数来处理。传统的image-initrd中使用/linuxrc脚本程序进行初始化。
 
 回到kernel_init，接下来的工作是打开控制台设备/dev/console并设为标准输入，有了这个设备，启动信息才能显示到终端上。后续的两个sys_dup(0)是复制标准输入为标准输出和标准错误输出。然后，如果rootfs中存在init文件（用户通过rdinit=指定，或者默认的/init，保存在ramdisk_execute_command中），说明是加载了initramfs（包括cpio-initrd的情形），直接跳过prepare_namespace()，转向init_post()，它会调用run_init_process(ramdisk_execute_command)运行这个/init文件，替换当前进程，这样内核的工作全部结束，后续的初始化和挂载真正根文件系统的工作都交给/init程序。读者可能会问如果加载了cpio-initrd, 那么真实文件系统中的init进程不是没有机会运行了吗？确实，如果加载了cpio-initrd，那么内核就不负责执行用户空间的init进程了，而是将这个执行任务交给了cpio-initrd的init进程。
 
@@ -555,12 +555,12 @@ out:
 }
 ```
 
-*（1）对于将根文件系统存放到USB或者SCSI设备上的情况，Kernel需要等待这些耗费时间比较久的设备驱动加载完毕，所以这里存在一个Delay。
-*（2）wait_for_device_probe()，从字面的意思来看，这里也是来等待根文件系统所在的设备探测函数的完成。
-*（3）用户通过“root=”指定的根设备名会被保存在saved_root_name中，如果用户指定了以mtd开始的字串做为它的根设备。就会直接调用mount_block_root()去挂载它并goto到out。这个文件是mtdblock的设备文件。否则将设备结点文件转换为ROOT_DEV即设备节点号。然后，转向initrd_load()，去加载image-initrd，执行其中的/linuxrc，挂载最终和根文件系统。
-*（4）initrd_load()会把/dev/ram0作为默认的根设备并把image-initrd加载到这里。如果用户通过root=指定了实际根设备（不是/dev/ram0），则说明image-initrd只是作为临时的文件系统而存在，转向handle_initrd()，对image-initrd进行具体的处理。它执行其中的/linuxrc，挂载最终的根文件系统。
-*（5）如果用户没有指定根设备（或指定为默认的/dev/ram0），说明直接把image-initrd作为最终的真实文件系统（在无盘工作站和很多嵌入式Linux系统中，initrd通常作为永久的根文件系统而存在），prepare_namespace()会设置好ROOT_DEV为/dev/ram0，并调用mount_root()挂载这个image-initrd，作为最终的文件系统而存在。
-*（6）挂载完真正的根文件系统后，goto到out，将挂载点从当前目录移到"/"，并把"/"作为系统的根目录，至此虚拟文件系统切换到了实际的根文件系统。
+* （1）对于将根文件系统存放到USB或者SCSI设备上的情况，Kernel需要等待这些耗费时间比较久的设备驱动加载完毕，所以这里存在一个Delay。
+* （2）wait_for_device_probe()，从字面的意思来看，这里也是来等待根文件系统所在的设备探测函数的完成。
+* （3）用户通过“root=”指定的根设备名会被保存在saved_root_name中，如果用户指定了以mtd开始的字串做为它的根设备。就会直接调用mount_block_root()去挂载它并goto到out。这个文件是mtdblock的设备文件。否则将设备结点文件转换为ROOT_DEV即设备节点号。然后，转向initrd_load()，去加载image-initrd，执行其中的/linuxrc，挂载最终和根文件系统。
+* （4）initrd_load()会把/dev/ram0作为默认的根设备并把image-initrd加载到这里。如果用户通过root=指定了实际根设备（不是/dev/ram0），则说明image-initrd只是作为临时的文件系统而存在，转向handle_initrd()，对image-initrd进行具体的处理。它执行其中的/linuxrc，挂载最终的根文件系统。
+* （5）如果用户没有指定根设备（或指定为默认的/dev/ram0），说明直接把image-initrd作为最终的真实文件系统（在无盘工作站和很多嵌入式Linux系统中，initrd通常作为永久的根文件系统而存在），prepare_namespace()会设置好ROOT_DEV为/dev/ram0，并调用mount_root()挂载这个image-initrd，作为最终的文件系统而存在。
+* （6）挂载完真正的根文件系统后，goto到out，将挂载点从当前目录移到"/"，并把"/"作为系统的根目录，至此虚拟文件系统切换到了实际的根文件系统。
 
 initrd_load()的代码如下：
 ```cpp
@@ -585,9 +585,9 @@ int __init initrd_load(void)
 }
 ```
 
-*（1）mount_initrd表示是否使用了image-initrd。可以通过kernel的参数“noinitrd“来配置mount_initrd的值，默认为1。很少看到有项目区配置该值，所以一般情况下，mount_initrd的值应该为1。
-*（2）创建一个Root_RAM0的设备节点/dev/ram，调用rd_load_image将image-initrd的数据加载到/dev/ram0。rd_load_image会打开/dev/ram0，先是用identify_ramdisk_image()识别image-initrd的文件系统类型，确定是romfs、squashfs、minix，还是ext2。然后用crd_load()为image-initrd分配空间、计算循环冗余校验码（CRC）、解压，并将其加载到内存中。
-*（3）判断ROOT_DEV!=Root_RAM0的含义是，如果你在grub或者lilo里配置的root=不指定为/dev/ram0，则转向handle_initrd()，由它来挂载实际的文件系统。例如我电脑上的Fedora启动指定root=/dev/mapper/VolGroup-lv_root，肯定就不是Root_RAM0了。如果没有指定根设备（或指定为默认的/dev/ram0），则会跳过handle_initrd()，直接返回到prepare_namespace()。
+* （1）mount_initrd表示是否使用了image-initrd。可以通过kernel的参数“noinitrd“来配置mount_initrd的值，默认为1。很少看到有项目区配置该值，所以一般情况下，mount_initrd的值应该为1。
+* （2）创建一个Root_RAM0的设备节点/dev/ram，调用rd_load_image将image-initrd的数据加载到/dev/ram0。rd_load_image会打开/dev/ram0，先是用identify_ramdisk_image()识别image-initrd的文件系统类型，确定是romfs、squashfs、minix，还是ext2。然后用crd_load()为image-initrd分配空间、计算循环冗余校验码（CRC）、解压，并将其加载到内存中。
+* （3）判断ROOT_DEV!=Root_RAM0的含义是，如果你在grub或者lilo里配置的root=不指定为/dev/ram0，则转向handle_initrd()，由它来挂载实际的文件系统。例如我电脑上的Fedora启动指定root=/dev/mapper/VolGroup-lv_root，肯定就不是Root_RAM0了。如果没有指定根设备（或指定为默认的/dev/ram0），则会跳过handle_initrd()，直接返回到prepare_namespace()。
 
 下面是handle_initrd()的代码：
 ```cpp
@@ -662,12 +662,12 @@ static void __init handle_initrd(void)
 }
 ```
 
-*（1）real_root_dev为一个全局变量，用来保存放用户指定的根设备号。
-*（2）调用mount_block_root将initrd挂载到rootfs的/root下，设备节点为/dev/root.old。提取rootfs的根目录描述符并将其保存到root_fd。它的作用就是为了在进入到initrd文件系统并处理完initrd之后，还能够返回rootfs。
-*（3）进入到/root中的initrd文件系统，调用kernel_thread(do_linuxrc, "/linuxrc", SIGCHLD)启动一个内核线程来运行/linuxrc文件，等待它完成的后续的初始化工作。
-*（4）把initrd文件系统移动到rootfs的/old下。然后通过root_fd重新进入到rootfs，如果real_root_dev在linuxrc中重新设成Root_RAM0，说明直接把image-initrd直接作为真正的根文件系统，initrd_load()返回1，而后prepare_namespace()直接goto到out，改变当前目录到initrd中，不作后续处理直接返回。
-*（5）如果使用用户指定的根设备，则调用mount_root将真正的文件系统挂载到VFS的/root目录下。通过调用链mount_root()--->mount_block_root()--->do_mount_root()--->sys_mount(name,"/root")可知，指定的根设备用设备节点/dev/root表示，挂载点为VFS的/root，并将当前目录切换到了这个挂载点下。
-*（6）如果真实文件系统中有/initrd目录，那么会把/old中的initrd移动到真实文件系统的/initrd下。如果没有/initrd目录，则用sys_umount()卸载initrd，并释放它的内存。
+* （1）real_root_dev为一个全局变量，用来保存放用户指定的根设备号。
+* （2）调用mount_block_root将initrd挂载到rootfs的/root下，设备节点为/dev/root.old。提取rootfs的根目录描述符并将其保存到root_fd。它的作用就是为了在进入到initrd文件系统并处理完initrd之后，还能够返回rootfs。
+* （3）进入到/root中的initrd文件系统，调用kernel_thread(do_linuxrc, "/linuxrc", SIGCHLD)启动一个内核线程来运行/linuxrc文件，等待它完成的后续的初始化工作。
+* （4）把initrd文件系统移动到rootfs的/old下。然后通过root_fd重新进入到rootfs，如果real_root_dev在linuxrc中重新设成Root_RAM0，说明直接把image-initrd直接作为真正的根文件系统，initrd_load()返回1，而后prepare_namespace()直接goto到out，改变当前目录到initrd中，不作后续处理直接返回。
+* （5）如果使用用户指定的根设备，则调用mount_root将真正的文件系统挂载到VFS的/root目录下。通过调用链mount_root()--->mount_block_root()--->do_mount_root()--->sys_mount(name,"/root")可知，指定的根设备用设备节点/dev/root表示，挂载点为VFS的/root，并将当前目录切换到了这个挂载点下。
+* （6）如果真实文件系统中有/initrd目录，那么会把/old中的initrd移动到真实文件系统的/initrd下。如果没有/initrd目录，则用sys_umount()卸载initrd，并释放它的内存。
 
 prepare_namspace执行完后，真正的文件系统就挂载成功。转入init_post()，它用来运行用户空间的第一个进程，即众所周知的init进程。代码如下：
 ```cpp
@@ -698,9 +698,9 @@ static noinline int init_post(void)
 ```
 注意run_init_process在调用相应程序运行的时候，用的是kernel_execve。也就是说调用进程会替换当前进程。只要上述任意一个文件调用成功，就不会返回到这个函数。如果上面几个文件都无法执行。打印出没有找到init文件的错误。运行用户空间中的init进程可能是以下几种情况：
 
-*（1）noinitrd方式，则直接运行用户空间中的/sbin/init（或/etc/init,/bin/init），作为第一个用户进程。
-*（2）传统的image-initrd方式。运行的第一个程序是/linuxrc脚本，由它来启动用户空间中的init进程。
-*（3）cpio-initrd和initramfs方式。运行的第一个程序是/init脚本，由它来启动用户空间中的init进程。
+* （1）noinitrd方式，则直接运行用户空间中的/sbin/init（或/etc/init,/bin/init），作为第一个用户进程。
+* （2）传统的image-initrd方式。运行的第一个程序是/linuxrc脚本，由它来启动用户空间中的init进程。
+* （3）cpio-initrd和initramfs方式。运行的第一个程序是/init脚本，由它来启动用户空间中的init进程。
 
  我电脑上Fedora的/boot目录下有initramfs-2.6.35.10-74.fc14.i686.img，它就是启动Fedora时指定的cpio-initrd（经过了压缩，可以用file命令查看其文件类型）。先加上.gz后缀，用gunzip解压，然后用cpio -i --make-directories < initramfs-2.6.35.10-74.fc14.i686.img命令导出它的文件。我们可以看到根目录下有/init脚本，./bin目录中有一组很少但却非常必要的应用程序，包括dash（一个脚本解释器，比bash体积小速度快，兼容性高，以前的initrd用的是nash）、plymouth、sed等。./sbin下有dmraid、kpartx、loginit脚本、lvm（逻辑卷管理器）、modprobe、switch_root、udevd等核心程序。
  
@@ -819,8 +819,8 @@ init/main.c:kernel_init()   内核初始化过程入口函数，加载initramfs�
 
 init是第一个调用的使用标准C库编译的程序。在此之前，还没有执行任何标准的C应用程序。在桌面Linux系统上，第一个启动的程序通常是/sbin/init，它的进程号为1。init进程是所有进程的发起者和控制者，它有两个作用:
 
-*（1）扮演终结父进程的角色：所有的孤儿进程都会被init进程接管。
-*（2）系统初始化工作：如设置键盘、字体，装载模块，设置网络等。
+* （1）扮演终结父进程的角色：所有的孤儿进程都会被init进程接管。
+* （2）系统初始化工作：如设置键盘、字体，装载模块，设置网络等。
 
 在完成系统初始化工作之后，init进程将在控制台上运行getty（登录程序）等任务，我们熟悉的登录界面就出现了！
 
@@ -832,12 +832,12 @@ Upstart作业在/etc/init目录及其子目录下被定义。upstart系统兼容
 
 总的来说，x86架构的Linux内核启动过程分为6大步，分别为：
 
-*（1）实模式的入口函数_start()：在header.S中，这里会进入众所周知的main函数，它拷贝bootloader的各个参数，执行基本硬件设置，解析命令行参数。
-*（2）保护模式的入口函数startup_32()：在compressed/header_32.S中，这里会解压bzImage内核映像，加载vmlinux内核文件。
-*（3）内核入口函数startup_32()：在kernel/header_32.S中，这就是所谓的进程0，它会进入体系结构无关的start_kernel()函数，即众所周知的Linux内核启动函数。start_kernel()会做大量的内核初始化操作，解析内核启动的命令行参数，并启动一个内核线程来完成内核模块初始化的过程，然后进入空闲循环。
-*（4）内核模块初始化的入口函数kernel_init()：在init/main.c中，这里会启动内核模块、创建基于内存的rootfs、加载initramfs文件或cpio-initrd，并启动一个内核线程来运行其中的/init脚本，完成真正根文件系统的挂载。
-*（5）根文件系统挂载脚本/init：这里会挂载根文件系统、运行/sbin/init，从而启动众所周知的进程1。
-*（6）init进程的系统初始化过程：执行相关脚本，以完成系统初始化，如设置键盘、字体，装载模块，设置网络等，最后运行登录程序，出现登录界面。
+* （1）实模式的入口函数_start()：在header.S中，这里会进入众所周知的main函数，它拷贝bootloader的各个参数，执行基本硬件设置，解析命令行参数。
+* （2）保护模式的入口函数startup_32()：在compressed/header_32.S中，这里会解压bzImage内核映像，加载vmlinux内核文件。
+* （3）内核入口函数startup_32()：在kernel/header_32.S中，这就是所谓的进程0，它会进入体系结构无关的start_kernel()函数，即众所周知的Linux内核启动函数。start_kernel()会做大量的内核初始化操作，解析内核启动的命令行参数，并启动一个内核线程来完成内核模块初始化的过程，然后进入空闲循环。
+* （4）内核模块初始化的入口函数kernel_init()：在init/main.c中，这里会启动内核模块、创建基于内存的rootfs、加载initramfs文件或cpio-initrd，并启动一个内核线程来运行其中的/init脚本，完成真正根文件系统的挂载。
+* （5）根文件系统挂载脚本/init：这里会挂载根文件系统、运行/sbin/init，从而启动众所周知的进程1。
+* （6）init进程的系统初始化过程：执行相关脚本，以完成系统初始化，如设置键盘、字体，装载模块，设置网络等，最后运行登录程序，出现登录界面。
 
 如果从体系结构无关的视角来看，start_kernel()可以看作时体系结构无关的Linux main函数，它是体系结构无关的代码的统一入口函数，这也是为什么文件会命名为init/main.c的原因。这个main.c粘合剂把各种体系结构的代码“粘合”到一个统一的入口处。
 
