@@ -1,3 +1,5 @@
+引用自：https://blog.csdn.net/zhoudaxia/article/details/6666683
+
 ## 1、Linux内核启动协议
 
 传统支持Image和zImage内核的启动装载内存布局（2.4以前的内核装载就是这样的布局）：
