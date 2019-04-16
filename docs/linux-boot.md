@@ -62,6 +62,7 @@ X       +------------------------+
 ## 2、BIOS POST过程
 
 传统意义上，由于CPU加电之后，CPU只能访问ROM或者RAM里的数据，而这个时候是没有计算机操作系统的，所以需要有一段程序能够完成加载存储在非易失性存储介质（比如硬盘）上的操作系统到RAM中的功能。这段程序存储在ROM里，BIOS就是这类程序中的一种。对于BIOS，主要由两家制造商制造，驻留在主板的ROM里。有了BIOS,硬件制造商可以只需要关注硬件而不需要关注软件。BIOS的服务程序，是通过调用中断服务程序来实现的。BIOS加载bootloader程序，Bootloader也可以通过BIOS提供的中断，向BIOS获取系统的信息。整个过程如下：
+
 *（1）电源启动时钟发生器并在总线上产生一个#POWERGOOD的中断。
 *（2）产生CPU的RESET中断（此时CPU处于8086工作模式）。
 *（3）进入BIOS POST代码处：%ds=%es=%fs=%gs=%ss=0,%cs=0xFFFF0000,%eip = 0x0000FFF0 (ROM BIOS POST code，指令指针eip，数据段寄存器ds，代码段寄存器cs）。
@@ -87,6 +88,7 @@ grub磁盘引导全过程：
 ## 4、内核启动过程
 
 内核映像文件vmlinuz：包含有linux内核的静态链接的可执行文件，传统上，vmlinux被称为可引导的内核镜像。vmlinuz是vmlinux的压缩文件。其构成如下：
+
 *（1）第一个512字节（以前是在arch/i386/boot/bootsect.S）;
 *（2）第二个，一段代码，若干个不多于512字节的段（以前是在arch/i386/boot/setup.S）;
 *（3）保护模式下的内核代码(在arch/x86/boot/main.c)。
@@ -376,7 +378,8 @@ struct dentry * d_alloc_root(struct inode * root_inode)
 
 start_kernel()在最后会调用rest_init()，这个函数会启动一个内核线程来运行kernel_init()，自己则调用cpu_idle()进入空闲循环，让调度器接管控制权。抢占式的调度器就可以周期性地接管控制权，从而提供多任务处理能力。
 
-kernel_init()用于完成初始化rootfs、加载内核模块、挂载真正的根文件系统。根据Documentation/early-userspace/README的描述，目前2.6的kernel支持三方式来挂载最终的根文件系统：    
+kernel_init()用于完成初始化rootfs、加载内核模块、挂载真正的根文件系统。根据Documentation/early-userspace/README的描述，目前2.6的kernel支持三方式来挂载最终的根文件系统：
+
 *（1）所有需要的设备和文件系统驱动被编译进内核，没有initrd。通过“root="参数指定的根设备，init/main.c:kernel_init()将调用prepare_namespace()直接在指定的根设备上挂载最终的根文件系统。通过可选的"init="选项，还可以运行用户指定的init程序。
 *（2）一些设备和文件驱动作为模块来构建并存放的initrd中。initrd被称为ramdisk，是一个独立的小型文件系统。它需要包含/linuxrc程序（或脚本），用于加载这些驱动模块，并挂载最终的根文件系统（结合使用pivot_root系统调用），然后initrd被卸载。initrd由prepare_namespace()挂载和运行。内核必须要使用CONFIG_BLK_DEV_RAM（支持ramdisk）和CONFIG_BLK_DEV_INITRD（支持initrd）选项进行编译才能支持initrd。initrd文件通过在grub引导时用initrd命令指定。它有两种格式，一种是类似于linux2.4内核使用的传统格式的文件系统镜像，称之为image-initrd，它的制作方法同Linux2.4内核的initrd一样，其核心文件就是 /linuxrc。另外一种格式的initrd是cpio格式的，这种格式的initrd从linux 2.5起开始引入，使用cpio工具生成，其核心文件不再是/linuxrc，而是/init，这种 initrd称为cpio-initrd。为了向后兼容，linux2.6内核对cpio-initrd和image-initrd这两种格式的initrd 均支持，但对其处理流程有着显著的区别。cpio-initrd的处理与initramfs类似，会直接跳过prepare_namespace(),image-initrd的处理则由prepare_namespace()进行。
 *（3）使用initramfs。prepare_namespace()调用会被跳过。这意味着必须有一个程序来完成这些工作。这个程序是通过修改usr/gen_init_cpio.c的方式，或通过新的initrd格式（一个cpio归档文件）存放在initramfs中的，它必须是"/init"。这个程序负责prepare_namespace()所做的所有工作。为了保持向后兼容，在现在的内核中，/init程序只有是来自cpio归档的情况才会被运行。如果不是来自cpio归档，init/main.c:kernel_init()将运行prepare_namespace()来挂载最终的根文件系统，并运行一个预先定义的init程序（或者是用户通过init=指定的，或者是/sbin/init，/etc/init，/bin/init）。
@@ -483,6 +486,7 @@ static int __init populate_rootfs(void)
     return 0;
 }
 ```
+
 *（1）第一行的upack_to_rootfs()用来把内核映像中的initramfs释放到rootfs。它实际上有两个功能，一个是检测是否是属于cpio包，另外一个就是解压并释放cpio包。注意如果__initramfs_start和__initramfs_end的值相等，则initramfs长度为零，unpack_to_rootfs()不会做任何处理，直接返回。
 *（2）if(initrd_start)判断是否加载了initrd。无论哪种格式的initrd，都会被boot loader加载到地址initrd_start处。当然，如果是initramfs的情况下，该值肯定为空了。
 *（3）第二个unpack_to_rootfs()把cpio-initrd镜像释放到rootfs，以此作为initramfs。这其中有/init脚本程序。
@@ -550,6 +554,7 @@ out:
     sys_chroot(".");
 }
 ```
+
 *（1）对于将根文件系统存放到USB或者SCSI设备上的情况，Kernel需要等待这些耗费时间比较久的设备驱动加载完毕，所以这里存在一个Delay。
 *（2）wait_for_device_probe()，从字面的意思来看，这里也是来等待根文件系统所在的设备探测函数的完成。
 *（3）用户通过“root=”指定的根设备名会被保存在saved_root_name中，如果用户指定了以mtd开始的字串做为它的根设备。就会直接调用mount_block_root()去挂载它并goto到out。这个文件是mtdblock的设备文件。否则将设备结点文件转换为ROOT_DEV即设备节点号。然后，转向initrd_load()，去加载image-initrd，执行其中的/linuxrc，挂载最终和根文件系统。
@@ -579,6 +584,7 @@ int __init initrd_load(void)
     return 0;
 }
 ```
+
 *（1）mount_initrd表示是否使用了image-initrd。可以通过kernel的参数“noinitrd“来配置mount_initrd的值，默认为1。很少看到有项目区配置该值，所以一般情况下，mount_initrd的值应该为1。
 *（2）创建一个Root_RAM0的设备节点/dev/ram，调用rd_load_image将image-initrd的数据加载到/dev/ram0。rd_load_image会打开/dev/ram0，先是用identify_ramdisk_image()识别image-initrd的文件系统类型，确定是romfs、squashfs、minix，还是ext2。然后用crd_load()为image-initrd分配空间、计算循环冗余校验码（CRC）、解压，并将其加载到内存中。
 *（3）判断ROOT_DEV!=Root_RAM0的含义是，如果你在grub或者lilo里配置的root=不指定为/dev/ram0，则转向handle_initrd()，由它来挂载实际的文件系统。例如我电脑上的Fedora启动指定root=/dev/mapper/VolGroup-lv_root，肯定就不是Root_RAM0了。如果没有指定根设备（或指定为默认的/dev/ram0），则会跳过handle_initrd()，直接返回到prepare_namespace()。
@@ -655,6 +661,7 @@ static void __init handle_initrd(void)
     }
 }
 ```
+
 *（1）real_root_dev为一个全局变量，用来保存放用户指定的根设备号。
 *（2）调用mount_block_root将initrd挂载到rootfs的/root下，设备节点为/dev/root.old。提取rootfs的根目录描述符并将其保存到root_fd。它的作用就是为了在进入到initrd文件系统并处理完initrd之后，还能够返回rootfs。
 *（3）进入到/root中的initrd文件系统，调用kernel_thread(do_linuxrc, "/linuxrc", SIGCHLD)启动一个内核线程来运行/linuxrc文件，等待它完成的后续的初始化工作。
@@ -690,6 +697,7 @@ static noinline int init_post(void)
 }
 ```
 注意run_init_process在调用相应程序运行的时候，用的是kernel_execve。也就是说调用进程会替换当前进程。只要上述任意一个文件调用成功，就不会返回到这个函数。如果上面几个文件都无法执行。打印出没有找到init文件的错误。运行用户空间中的init进程可能是以下几种情况：
+
 *（1）noinitrd方式，则直接运行用户空间中的/sbin/init（或/etc/init,/bin/init），作为第一个用户进程。
 *（2）传统的image-initrd方式。运行的第一个程序是/linuxrc脚本，由它来启动用户空间中的init进程。
 *（3）cpio-initrd和initramfs方式。运行的第一个程序是/init脚本，由它来启动用户空间中的init进程。
@@ -810,6 +818,7 @@ init/main.c:kernel_init()   内核初始化过程入口函数，加载initramfs�
 ## 5、init进程
 
 init是第一个调用的使用标准C库编译的程序。在此之前，还没有执行任何标准的C应用程序。在桌面Linux系统上，第一个启动的程序通常是/sbin/init，它的进程号为1。init进程是所有进程的发起者和控制者，它有两个作用:
+
 *（1）扮演终结父进程的角色：所有的孤儿进程都会被init进程接管。
 *（2）系统初始化工作：如设置键盘、字体，装载模块，设置网络等。
 
@@ -822,6 +831,7 @@ init程序的运行流程需要分专门的一节来讨论，因为它有不同�
 Upstart作业在/etc/init目录及其子目录下被定义。upstart系统兼容sysvinit，它也会处理/etc/inittab和System V init脚本（如果有的话）。在诸如近来的Fedora版本的系统上，/etc/inittab可能只含有initdefault操作的id项。目前Ubuntu系统默认没有/etc/inittab，如果您想要指定一个默认运行级别的话，您可以创建一个。Upstart也使用initctl命令来支持与upstart init守护进程的交互。这时您可以启动或终止作业、列表作业、以及获取作业的状态、发出事件、重启init进程，等等。
 
 总的来说，x86架构的Linux内核启动过程分为6大步，分别为：
+
 *（1）实模式的入口函数_start()：在header.S中，这里会进入众所周知的main函数，它拷贝bootloader的各个参数，执行基本硬件设置，解析命令行参数。
 *（2）保护模式的入口函数startup_32()：在compressed/header_32.S中，这里会解压bzImage内核映像，加载vmlinux内核文件。
 *（3）内核入口函数startup_32()：在kernel/header_32.S中，这就是所谓的进程0，它会进入体系结构无关的start_kernel()函数，即众所周知的Linux内核启动函数。start_kernel()会做大量的内核初始化操作，解析内核启动的命令行参数，并启动一个内核线程来完成内核模块初始化的过程，然后进入空闲循环。
@@ -832,4 +842,4 @@ Upstart作业在/etc/init目录及其子目录下被定义。upstart系统兼容
 如果从体系结构无关的视角来看，start_kernel()可以看作时体系结构无关的Linux main函数，它是体系结构无关的代码的统一入口函数，这也是为什么文件会命名为init/main.c的原因。这个main.c粘合剂把各种体系结构的代码“粘合”到一个统一的入口处。
 
 整个内核启动过程如下图：
-[!img](https://raw.githubusercontent.com/liexusong/linux-2.4.0/master/docs/0_1325519973Hra8.gif)
+![img](https://raw.githubusercontent.com/liexusong/linux-2.4.0/master/docs/0_1325519973Hra8.gif)
