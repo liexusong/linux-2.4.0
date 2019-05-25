@@ -1,6 +1,6 @@
 #ident "$Id$"
 /* ----------------------------------------------------------------------- *
- *   
+ *
  *   Copyright 2000 H. Peter Anvin - All Rights Reserved
  *
  *   This program is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ struct cpuid_command {
 static void cpuid_smp_cpuid(void *cmd_block)
 {
   struct cpuid_command *cmd = (struct cpuid_command *) cmd_block;
-  
+
   if ( cmd->cpu == smp_processor_id() )
     cpuid(cmd->reg, &cmd->data[0], &cmd->data[1], &cmd->data[2], &cmd->data[3]);
 }
@@ -60,14 +60,14 @@ static void cpuid_smp_cpuid(void *cmd_block)
 extern inline void do_cpuid(int cpu, u32 reg, u32 *data)
 {
   struct cpuid_command cmd;
-  
+
   if ( cpu == smp_processor_id() ) {
     cpuid(reg, &data[0], &data[1], &data[2], &data[3]);
   } else {
     cmd.cpu  = cpu;
     cmd.reg  = reg;
     cmd.data = data;
-    
+
     smp_call_function(cpuid_smp_cpuid, &cmd, 1, 1);
   }
 }
@@ -102,10 +102,10 @@ static ssize_t cpuid_read(struct file * file, char * buf,
   size_t rv;
   u32 reg = *ppos;
   int cpu = MINOR(file->f_dentry->d_inode->i_rdev);
-  
+
   if ( count % 16 )
     return -EINVAL; /* Invalid chunk size */
-  
+
   for ( rv = 0 ; count ; count -= 16 ) {
     do_cpuid(cpu, reg, data);
     if ( copy_to_user(tmp,&data,16) )
@@ -113,7 +113,7 @@ static ssize_t cpuid_read(struct file * file, char * buf,
     tmp += 4;
     *ppos = reg++;
   }
-  
+
   return ((char *)tmp) - buf;
 }
 
@@ -126,7 +126,7 @@ static int cpuid_open(struct inode *inode, struct file *file)
     return -ENXIO;		/* No such CPU */
   if ( c->cpuid_level < 0 )
     return -EIO;		/* CPUID not supported */
-  
+
   return 0;
 }
 

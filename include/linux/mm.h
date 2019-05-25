@@ -115,7 +115,7 @@ extern pgprot_t protection_map[16];
 /*
  * These are the virtual MM functions - opening of an area, closing and
  * unmapping it (needed to keep files on disk up-to-date etc), pointer
- * to the functions called when a no-page or a wp-page exception occurs. 
+ * to the functions called when a no-page or a wp-page exception occurs.
  */
 struct vm_operations_struct {
 	void (*open)(struct vm_area_struct * area);
@@ -129,7 +129,7 @@ struct vm_operations_struct {
  * beneficial on 32-bit processors.
  *
  * The first line is data used in page cache lookup, the second line
- * is used for linear searches (eg. clock algorithm scans). 
+ * is used for linear searches (eg. clock algorithm scans).
  */
 typedef struct page {
 	struct list_head list;
@@ -143,7 +143,7 @@ typedef struct page {
 	wait_queue_head_t wait;
 	struct page **pprev_hash;
 	struct buffer_head * buffers;
-	void *virtual; /* non-NULL if kmapped */
+	void *virtual; /* non-NULL if kmapped */ // 原来只用于kmap
 	struct zone_struct *zone;
 } mem_map_t;
 
@@ -154,22 +154,22 @@ typedef struct page {
 #define set_page_count(p,v) 	atomic_set(&(p)->count, v)
 
 /* Page flag bit values */
-#define PG_locked		 0
-#define PG_error		 1
-#define PG_referenced		 2
-#define PG_uptodate		 3
-#define PG_dirty		 4
-#define PG_decr_after		 5
-#define PG_active		 6
-#define PG_inactive_dirty	 7
-#define PG_slab			 8
-#define PG_swap_cache		 9
-#define PG_skip			10
+#define PG_locked			0
+#define PG_error			1
+#define PG_referenced		2
+#define PG_uptodate			3
+#define PG_dirty			4
+#define PG_decr_after		5
+#define PG_active			6
+#define PG_inactive_dirty	7
+#define PG_slab				8
+#define PG_swap_cache		9
+#define PG_skip				10
 #define PG_inactive_clean	11
-#define PG_highmem		12
+#define PG_highmem			12
 				/* bits 21-29 unused */
-#define PG_arch_1		30
-#define PG_reserved		31
+#define PG_arch_1			30
+#define PG_reserved			31
 
 /* Make it prettier to test the above... */
 #define Page_Uptodate(page)	test_bit(PG_uptodate, &(page)->flags)
@@ -405,7 +405,7 @@ extern int check_pgt_cache(void);
 
 extern void free_area_init(unsigned long * zones_size);
 extern void free_area_init_node(int nid, pg_data_t *pgdat, struct page *pmap,
-	unsigned long * zones_size, unsigned long zone_start_paddr, 
+	unsigned long * zones_size, unsigned long zone_start_paddr,
 	unsigned long *zholes_size);
 extern void mem_init(void);
 extern void show_mem(void);
@@ -456,7 +456,7 @@ extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int);
  * GFP bitmasks..
  */
 #define __GFP_WAIT	0x01  // 是否阻塞标志
-#define __GFP_HIGH	0x02  // 
+#define __GFP_HIGH	0x02  //
 #define __GFP_IO	0x04  //
 #define __GFP_DMA	0x08  // 是否DMA内存区
 #ifdef CONFIG_HIGHMEM

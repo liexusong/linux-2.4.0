@@ -173,7 +173,7 @@ extern __inline__ void unix_release_addr(struct unix_address *addr)
  *	        - if started by not zero, should be NULL terminated (FS object)
  *		- if started by zero, it is abstract name.
  */
- 
+
 static int unix_mkname(struct sockaddr_un * sunaddr, int len, unsigned *hashp)
 {
 	if (len <= sizeof(short) || len > sizeof(*sunaddr))
@@ -423,7 +423,7 @@ static int unix_release_sock (unix_socket *sk, int embrion)
 	 */
 
 	if (atomic_read(&unix_tot_inflight))
-		unix_gc();		/* Garbage collect fds */	
+		unix_gc();		/* Garbage collect fds */
 
 	return 0;
 }
@@ -592,9 +592,9 @@ static unix_socket *unix_find_other(struct sockaddr_un *sunname, int len,
 	unix_socket *u;
 	struct nameidata nd;
 	int err = 0;
-	
+
 	if (sunname->sun_path[0]) {
-		if (path_init(sunname->sun_path, 
+		if (path_init(sunname->sun_path,
 			      LOOKUP_POSITIVE|LOOKUP_FOLLOW, &nd))
 			err = path_walk(sunname->sun_path, &nd);
 		if (err)
@@ -922,7 +922,7 @@ restart:
 			goto out;
 		sock_put(other);
 		goto restart;
-        }
+	}
 
 	/* Latch our state.
 
@@ -1277,7 +1277,7 @@ out:
 	return err;
 }
 
-		
+
 static int unix_stream_sendmsg(struct socket *sock, struct msghdr *msg, int len,
 			       struct scm_cookie *scm)
 {
@@ -1334,7 +1334,7 @@ static int unix_stream_sendmsg(struct socket *sock, struct msghdr *msg, int len,
 		/*
 		 *	Grab a buffer
 		 */
-		 
+
 		skb=sock_alloc_send_skb(sk,size,limit,msg->msg_flags&MSG_DONTWAIT, &err);
 
 		if (skb==NULL)
@@ -1434,7 +1434,7 @@ static int unix_dgram_recvmsg(struct socket *sock, struct msghdr *msg, int size,
 		if (UNIXCB(skb).fp)
 			unix_detach_fds(scm, skb);
 	}
-	else 
+	else
 	{
 		/* It is questionable: on PEEK we could:
 		   - do not return fds - good, but too simple 8)
@@ -1442,11 +1442,11 @@ static int unix_dgram_recvmsg(struct socket *sock, struct msghdr *msg, int size,
 		     apparently wrong)
 		   - clone fds (I choosed it for now, it is the most universal
 		     solution)
-		
+
 	           POSIX 1003.1g does not actually define this clearly
 	           at all. POSIX 1003.1g doesn't define a lot of things
-	           clearly however!		     
-		   
+	           clearly however!
+
 		*/
 		if (UNIXCB(skb).fp)
 			scm->fp = scm_fp_dup(UNIXCB(skb).fp);
@@ -1462,7 +1462,7 @@ out:
 /*
  *	Sleep until data has arrive. But check for races..
  */
- 
+
 static long unix_stream_data_wait(unix_socket * sk, long timeo)
 {
 	DECLARE_WAITQUEUE(wait, current);
@@ -1540,7 +1540,7 @@ static int unix_stream_recvmsg(struct socket *sock, struct msghdr *msg, int size
 			/*
 			 *	POSIX 1003.1g mandates this order.
 			 */
-			 
+
 			if ((err = sock_error(sk)) != 0)
 				break;
 			if (sk->shutdown & RCV_SHUTDOWN)
@@ -1744,7 +1744,7 @@ static int unix_read_proc(char *buffer, char **start, off_t offset,
 	int len=0;
 	int i;
 	unix_socket *s;
-	
+
 	len+= sprintf(buffer,"Num       RefCount Protocol Flags    Type St "
 	    "Inode Path\n");
 
@@ -1778,7 +1778,7 @@ static int unix_read_proc(char *buffer, char **start, off_t offset,
 		unix_state_runlock(s);
 
 		buffer[len++]='\n';
-		
+
 		pos = begin + len;
 		if(pos<offset)
 		{
@@ -1803,7 +1803,7 @@ done:
 
 struct proto_ops unix_stream_ops = {
 	family:		PF_UNIX,
-	
+
 	release:	unix_release,
 	bind:		unix_bind,
 	connect:	unix_stream_connect,
@@ -1823,7 +1823,7 @@ struct proto_ops unix_stream_ops = {
 
 struct proto_ops unix_dgram_ops = {
 	family:		PF_UNIX,
-	
+
 	release:	unix_release,
 	bind:		unix_bind,
 	connect:	unix_dgram_connect,
@@ -1854,7 +1854,7 @@ extern void unix_sysctl_unregister(void);
 static int __init af_unix_init(void)
 {
 	struct sk_buff *dummy_skb;
-	
+
 	printk(KERN_INFO "NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.\n");
 	if (sizeof(struct unix_skb_parms) > sizeof(dummy_skb->cb))
 	{

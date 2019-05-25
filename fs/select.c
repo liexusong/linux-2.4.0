@@ -10,7 +10,7 @@
  *     parameter to reflect time remaining.
  *
  *  24 January 2000
- *     Changed sys_poll()/do_poll() to use PAGE_SIZE chunk-based allocation 
+ *     Changed sys_poll()/do_poll() to use PAGE_SIZE chunk-based allocation
  *     of fds to overcome nfds < 16390 descriptors limit (Tigran Aivazian).
  */
 
@@ -291,10 +291,10 @@ sys_select(int n, fd_set *inp, fd_set *outp, fd_set *exp, struct timeval *tvp)
 	/*
 	 * We need 6 bitmaps (in/out/ex for both incoming and outgoing),
 	 * since we used fdset we need to allocate memory in units of
-	 * long-words. 
+	 * long-words.
 	 */
 	ret = -ENOMEM;
-	size = FDS_BYTES(n);
+	size = FDS_BYTES(n); // 记录n个文件需要多少个long
 	bits = select_bits_alloc(size);
 	if (!bits)
 		goto out_nofds;
@@ -379,7 +379,7 @@ static void do_pollfd(unsigned int num, struct pollfd * fdpage,
 	}
 }
 
-static int do_poll(unsigned int nfds, unsigned int nchunks, unsigned int nleft, 
+static int do_poll(unsigned int nfds, unsigned int nchunks, unsigned int nleft,
 	struct pollfd *fds[], poll_table *wait, long timeout)
 {
 	int count;
@@ -460,7 +460,7 @@ asmlinkage long sys_poll(struct pollfd * ufds, unsigned int nfds, long timeout)
 		if (copy_from_user(fds[i], ufds + i*POLLFD_PER_PAGE, PAGE_SIZE))
 			goto out_fds1;
 	if (nleft) {
-		if (copy_from_user(fds[nchunks], ufds + nchunks*POLLFD_PER_PAGE, 
+		if (copy_from_user(fds[nchunks], ufds + nchunks*POLLFD_PER_PAGE,
 				nleft * sizeof(struct pollfd)))
 			goto out_fds1;
 	}

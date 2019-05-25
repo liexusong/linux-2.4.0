@@ -19,7 +19,7 @@
  * current->executable is only used by the procfs.  This allows a dispatch
  * table to check for several different types  of binary formats.  We keep
  * trying until we recognize the file or we run out of supported binary
- * formats. 
+ * formats.
  */
 
 #include <linux/config.h>
@@ -67,7 +67,7 @@ int register_binfmt(struct linux_binfmt * fmt)
 	fmt->next = formats;
 	formats = fmt;
 	write_unlock(&binfmt_lock);
-	return 0;	
+	return 0;
 }
 
 int unregister_binfmt(struct linux_binfmt * fmt)
@@ -179,20 +179,22 @@ static int count(char ** argv, int max)
  * memory to free pages in kernel mem. These are in a format ready
  * to be put directly into the top of new user memory.
  */
-int copy_strings(int argc,char ** argv, struct linux_binprm *bprm) 
+int copy_strings(int argc,char ** argv, struct linux_binprm *bprm)
 {
 	while (argc-- > 0) {
 		char *str;
 		int len;
 		unsigned long pos;
 
-		if (get_user(str, argv+argc) || !str || !(len = strnlen_user(str, bprm->p))) 
+		if (get_user(str, argv+argc)
+			|| !str
+			|| !(len = strnlen_user(str, bprm->p)))
 			return -EFAULT;
-		if (bprm->p < len) 
-			return -E2BIG; 
+		if (bprm->p < len)
+			return -E2BIG;
 
 		bprm->p -= len;
-		/* XXX: add architecture specific overflow check here. */ 
+		/* XXX: add architecture specific overflow check here. */
 
 		pos = bprm->p;
 		while (len > 0) {
@@ -226,7 +228,7 @@ int copy_strings(int argc,char ** argv, struct linux_binprm *bprm)
 			kunmap(page);
 
 			if (err)
-				return -EFAULT; 
+				return -EFAULT;
 
 			pos += bytes_to_copy;
 			str += bytes_to_copy;
@@ -243,10 +245,10 @@ int copy_strings_kernel(int argc,char ** argv, struct linux_binprm *bprm)
 {
 	int r;
 	mm_segment_t oldfs = get_fs();
-	set_fs(KERNEL_DS); 
+	set_fs(KERNEL_DS);
 	r = copy_strings(argc, argv, bprm);
 	set_fs(oldfs);
-	return r; 
+	return r;
 }
 
 /*
@@ -299,9 +301,9 @@ int setup_arg_pages(struct linux_binprm *bprm)
 	bprm->exec += stack_base;
 
 	mpnt = kmem_cache_alloc(vm_area_cachep, SLAB_KERNEL);
-	if (!mpnt) 
-		return -ENOMEM; 
-	
+	if (!mpnt)
+		return -ENOMEM;
+
 	down(&current->mm->mmap_sem);
 	{
 		mpnt->vm_mm = current->mm;
@@ -315,7 +317,7 @@ int setup_arg_pages(struct linux_binprm *bprm)
 		mpnt->vm_private_data = (void *) 0;
 		insert_vm_struct(current->mm, mpnt);
 		current->mm->total_vm = (mpnt->vm_end - mpnt->vm_start) >> PAGE_SHIFT;
-	} 
+	}
 
 	for (i = 0 ; i < MAX_ARG_PAGES ; i++) {
 		struct page *page = bprm->page[i];
@@ -327,7 +329,7 @@ int setup_arg_pages(struct linux_binprm *bprm)
 		stack_base += PAGE_SIZE;
 	}
 	up(&current->mm->mmap_sem);
-	
+
 	return 0;
 }
 
@@ -432,7 +434,7 @@ static int exec_mmap(void)
  * disturbing other processes.  (Other processes might share the signal
  * table via the CLONE_SIGNAL option to clone().)
  */
- 
+
 static inline int make_private_signals(void)
 {
 	struct signal_struct * newsig;
@@ -450,7 +452,7 @@ static inline int make_private_signals(void)
 	spin_unlock_irq(&current->sigmask_lock);
 	return 0;
 }
-	
+
 /*
  * If make_private_signals() made a copy of the signal table, decrement the
  * refcount of the original table, and free it if necessary.
@@ -533,7 +535,7 @@ int flush_old_exec(struct linux_binprm * bprm)
 	retval = make_private_signals();
 	if (retval) goto flush_failed;
 
-	/* 
+	/*
 	 * Release all of the old mmap stuff
 	 */
 	retval = exec_mmap();
@@ -560,15 +562,15 @@ int flush_old_exec(struct linux_binprm * bprm)
 
 	de_thread(current);
 
-	if (bprm->e_uid != current->euid || bprm->e_gid != current->egid || 
+	if (bprm->e_uid != current->euid || bprm->e_gid != current->egid ||
 	    permission(bprm->file->f_dentry->d_inode,MAY_READ))
 		current->dumpable = 0;
 
 	/* An exec changes our domain. We are no longer part of the thread
 	   group */
-	   
+
 	current->self_exec_id++;
-			
+
 	flush_signal_handlers(current);
 	flush_old_files(current->files);
 
@@ -593,8 +595,8 @@ static inline int must_not_trace_exec(struct task_struct * p)
 	return (p->ptrace & PT_PTRACED) && !cap_raised(p->p_pptr->cap_effective, CAP_SYS_PTRACE);
 }
 
-/* 
- * Fill the binprm structure from the inode. 
+/*
+ * Fill the binprm structure from the inode.
  * Check permissions, then read the first 128 (BINPRM_BUF_SIZE) bytes
  */
 int prepare_binprm(struct linux_binprm *bprm)
@@ -645,12 +647,12 @@ int prepare_binprm(struct linux_binprm *bprm)
 			cap_set_full(bprm->cap_inheritable);
 			cap_set_full(bprm->cap_permitted);
 		}
-		if (bprm->e_uid == 0) 
+		if (bprm->e_uid == 0)
 			cap_set_full(bprm->cap_effective);
 	}
 
 	memset(bprm->buf,0,BINPRM_BUF_SIZE);
-	return kernel_read(bprm->file,0,bprm->buf,BINPRM_BUF_SIZE);
+	return kernel_read(bprm->file,0,bprm->buf,BINPRM_BUF_SIZE); // 读取可执行文件的头128字节到bprm->buf中
 }
 
 /*
@@ -668,7 +670,7 @@ int prepare_binprm(struct linux_binprm *bprm)
  *
  */
 
-void compute_creds(struct linux_binprm *bprm) 
+void compute_creds(struct linux_binprm *bprm)
 {
 	kernel_cap_t new_permitted, working;
 	int do_unlock = 0;
@@ -681,7 +683,7 @@ void compute_creds(struct linux_binprm *bprm)
 	if (bprm->e_uid != current->uid || bprm->e_gid != current->gid ||
 	    !cap_issubset(new_permitted, current->cap_permitted)) {
                 current->dumpable = 0;
-		
+
 		lock_kernel();
 		if (must_not_trace_exec(current)
 		    || atomic_read(&current->fs->count) > 1
@@ -708,7 +710,7 @@ void compute_creds(struct linux_binprm *bprm)
 		current->cap_effective =
 			cap_intersect(new_permitted, bprm->cap_effective);
 	}
-	
+
         /* AUD: Audit candidate if current->cap_effective is set */
 
         current->suid = current->euid = current->fsuid = bprm->e_uid;
@@ -842,14 +844,14 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 	int retval;
 	int i;
 
-	file = open_exec(filename);
+	file = open_exec(filename); // 打开可执行文件
 
 	retval = PTR_ERR(file);
 	if (IS_ERR(file))
 		return retval;
 
-	bprm.p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *);
-	memset(bprm.page, 0, MAX_ARG_PAGES*sizeof(bprm.page[0])); 
+	bprm.p = PAGE_SIZE*MAX_ARG_PAGES-sizeof(void *); // 参数和环境变量最大的空间
+	memset(bprm.page, 0, MAX_ARG_PAGES*sizeof(bprm.page[0]));
 
 	bprm.file = file;
 	bprm.filename = filename;
@@ -869,21 +871,21 @@ int do_execve(char * filename, char ** argv, char ** envp, struct pt_regs * regs
 	}
 
 	retval = prepare_binprm(&bprm);
-	if (retval < 0) 
-		goto out; 
+	if (retval < 0)
+		goto out;
 
 	retval = copy_strings_kernel(1, &bprm.filename, &bprm);
-	if (retval < 0) 
-		goto out; 
+	if (retval < 0)
+		goto out;
 
 	bprm.exec = bprm.p;
 	retval = copy_strings(bprm.envc, envp, &bprm);
-	if (retval < 0) 
-		goto out; 
+	if (retval < 0)
+		goto out;
 
 	retval = copy_strings(bprm.argc, argv, &bprm);
-	if (retval < 0) 
-		goto out; 
+	if (retval < 0)
+		goto out;
 
 	retval = search_binary_handler(&bprm,regs);
 	if (retval >= 0)

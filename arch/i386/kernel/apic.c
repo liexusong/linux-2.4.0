@@ -347,10 +347,11 @@ void __init init_apic_mappings(void)
 		 * could use the real zero-page, but it's safer
 		 * this way if some buggy code writes to this page ...
 		 */
+		// 注释说: 设置一个假的内存页模拟本地APIC
 		apic_phys = (unsigned long) alloc_bootmem_pages(PAGE_SIZE);
 		apic_phys = __pa(apic_phys);
 	}
-	set_fixmap_nocache(FIX_APIC_BASE, apic_phys);
+	set_fixmap_nocache(FIX_APIC_BASE, apic_phys); // 映射到物理内存
 	Dprintk("mapped APIC to %08lx (%08lx)\n", APIC_BASE, apic_phys);
 
 	/*
@@ -626,7 +627,7 @@ int setup_profiling_timer(unsigned int multiplier)
 	if ( (!multiplier) || (calibration_result/multiplier < 500))
 		return -EINVAL;
 
-	/* 
+	/*
 	 * Set the new multiplier for each CPU. CPUs don't start using the
 	 * new values until the next timer interrupt in which they do process
 	 * accounting. At that time they also adjust their APIC timers

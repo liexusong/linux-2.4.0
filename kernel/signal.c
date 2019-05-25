@@ -52,7 +52,7 @@ next_signal(struct task_struct *tsk, sigset_t *mask)
 {
 	unsigned long i, *s, *m, x;
 	int sig = 0;
-	
+
 	s = tsk->pending.signal.sig;
 	m = mask->sig;
 	switch (_NSIG_WORDS) {
@@ -77,7 +77,7 @@ next_signal(struct task_struct *tsk, sigset_t *mask)
 			sig = ffz(~x) + 1;
 		break;
 	}
-	
+
 	return sig;
 }
 
@@ -225,7 +225,7 @@ found_another:
 }
 
 /*
- * Dequeue a signal and return the element to the caller, which is 
+ * Dequeue a signal and return the element to the caller, which is
  * expected to free it.
  *
  * All callers must be holding current->sigmask_lock.
@@ -254,7 +254,7 @@ printk("SIG dequeue (%s:%d): %d ", current->comm, current->pid,
 	if (sig) {
 		if (!collect_signal(sig, &current->pending, info))
 			sig = 0;
-				
+
 		/* XXX: Once POSIX.1b timers are in, if si_code == SI_TIMER,
 		   we need to xchg out the timer overrun values.  */
 	}
@@ -326,7 +326,7 @@ static int signal_type(int sig, struct signal_struct *signals)
 
 	if (!signals)
 		return 0;
-	
+
 	handler = (unsigned long) signals->action[sig-1].sa.sa_handler;
 	if (handler > 1)
 		return 1;
@@ -352,13 +352,13 @@ static int signal_type(int sig, struct signal_struct *signals)
 		return -1;
 	}
 }
-		
+
 
 /*
  * Determine whether a signal should be posted or not.
  *
  * Signals with SIG_IGN can be ignored, except for the
- * special case of a SIGCHLD. 
+ * special case of a SIGCHLD.
  *
  * Some signals with SIG_DFL default to a non-action.
  */
@@ -375,12 +375,13 @@ static int ignored_signal(int sig, struct task_struct *t)
  * Handle TASK_STOPPED cases etc implicit behaviour
  * of certain magical signals.
  *
- * SIGKILL gets spread out to every thread. 
+ * SIGKILL gets spread out to every thread.
  */
 static void handle_stop_signal(int sig, struct task_struct *t)
 {
 	switch (sig) {
-	case SIGKILL: case SIGCONT:
+	case SIGKILL:
+	case SIGCONT:
 		/* Wake up the process if stopped.  */
 		if (t->state == TASK_STOPPED)
 			wake_up_process(t);
@@ -391,8 +392,10 @@ static void handle_stop_signal(int sig, struct task_struct *t)
 		rm_sig_from_queue(SIGTTIN, t);
 		break;
 
-	case SIGSTOP: case SIGTSTP:
-	case SIGTTIN: case SIGTTOU:
+	case SIGSTOP:
+	case SIGTSTP:
+	case SIGTTIN:
+	case SIGTTOU:
 		/* If we're stopping again, cancel SIGCONT */
 		rm_sig_from_queue(SIGCONT, t);
 		break;
@@ -467,14 +470,16 @@ static inline void signal_wake_up(struct task_struct *t)
 {
 	t->sigpending = 1;
 
-	if (t->state & TASK_INTERRUPTIBLE) {
+	if (t->state & TASK_INTERRUPTIBLE) { // 如果进程睡眠中, 唤醒进程就可以了
 		wake_up_process(t);
 		return;
 	}
 
+	// 如果进程正在运行...
+
 #ifdef CONFIG_SMP
 	/*
-	 * If the task is running on a different CPU 
+	 * If the task is running on a different CPU
 	 * force a reschedule on the other CPU to make
 	 * it notice the new signal quickly.
 	 *
@@ -484,8 +489,8 @@ static inline void signal_wake_up(struct task_struct *t)
 	 * other than doing an extra (lightweight) IPI interrupt.
 	 */
 	spin_lock(&runqueue_lock);
-	if (t->has_cpu && t->processor != smp_processor_id())
-		smp_send_reschedule(t->processor);
+	if (t->has_cpu && t->processor != smp_processor_id()) // 如果进程正在被一个CPU执行中, 而且这个CPU不是当前CPU
+		smp_send_reschedule(t->processor); // 发送一个重调度信息给这个CPU
 	spin_unlock(&runqueue_lock);
 #endif /* CONFIG_SMP */
 }
@@ -893,7 +898,7 @@ long do_sigpending(void *set, unsigned long sigsetsize)
 		error = 0;
 out:
 	return error;
-}	
+}
 
 asmlinkage long
 sys_rt_sigpending(sigset_t *set, size_t sigsetsize)
@@ -917,7 +922,7 @@ sys_rt_sigtimedwait(const sigset_t *uthese, siginfo_t *uinfo,
 
 	if (copy_from_user(&these, uthese, sizeof(these)))
 		return -EFAULT;
-		
+
 	/*
 	 * Invert the set of allowed signals to get those we
 	 * want to block.
@@ -1061,7 +1066,7 @@ do_sigaction(int sig, const struct k_sigaction *act, struct k_sigaction *oact)
 	return 0;
 }
 
-int 
+int
 do_sigaltstack (const stack_t *uss, stack_t *uoss, unsigned long sp)
 {
 	stack_t oss;

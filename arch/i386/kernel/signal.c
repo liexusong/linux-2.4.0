@@ -119,7 +119,7 @@ sys_rt_sigsuspend(sigset_t *unewset, size_t sigsetsize)
 	}
 }
 
-asmlinkage int 
+asmlinkage int
 sys_sigaction(int sig, const struct old_sigaction *act,
 	      struct old_sigaction *oact)
 {
@@ -221,7 +221,7 @@ restore_sigcontext(struct pt_regs *regs, struct sigcontext *sc, int *peax)
 	COPY(eip);
 	COPY_SEG_STRICT(cs);
 	COPY_SEG_STRICT(ss);
-	
+
 	{
 		unsigned int tmpflags;
 		err |= __get_user(tmpflags, &sc->eflags);
@@ -266,7 +266,7 @@ asmlinkage int sys_sigreturn(unsigned long __unused)
 	current->blocked = set;
 	recalc_sigpending(current);
 	spin_unlock_irq(&current->sigmask_lock);
-	
+
 	if (restore_sigcontext(regs, &frame->sc, &eax))
 		goto badframe;
 	return eax;
@@ -274,7 +274,7 @@ asmlinkage int sys_sigreturn(unsigned long __unused)
 badframe:
 	force_sig(SIGSEGV, current);
 	return 0;
-}	
+}
 
 asmlinkage int sys_rt_sigreturn(unsigned long __unused)
 {
@@ -294,7 +294,7 @@ asmlinkage int sys_rt_sigreturn(unsigned long __unused)
 	current->blocked = set;
 	recalc_sigpending(current);
 	spin_unlock_irq(&current->sigmask_lock);
-	
+
 	if (restore_sigcontext(regs, &frame->uc.uc_mcontext, &eax))
 		goto badframe;
 
@@ -309,7 +309,7 @@ asmlinkage int sys_rt_sigreturn(unsigned long __unused)
 badframe:
 	force_sig(SIGSEGV, current);
 	return 0;
-}	
+}
 
 /*
  * Set up a signal frame.
@@ -367,7 +367,7 @@ get_sigframe(struct k_sigaction *ka, struct pt_regs * regs, size_t frame_size)
 	unsigned long esp;
 
 	/* Default to using normal stack */
-	esp = regs->esp;
+	esp = regs->esp; // 用户栈空间
 
 	/* This is the X/Open sanctioned signal stack switching.  */
 	if (ka->sa.sa_flags & SA_ONSTACK) {
@@ -401,7 +401,7 @@ static void setup_frame(int sig, struct k_sigaction *ka,
 		           && sig < 32
 		           ? current->exec_domain->signal_invmap[sig]
 		           : sig),
-		          &frame->sig);
+		          &frame->sig); // 设置信号
 	if (err)
 		goto give_sigsegv;
 
@@ -532,7 +532,7 @@ give_sigsegv:
 
 /*
  * OK, we're invoking a handler
- */	
+ */
 
 static void
 handle_signal(unsigned long sig, struct k_sigaction *ka,

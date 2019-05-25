@@ -12,12 +12,12 @@
  * memory.  Use int 0x12 to get the top of memory, etc.
  *
  * It then loads 'setup' directly after itself (0x90200), and the system
- * at 0x10000, using BIOS interrupts. 
+ * at 0x10000, using BIOS interrupts.
  *
- * NOTE! currently system is at most (8*65536-4096) bytes long. This should 
+ * NOTE! currently system is at most (8*65536-4096) bytes long. This should
  * be no problem, even in the future. I want to keep it simple. This 508 kB
  * kernel size should be enough, especially as this doesn't contain the
- * buffer cache as in minix (and especially now that the kernel is 
+ * buffer cache as in minix (and especially now that the kernel is
  * compressed :-)
  *
  * The loader has been made as simple as possible, and continuous
@@ -44,7 +44,7 @@ SWAP_DEV	= 0			/* SWAP_DEV is now written by "build" */
 
 #ifndef RAMDISK
 #define RAMDISK 0
-#endif 
+#endif
 
 #ifndef CONFIG_ROOT_RDONLY
 #define CONFIG_ROOT_RDONLY 1
@@ -60,6 +60,7 @@ _start:
 	int	$0x3
 #endif
 
+// 把bootseg从0x0C70处移动到0x9000处
 	movw	$BOOTSEG, %ax
 	movw	%ax, %ds
 	movw	$INITSEG, %ax
@@ -79,12 +80,12 @@ _start:
 # drive table.
 
 go:	movw	$0x4000-12, %di		# 0x4000 is an arbitrary value >=
-					# length of bootsect + length of
-					# setup + room for stack;
-					# 12 is disk parm size.
-	movw	%ax, %ds		# ax and es already contain INITSEG
+								# length of bootsect + length of
+								# setup + room for stack;
+								# 12 is disk parm size.
+	movw	%ax, %ds			# ax and es already contain INITSEG
 	movw	%ax, %ss
-	movw	%di, %sp		# put stack at INITSEG:0x4000-12.
+	movw	%di, %sp			# put stack at INITSEG:0x4000-12.
 
 # Many BIOS's default disk parameter tables will not recognize
 # multi-sector reads beyond the maximum sector number specified
@@ -94,7 +95,7 @@ go:	movw	$0x4000-12, %di		# 0x4000 is an arbitrary value >=
 # Since single sector reads are slow and out of the question,
 # we must take care of this by creating new parameter tables
 # (for the first disk) in RAM.  We will set the maximum sector
-# count to 36 - the most we will encounter on an ED 2.88.  
+# count to 36 - the most we will encounter on an ED 2.88.
 #
 # High doesn't hurt.  Low does.
 #
@@ -120,23 +121,23 @@ go:	movw	$0x4000-12, %di		# 0x4000 is an arbitrary value >=
 # Also, cx = 0 from rep movsw above.
 
 load_setup:
-	xorb	%ah, %ah		# reset FDC 
+	xorb	%ah, %ah		# reset FDC
 	xorb	%dl, %dl
-	int 	$0x13	
+	int 	$0x13
 	xorw	%dx, %dx		# drive 0, head 0
 	movb	$0x02, %cl		# sector 2, track 0
 	movw	$0x0200, %bx		# address = 512, in INITSEG
 	movb	$0x02, %ah		# service 2, "read sector(s)"
 	movb	setup_sects, %al	# (assume all on head 0, track 0)
-	int	$0x13			# read it
-	jnc	ok_load_setup		# ok - continue
+	int		$0x13			# read it
+	jnc		ok_load_setup		# ok - continue
 
 	pushw	%ax			# dump error code
 	call	print_nl
 	movw	%sp, %bp
 	call	print_hex
-	popw	%ax	
-	jmp	load_setup
+	popw	%ax
+	jmp		load_setup
 
 ok_load_setup:
 # Get disk drive parameters, specifically number of sectors/track.
@@ -148,33 +149,33 @@ ok_load_setup:
 	movw	$disksizes, %si		# table of sizes to try
 probe_loop:
 	lodsb
-	cbtw				# extend to word
+	cbtw					# extend to word
 	movw	%ax, sectors
 	cmpw	$disksizes+4, %si
-	jae	got_sectors		# If all else fails, try 9
-	
+	jae		got_sectors		# If all else fails, try 9
+
 	xchgw	%cx, %ax		# cx = track and sector
 	xorw	%dx, %dx		# drive 0, head 0
 	xorb	%bl, %bl
 	movb	setup_sects, %bh
 	incb	%bh
-	shlb	%bh			# address after setup (es = cs) 
-	movw	$0x0201, %ax		# service 2, 1 sector
+	shlb	%bh				# address after setup (es = cs)
+	movw	$0x0201, %ax	# service 2, 1 sector
 	int	$0x13
-	jc	probe_loop		# try next value
+	jc	probe_loop			# try next value
 
 got_sectors:
 	movw	$INITSEG, %ax
 	movw	%ax, %es		# set up es
 	movb	$0x03, %ah		# read cursor pos
 	xorb	%bh, %bh
-	int	$0x10
+	int		$0x10
 	movw	$9, %cx
-	movw	$0x0007, %bx		# page 0, attribute 7 (normal)
+	movw	$0x0007, %bx	# page 0, attribute 7 (normal)
 	movw    $msg1, %bp
-	movw    $0x1301, %ax		# write string, move cursor
-	int	$0x10			# tell the user we're loading..
-	movw	$SYSSEG, %ax		# ok, we've written the message, now
+	movw    $0x1301, %ax	# write string, move cursor
+	int		$0x10			# tell the user we're loading..
+	movw	$SYSSEG, %ax	# ok, we've written the message, now
 	movw	%ax, %es		# we want to load system (at 0x10000)
 	call	read_it
 	call	kill_motor
@@ -188,20 +189,20 @@ got_sectors:
 	movw	root_dev, %ax
 	orw	%ax, %ax
 	jne	root_defined
-	
+
 	movw	sectors, %bx
 	movw	$0x0208, %ax		# /dev/ps0 - 1.2Mb
 	cmpw	$15, %bx
 	je	root_defined
-	
+
 	movb	$0x1c, %al		# /dev/PS0 - 1.44Mb
 	cmpw	$18, %bx
 	je	root_defined
-	
+
 	movb	$0x20, %al		# /dev/fd0H2880 - 2.88Mb
 	cmpw	$36, %bx
 	je	root_defined
-	
+
 	movb	$0, %al			# /dev/fd0 - autodetect
 root_defined:
 	movw	%ax, root_dev
@@ -250,7 +251,7 @@ ok1_read:
 	shlw	$9, %cx
 	addw	%bx, %cx
 	jnc	ok2_read
-	
+
 	je	ok2_read
 
 	xorw	%ax, %ax
@@ -262,11 +263,11 @@ ok2_read:
 	addw	sread, %ax
 	cmpw	sectors, %ax
 	jne	ok3_read
-	
+
 	movw	$1, %ax
 	subw	head, %ax
 	jne	ok4_read
-	
+
 	incw	track
 ok4_read:
 	movw	%ax, head
@@ -276,7 +277,7 @@ ok3_read:
 	shlw	$9, %cx
 	addw	%cx, %bx
 	jnc	rp_read
-	
+
 	movw	%es, %ax
 	addb	$0x10, %ah
 	movw	%ax, %es
@@ -285,11 +286,11 @@ ok3_read:
 
 read_track:
 	pusha
-	pusha	
+	pusha
 	movw	$0xe2e, %ax 			# loading... message 2e = .
 	movw	$7, %bx
  	int	$0x10
-	popa		
+	popa
 	movw	track, %dx
 	movw	sread, %cx
 	incw	%cx
@@ -304,7 +305,7 @@ read_track:
 	pushw	%ax
 	int	$0x13
 	jc	bad_rt
-	
+
 	addw	$8, %sp
 	popa
 	ret
@@ -319,18 +320,18 @@ bad_rt:
 	popa
 	jmp read_track
 
-# print_all is for debugging purposes.  
+# print_all is for debugging purposes.
 #
 # it will print out all of the registers.  The assumption is that this is
 # called from a routine, with a stack frame like
 #
-#	%dx 
+#	%dx
 #	%cx
 #	%bx
 #	%ax
 #	(error)
 #	ret <- %sp
- 
+
 print_all:
 	movw	$5, %cx				# error code + 4 registers
 	movw	%sp, %bp
@@ -339,7 +340,7 @@ print_loop:
 	call	print_nl			# nl for readability
 	cmpb	$5, %cl
 	jae	no_reg				# see if register name is needed
-	
+
 	movw	$0xe05 + 'A' - 1, %ax
 	subb	%cl, %al
 	int	$0x10
@@ -398,10 +399,10 @@ msg1:		.byte 13, 10
 
 .org 497
 setup_sects:	.byte SETUPSECS
-root_flags:	.word CONFIG_ROOT_RDONLY
-syssize:	.word SYSSIZE
-swap_dev:	.word SWAP_DEV
-ram_size:	.word RAMDISK
-vid_mode:	.word SVGA_MODE
-root_dev:	.word ROOT_DEV
-boot_flag:	.word 0xAA55
+root_flags:		.word CONFIG_ROOT_RDONLY
+syssize:		.word SYSSIZE
+swap_dev:		.word SWAP_DEV
+ram_size:		.word RAMDISK
+vid_mode:		.word SVGA_MODE
+root_dev:		.word ROOT_DEV
+boot_flag:		.word 0xAA55

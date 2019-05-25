@@ -189,10 +189,10 @@ static inline void send_IPI_mask(int mask, int vector)
 	apic_write_around(APIC_ICR2, cfg);
 
 	/*
-	 * program the ICR 
+	 * program the ICR
 	 */
 	cfg = __prepare_ICR(0, vector);
-	
+
 	/*
 	 * Send the IPI. The write to APIC_ICR fires this off.
 	 */
@@ -201,7 +201,7 @@ static inline void send_IPI_mask(int mask, int vector)
 }
 
 /*
- *	Smarter SMP flushing macros. 
+ *	Smarter SMP flushing macros.
  *		c/o Linus Torvalds.
  *
  *	These mean you can really definitely utterly forget about
@@ -217,7 +217,7 @@ static spinlock_t tlbstate_lock = SPIN_LOCK_UNLOCKED;
 #define FLUSH_ALL	0xffffffff
 
 /*
- * We cannot call mmdrop() because we are in interrupt context, 
+ * We cannot call mmdrop() because we are in interrupt context,
  * instead update mm->cpu_vm_mask.
  */
 static void inline leave_mm (unsigned long cpu)
@@ -279,7 +279,7 @@ asmlinkage void smp_invalidate_interrupt (void)
 
 	if (!test_bit(cpu, &flush_cpumask))
 		return;
-		/* 
+		/*
 		 * This was a BUG() but until someone can quote me the
 		 * line from the intel manual that guarantees an IPI to
 		 * multiple CPUs is retried _only_ on the erroring CPUs
@@ -287,14 +287,14 @@ asmlinkage void smp_invalidate_interrupt (void)
 		 *
 		 * BUG();
 		 */
-		 
-	if (flush_mm == cpu_tlbstate[cpu].active_mm) {
+
+	if (flush_mm == cpu_tlbstate[cpu].active_mm) { // 如果当前CPU运行的进程正在使用要flush的内存空间
 		if (cpu_tlbstate[cpu].state == TLBSTATE_OK) {
 			if (flush_va == FLUSH_ALL)
 				local_flush_tlb();
 			else
 				__flush_tlb_one(flush_va);
-		} else
+		} else  // 如果不需要情况TLB缓存的
 			leave_mm(cpu);
 	}
 	ack_APIC_irq();
@@ -327,7 +327,7 @@ static void flush_tlb_others (unsigned long cpumask, struct mm_struct *mm,
 	 * detected by the NMI watchdog.
 	 */
 	spin_lock(&tlbstate_lock);
-	
+
 	flush_mm = mm;
 	flush_va = va;
 	atomic_set_mask(cpumask, &flush_cpumask);
@@ -344,7 +344,7 @@ static void flush_tlb_others (unsigned long cpumask, struct mm_struct *mm,
 	flush_va = 0;
 	spin_unlock(&tlbstate_lock);
 }
-	
+
 void flush_tlb_current_task(void)
 {
 	struct mm_struct *mm = current->mm;

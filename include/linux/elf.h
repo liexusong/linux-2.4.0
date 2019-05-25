@@ -448,7 +448,7 @@ typedef struct elf64_hdr {
 
 typedef struct elf32_phdr{
   Elf32_Word	p_type;
-  Elf32_Off	p_offset;
+  Elf32_Off	  p_offset;
   Elf32_Addr	p_vaddr;
   Elf32_Addr	p_paddr;
   Elf32_Word	p_filesz;
@@ -507,7 +507,7 @@ typedef struct elf64_phdr {
 #define SHN_COMMON	0xfff2
 #define SHN_HIRESERVE	0xffff
 #define SHN_MIPS_ACCOMON	0xff00
- 
+
 typedef struct {
   Elf32_Word	sh_name;
   Elf32_Word	sh_type;

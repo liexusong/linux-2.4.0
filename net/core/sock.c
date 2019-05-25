@@ -34,7 +34,7 @@
  *		Alan Cox	:	TCP ack handling is buggy, the DESTROY timer
  *					was buggy. Put a remove_sock() in the handler
  *					for memory when we hit 0. Also altered the timer
- *					code. The ACK stuff can wait and needs major 
+ *					code. The ACK stuff can wait and needs major
  *					TCP layer surgery.
  *		Alan Cox	:	Fixed TCP ack bug, removed remove sock
  *					and fixed timer/inet_bh race.
@@ -174,7 +174,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 	int err;
 	struct linger ling;
 	int ret = 0;
-	
+
 	/*
 	 *	Options without arguments
 	 */
@@ -186,22 +186,22 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 			sk->linger=0;
 			return 0;
 	}
-#endif	
-		
+#endif
+
   	if(optlen<sizeof(int))
   		return(-EINVAL);
-  	
+
 	err = get_user(val, (int *)optval);
 	if (err)
 		return err;
-	
+
   	valbool = val?1:0;
 
 	lock_sock(sk);
 
-  	switch(optname) 
+  	switch(optname)
   	{
-		case SO_DEBUG:	
+		case SO_DEBUG:
 			if(val && !capable(CAP_NET_ADMIN))
 			{
 				ret = -EACCES;
@@ -227,7 +227,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 			   about it this is right. Otherwise apps have to
 			   play 'guess the biggest size' games. RCVBUF/SNDBUF
 			   are treated in BSD as hints */
-			   
+
 			if (val > sysctl_wmem_max)
 				val = sysctl_wmem_max;
 
@@ -246,7 +246,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 			   about it this is right. Otherwise apps have to
 			   play 'guess the biggest size' games. RCVBUF/SNDBUF
 			   are treated in BSD as hints */
-			  
+
 			if (val > sysctl_rmem_max)
 				val = sysctl_rmem_max;
 
@@ -274,7 +274,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 			break;
 
 		case SO_PRIORITY:
-			if ((val >= 0 && val <= 6) || capable(CAP_NET_ADMIN)) 
+			if ((val >= 0 && val <= 6) || capable(CAP_NET_ADMIN))
 				sk->priority = val;
 			else
 				ret = -EPERM;
@@ -331,9 +331,9 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 #ifdef CONFIG_NETDEVICES
 		case SO_BINDTODEVICE:
 		{
-			char devname[IFNAMSIZ]; 
+			char devname[IFNAMSIZ];
 
-			/* Sorry... */ 
+			/* Sorry... */
 			if (!capable(CAP_NET_RAW)) {
 				ret = -EPERM;
 				break;
@@ -341,15 +341,15 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
 
 			/* Bind this socket to a particular device like "eth0",
 			 * as specified in the passed interface name. If the
-			 * name is "" or the option length is zero the socket 
-			 * is not bound. 
-			 */ 
+			 * name is "" or the option length is zero the socket
+			 * is not bound.
+			 */
 
 			if (!valbool) {
 				sk->bound_dev_if = 0;
 			} else {
-				if (optlen > IFNAMSIZ) 
-					optlen = IFNAMSIZ; 
+				if (optlen > IFNAMSIZ)
+					optlen = IFNAMSIZ;
 				if (copy_from_user(devname, optval, optlen)) {
 					ret = -EFAULT;
 					break;
@@ -417,29 +417,29 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 		    char *optval, int *optlen)
 {
 	struct sock *sk = sock->sk;
-	
+
 	union
 	{
   		int val;
   		struct linger ling;
 		struct timeval tm;
 	} v;
-	
+
 	int lv=sizeof(int),len;
-  	
+
   	if(get_user(len,optlen))
   		return -EFAULT;
 
-  	switch(optname) 
+  	switch(optname)
   	{
-		case SO_DEBUG:		
+		case SO_DEBUG:
 			v.val = sk->debug;
 			break;
-		
+
 		case SO_DONTROUTE:
 			v.val = sk->localroute;
 			break;
-		
+
 		case SO_BROADCAST:
 			v.val= sk->broadcast;
 			break;
@@ -447,7 +447,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 		case SO_SNDBUF:
 			v.val=sk->sndbuf;
 			break;
-		
+
 		case SO_RCVBUF:
 			v.val =sk->rcvbuf;
 			break;
@@ -461,7 +461,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 			break;
 
 		case SO_TYPE:
-			v.val = sk->type;		  		
+			v.val = sk->type;
 			break;
 
 		case SO_ERROR:
@@ -473,7 +473,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 		case SO_OOBINLINE:
 			v.val = sk->urginline;
 			break;
-	
+
 		case SO_NO_CHECK:
 			v.val = sk->no_check;
 			break;
@@ -481,13 +481,13 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 		case SO_PRIORITY:
 			v.val = sk->priority;
 			break;
-		
-		case SO_LINGER:	
+
+		case SO_LINGER:
 			lv=sizeof(v.ling);
 			v.ling.l_onoff=sk->linger;
  			v.ling.l_linger=sk->lingertime/HZ;
 			break;
-					
+
 		case SO_BSDCOMPAT:
 			v.val = sk->bsdism;
 			break;
@@ -524,7 +524,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
 
 		case SO_SNDLOWAT:
 			v.val=1;
-			break; 
+			break;
 
 		case SO_PASSCRED:
 			v.val = sock->passcred;
@@ -568,7 +568,7 @@ static kmem_cache_t *sk_cachep;
  *	All socket objects are allocated here. This is for future
  *	usage.
  */
- 
+
 struct sock *sk_alloc(int family, int priority, int zero_it)
 {
 	struct sock *sk = kmem_cache_alloc(sk_cachep, priority);
@@ -628,8 +628,8 @@ void __init sk_init(void)
  */
 
 
-/* 
- * Write buffer destructor automatically called from kfree_skb. 
+/*
+ * Write buffer destructor automatically called from kfree_skb.
  */
 void sock_wfree(struct sk_buff *skb)
 {
@@ -641,8 +641,8 @@ void sock_wfree(struct sk_buff *skb)
 	sock_put(sk);
 }
 
-/* 
- * Read buffer destructor automatically called from kfree_skb. 
+/*
+ * Read buffer destructor automatically called from kfree_skb.
  */
 void sock_rfree(struct sk_buff *skb)
 {
@@ -668,7 +668,7 @@ struct sk_buff *sock_wmalloc(struct sock *sk, unsigned long size, int force, int
 
 /*
  * Allocate a skb from the socket's receive buffer.
- */ 
+ */
 struct sk_buff *sock_rmalloc(struct sock *sk, unsigned long size, int force, int priority)
 {
 	if (force || atomic_read(&sk->rmem_alloc) < sk->rcvbuf) {
@@ -681,9 +681,9 @@ struct sk_buff *sock_rmalloc(struct sock *sk, unsigned long size, int force, int
 	return NULL;
 }
 
-/* 
+/*
  * Allocate a memory block from the socket's option memory buffer.
- */ 
+ */
 void *sock_kmalloc(struct sock *sk, int size, int priority)
 {
 	if ((unsigned)size <= sysctl_optmem_max &&
@@ -742,7 +742,7 @@ static long sock_wait_for_wmem(struct sock * sk, long timeo)
  *	Generic send/receive buffer handlers
  */
 
-struct sk_buff *sock_alloc_send_skb(struct sock *sk, unsigned long size, 
+struct sk_buff *sock_alloc_send_skb(struct sock *sk, unsigned long size,
 			unsigned long fallback, int noblock, int *errcode)
 {
 	int err;
@@ -761,7 +761,7 @@ struct sk_buff *sock_alloc_send_skb(struct sock *sk, unsigned long size,
 		/*
 		 *	We should send SIGPIPE in these cases according to
 		 *	1003.1g draft 6.4. If we (the user) did a shutdown()
-		 *	call however we should not. 
+		 *	call however we should not.
 		 *
 		 *	Note: This routine isnt just used for datagrams and
 		 *	anyway some datagram protocols have a notion of
@@ -859,7 +859,7 @@ void __release_sock(struct sock *sk)
  */
 
 rwlock_t net_big_sklist_lock = RW_LOCK_UNLOCKED;
- 
+
 void sklist_remove_socket(struct sock **list, struct sock *sk)
 {
 	struct sock *s;
@@ -911,7 +911,7 @@ static void sklist_destroy_timer(unsigned long data)
  *	Destroy a socket. We pass NULL for a list if we know the
  *	socket is not on a list.
  */
- 
+
 void sklist_destroy_socket(struct sock **list,struct sock *sk)
 {
 	struct sk_buff *skb;
@@ -959,7 +959,7 @@ int sock_no_bind(struct socket *sock, struct sockaddr *saddr, int len)
 	return -EOPNOTSUPP;
 }
 
-int sock_no_connect(struct socket *sock, struct sockaddr *saddr, 
+int sock_no_connect(struct socket *sock, struct sockaddr *saddr,
 		    int len, int flags)
 {
 	return -EOPNOTSUPP;
@@ -975,7 +975,7 @@ int sock_no_accept(struct socket *sock, struct socket *newsock, int flags)
 	return -EOPNOTSUPP;
 }
 
-int sock_no_getname(struct socket *sock, struct sockaddr *saddr, 
+int sock_no_getname(struct socket *sock, struct sockaddr *saddr,
 		    int *len, int peer)
 {
 	return -EOPNOTSUPP;
@@ -1013,7 +1013,7 @@ int sock_no_getsockopt(struct socket *sock, int level, int optname,
 	return -EOPNOTSUPP;
 }
 
-/* 
+/*
  * Note: if you add something that sleeps here then change sock_fcntl()
  *       to do proper fd locking.
  */
@@ -1076,7 +1076,7 @@ void sock_def_error_report(struct sock *sk)
 	read_lock(&sk->callback_lock);
 	if (sk->sleep && waitqueue_active(sk->sleep))
 		wake_up_interruptible(sk->sleep);
-	sk_wake_async(sk,0,POLL_ERR); 
+	sk_wake_async(sk,0,POLL_ERR);
 	read_unlock(&sk->callback_lock);
 }
 
@@ -1121,7 +1121,7 @@ void sock_init_data(struct socket *sock, struct sock *sk)
 	skb_queue_head_init(&sk->error_queue);
 
 	init_timer(&sk->timer);
-	
+
 	sk->allocation	=	GFP_KERNEL;
 	sk->rcvbuf	=	sysctl_rmem_default;
 	sk->sndbuf	=	sysctl_wmem_default;

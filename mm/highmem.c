@@ -75,7 +75,7 @@ start:
 	/* Find an empty entry */
 	for (;;) {
 		last_pkmap_nr = (last_pkmap_nr + 1) & LAST_PKMAP_MASK;
-		if (!last_pkmap_nr) {
+		if (!last_pkmap_nr) { // 刷新缓存的虚拟地址
 			flush_all_zero_pkmaps();
 			count = LAST_PKMAP;
 		}
@@ -106,7 +106,7 @@ start:
 		}
 	}
 	vaddr = PKMAP_ADDR(last_pkmap_nr);
-	set_pte(&(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));
+	set_pte(&(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot)); // 设置映射
 
 	pkmap_count[last_pkmap_nr] = 1;
 	page->virtual = (void *) vaddr;
@@ -127,7 +127,7 @@ void *kmap_high(struct page *page)
 	spin_lock(&kmap_lock);
 	vaddr = (unsigned long) page->virtual;
 	if (!vaddr)
-		vaddr = map_new_virtual(page);
+		vaddr = map_new_virtual(page); // 这里会把pkmap_count[PKMAP_NR(vaddr)]设置为1
 	pkmap_count[PKMAP_NR(vaddr)]++;
 	if (pkmap_count[PKMAP_NR(vaddr)] < 2)
 		BUG();

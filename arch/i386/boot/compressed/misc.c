@@ -1,7 +1,7 @@
 /*
  * misc.c
- * 
- * This is a collection of several routines from gzip-1.0.3 
+ *
+ * This is a collection of several routines from gzip-1.0.3
  * adapted for Linux.
  *
  * malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
@@ -46,7 +46,7 @@ static unsigned outcnt = 0;  /* bytes in output buffer */
 #define RESERVED     0xC0 /* bit 6,7:   reserved */
 
 #define get_byte()  (inptr < insize ? inbuf[inptr++] : fill_inbuf())
-		
+
 /* Diagnostic functions */
 #ifdef DEBUG
 #  define Assert(cond,msg) {if(!(cond)) error(msg);}
@@ -69,7 +69,7 @@ static void flush_window(void);
 static void error(char *m);
 static void gzip_mark(void **);
 static void gzip_release(void **);
-  
+
 /*
  * This is set up by the setup-routine at boot-time
  */
@@ -88,15 +88,15 @@ static long bytes_out = 0;
 static uch *output_data;
 static unsigned long output_ptr = 0;
 
- 
+
 static void *malloc(int size);
 static void free(void *where);
 static void error(char *m);
 static void gzip_mark(void **);
 static void gzip_release(void **);
- 
+
 static void puts(const char *);
-  
+
 extern int end;
 static long free_mem_ptr = (long)&end;
 static long free_mem_end_ptr;
@@ -146,7 +146,7 @@ static void gzip_release(void **ptr)
 {
 	free_mem_ptr = (long) *ptr;
 }
- 
+
 static void scroll(void)
 {
 	int i;
@@ -172,7 +172,7 @@ static void puts(const char *s)
 				y--;
 			}
 		} else {
-			vidmem [ ( x + cols * y ) * 2 ] = c; 
+			vidmem [ ( x + cols * y ) * 2 ] = c;
 			if ( ++x >= cols ) {
 				x = 0;
 				if ( ++y >= lines ) {
@@ -237,9 +237,9 @@ static void flush_window_low(void)
     ulg c = crc;         /* temporary variable */
     unsigned n;
     uch *in, *out, ch;
-    
+
     in = window;
-    out = &output_data[output_ptr]; 
+    out = &output_data[output_ptr];
     for (n = 0; n < outcnt; n++) {
 	    ch = *out++ = *in++;
 	    c = crc_32_tab[((int)c ^ ch) & 0xff] ^ (c >> 8);
@@ -313,7 +313,7 @@ void setup_output_buffer_if_we_run_high(struct moveparams *mv)
 	if (EXT_MEM_K < (3*1024)) error("Less than 4MB of memory.\n");
 #else
 	if ((ALT_MEM_K > EXT_MEM_K ? ALT_MEM_K : EXT_MEM_K) < (3*1024)) error("Less than 4MB of memory.\n");
-#endif	
+#endif
 	mv->low_buffer_start = output_data = (char *)LOW_BUFFER_START;
 	low_buffer_end = ((unsigned int)real_mode > LOW_BUFFER_MAX
 	  ? LOW_BUFFER_MAX : (unsigned int)real_mode) & ~0xfff;
@@ -356,13 +356,16 @@ int decompress_kernel(struct moveparams *mv, void *rmode)
 	lines = SCREEN_INFO.orig_video_lines;
 	cols = SCREEN_INFO.orig_video_cols;
 
-	if (free_mem_ptr < 0x100000) setup_normal_output_buffer();
-	else setup_output_buffer_if_we_run_high(mv);
+	if (free_mem_ptr < 0x100000)
+		setup_normal_output_buffer();
+	else
+		setup_output_buffer_if_we_run_high(mv);
 
 	makecrc();
 	puts("Uncompressing Linux... ");
 	gunzip();
 	puts("Ok, booting the kernel.\n");
-	if (high_loaded) close_output_buffer_if_we_run_high(mv);
+	if (high_loaded)
+		close_output_buffer_if_we_run_high(mv);
 	return high_loaded;
 }

@@ -43,7 +43,7 @@ do { \
 extern __inline__ void lock_kernel(void)
 {
 #if 1
-	if (!++current->lock_depth)
+	if (!++current->lock_depth) // 表示同一个进程只调用一次上锁操作(所以大内核锁可以嵌套)
 		spin_lock(&kernel_flag);
 #else
 	__asm__ __volatile__(

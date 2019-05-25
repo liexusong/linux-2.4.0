@@ -8,7 +8,7 @@
  *		      Gerhard.Wichert@pdb.siemens.de
  *
  *
- * Redesigned the x86 32-bit VM architecture to deal with 
+ * Redesigned the x86 32-bit VM architecture to deal with
  * up to 16 Terrabyte physical memory. With current x86 CPUs
  * we now support up to 64 Gigabytes physical RAM.
  *
@@ -58,9 +58,9 @@ extern void FASTCALL(kunmap_high(struct page *page));
 
 static inline void *kmap(struct page *page)
 {
-	if (in_interrupt())
+	if (in_interrupt()) // 中断不能使用持久内存区
 		BUG();
-	if (page < highmem_start_page)
+	if (page < highmem_start_page) // 内存页不是高端内存, 直接映射就可以了
 		return page_address(page);
 	return kmap_high(page);
 }

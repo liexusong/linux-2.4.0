@@ -8,8 +8,8 @@
  *
  *  Force Cyrix 6x86(MX) and M II processors to report MTRR capability
  *  and Cyrix "coma bug" recognition by
- *      Zolt�n B�sz�rm�nyi <zboszor@mail.externet.hu> February 1999.
- * 
+ *      Zoltán Böszörményi <zboszor@mail.externet.hu> February 1999.
+ *
  *  Force Centaur C6 processors to report MTRR capability.
  *      Bart Hartgers <bart@etpmod.phys.tue.nl>, May 1999.
  *
@@ -32,7 +32,7 @@
  *	Added proper L2 cache detection for Coppermine
  *	Dragan Stancevic <visitor@valinux.com>, October 1999
  *
- *  Added the original array for capability flags but forgot to credit 
+ *  Added the original array for capability flags but forgot to credit
  *  myself :) (~1998) Fixed/cleaned up some cpu_model_info and other stuff
  *  	Jauder Ho <jauderho@carumba.com>, January 2000
  *
@@ -46,7 +46,7 @@
  *
  *  Added proper Cascades CPU and L2 cache detection for Cascades
  *  and 8-way type cache happy bunch from Intel:^)
- *  Dragan Stancevic <visitor@valinux.com>, May 2000 
+ *  Dragan Stancevic <visitor@valinux.com>, May 2000
  *
  *  Forward port AMD Duron errata T13 from 2.2.17pre
  *  Dave Jones <davej@suse.de>, August 2000
@@ -151,29 +151,29 @@ static int disable_x86_serial_nr __initdata = 1;
 /*
  * This is set up by the setup-routine at boot-time
  */
-#define PARAM	((unsigned char *)empty_zero_page)
-#define SCREEN_INFO (*(struct screen_info *) (PARAM+0))
-#define EXT_MEM_K (*(unsigned short *) (PARAM+2))
-#define ALT_MEM_K (*(unsigned long *) (PARAM+0x1e0))
-#define E820_MAP_NR (*(char*) (PARAM+E820NR))
-#define E820_MAP    ((struct e820entry *) (PARAM+E820MAP))
-#define APM_BIOS_INFO (*(struct apm_bios_info *) (PARAM+0x40))
-#define DRIVE_INFO (*(struct drive_info_struct *) (PARAM+0x80))
-#define SYS_DESC_TABLE (*(struct sys_desc_table_struct*)(PARAM+0xa0))
+#define PARAM	          ((unsigned char *)empty_zero_page)
+#define SCREEN_INFO       (*(struct screen_info *) (PARAM+0))
+#define EXT_MEM_K         (*(unsigned short *) (PARAM+2))
+#define ALT_MEM_K         (*(unsigned long *) (PARAM+0x1e0))
+#define E820_MAP_NR       (*(char*) (PARAM+E820NR))
+#define E820_MAP          ((struct e820entry *) (PARAM+E820MAP))
+#define APM_BIOS_INFO     (*(struct apm_bios_info *) (PARAM+0x40))
+#define DRIVE_INFO        (*(struct drive_info_struct *) (PARAM+0x80))
+#define SYS_DESC_TABLE    (*(struct sys_desc_table_struct*)(PARAM+0xa0))
 #define MOUNT_ROOT_RDONLY (*(unsigned short *) (PARAM+0x1F2))
-#define RAMDISK_FLAGS (*(unsigned short *) (PARAM+0x1F8))
-#define ORIG_ROOT_DEV (*(unsigned short *) (PARAM+0x1FC))
-#define AUX_DEVICE_INFO (*(unsigned char *) (PARAM+0x1FF))
-#define LOADER_TYPE (*(unsigned char *) (PARAM+0x210))
-#define KERNEL_START (*(unsigned long *) (PARAM+0x214))
-#define INITRD_START (*(unsigned long *) (PARAM+0x218))
-#define INITRD_SIZE (*(unsigned long *) (PARAM+0x21c))
-#define COMMAND_LINE ((char *) (PARAM+2048))
+#define RAMDISK_FLAGS     (*(unsigned short *) (PARAM+0x1F8))
+#define ORIG_ROOT_DEV     (*(unsigned short *) (PARAM+0x1FC))
+#define AUX_DEVICE_INFO   (*(unsigned char *) (PARAM+0x1FF))
+#define LOADER_TYPE       (*(unsigned char *) (PARAM+0x210))
+#define KERNEL_START      (*(unsigned long *) (PARAM+0x214))
+#define INITRD_START      (*(unsigned long *) (PARAM+0x218))
+#define INITRD_SIZE       (*(unsigned long *) (PARAM+0x21c))
+#define COMMAND_LINE      ((char *) (PARAM+2048))
 #define COMMAND_LINE_SIZE 256
 
 #define RAMDISK_IMAGE_START_MASK  	0x07FF
 #define RAMDISK_PROMPT_FLAG		0x8000
-#define RAMDISK_LOAD_FLAG		0x4000	
+#define RAMDISK_LOAD_FLAG		0x4000
 
 #ifdef	CONFIG_VISWS
 char visws_board_type = -1;
@@ -236,7 +236,7 @@ visws_get_board_type_and_rev(void)
  */
 	outb_p(SIO_DEV_SEL, SIO_INDEX);
 	outb_p(SIO_GP_DEV, SIO_DATA);	/* Talk to GPIO regs. */
-    
+
 	outb_p(SIO_DEV_MSB, SIO_INDEX);
 	outb_p(SIO_GP_MSB, SIO_DATA);	/* MSB of GPIO base address */
 
@@ -245,7 +245,7 @@ visws_get_board_type_and_rev(void)
 
 	outb_p(SIO_DEV_ENB, SIO_INDEX);
 	outb_p(1, SIO_DATA);		/* Enable GPIO registers. */
-    
+
 /*
  * Now, we have to map the power management section to write
  * a bit which enables access to the GPIO registers.
@@ -256,19 +256,19 @@ visws_get_board_type_and_rev(void)
 
 	outb_p(SIO_DEV_MSB, SIO_INDEX);
 	outb_p(SIO_PM_MSB, SIO_DATA);	/* MSB of PM base address */
-    
+
 	outb_p(SIO_DEV_LSB, SIO_INDEX);
 	outb_p(SIO_PM_LSB, SIO_DATA);	/* LSB of PM base address */
 
 	outb_p(SIO_DEV_ENB, SIO_INDEX);
 	outb_p(1, SIO_DATA);		/* Enable PM registers. */
-    
+
 /*
  * Now, write the PM register which enables the GPIO registers.
  */
 	outb_p(SIO_PM_FER2, SIO_PM_INDEX);
 	outb_p(SIO_PM_GP_EN, SIO_PM_DATA);
-    
+
 /*
  * Now, initialize the GPIO registers.
  * We want them all to be inputs which is the
@@ -285,7 +285,7 @@ visws_get_board_type_and_rev(void)
 			visws_board_rev = 5;
 		} else {
 			visws_board_rev = 6;
-	
+
 		}
 	} else if (visws_board_type == VISWS_540) {
 			visws_board_rev = 2;
@@ -559,7 +559,7 @@ static inline void parse_mem_cmdline (char ** cmdline_p)
 				 * size
 				 */
 				unsigned long start_at, mem_size;
- 
+
 				if (usermem == 0) {
 					/* first time in: zap the whitelist
 					 * and reinitialize it with the
@@ -605,7 +605,7 @@ void __init setup_arch(char **cmdline_p)
 	visws_get_board_type_and_rev();
 #endif
 
- 	ROOT_DEV = to_kdev_t(ORIG_ROOT_DEV);
+ 	ROOT_DEV = to_kdev_t(ORIG_ROOT_DEV); // 启动设备
  	drive_info = DRIVE_INFO;
  	screen_info = SCREEN_INFO;
 	apm_info.bios = APM_BIOS_INFO;
@@ -645,21 +645,21 @@ void __init setup_arch(char **cmdline_p)
 /*
  * 128MB for vmalloc and initrd
  */
-#define VMALLOC_RESERVE	(unsigned long)(128 << 20)
-#define MAXMEM		(unsigned long)(-PAGE_OFFSET-VMALLOC_RESERVE)
-#define MAXMEM_PFN	PFN_DOWN(MAXMEM)
+#define VMALLOC_RESERVE	(unsigned long)(128 << 20)                    // 128MB (内核动态映射地址大小)
+#define MAXMEM		    (unsigned long)(-PAGE_OFFSET-VMALLOC_RESERVE) // 1GB-128MB=896MB (内核静态映射地址大小)
+#define MAXMEM_PFN	    PFN_DOWN(MAXMEM)                              // 229376 (内核静态映射的最大内存页号)
 #define MAX_NONPAE_PFN	(1 << 20)
 
 	/*
 	 * partially used pages are not usable - thus
 	 * we are rounding upwards:
 	 */
-	start_pfn = PFN_UP(__pa(&_end));
+	start_pfn = PFN_UP(__pa(&_end)); // 内核影像后的第一个内存页号
 
 	/*
 	 * Find the highest page frame number we have available
 	 */
-	max_pfn = 0;
+	max_pfn = 0; // 找到可以用内存的最大页面号
 	for (i = 0; i < e820.nr_map; i++) {
 		unsigned long start, end;
 		/* RAM? */
@@ -676,13 +676,13 @@ void __init setup_arch(char **cmdline_p)
 	/*
 	 * Determine low and high memory ranges:
 	 */
-	max_low_pfn = max_pfn;
-	if (max_low_pfn > MAXMEM_PFN) {
+	max_low_pfn = max_pfn; // 内核直接映射的最大页面号(也被称为低端内存)
+	if (max_low_pfn > MAXMEM_PFN) { // 低端内存最大为896MB
 		max_low_pfn = MAXMEM_PFN;
 #ifndef CONFIG_HIGHMEM
 		/* Maximum memory usable is what is directly addressable */
 		printk(KERN_WARNING "Warning only %ldMB will be used.\n",
-					MAXMEM>>20);
+				MAXMEM>>20);
 		if (max_pfn > MAX_NONPAE_PFN)
 			printk(KERN_WARNING "Use a PAE enabled kernel.\n");
 		else
@@ -709,7 +709,7 @@ void __init setup_arch(char **cmdline_p)
 	/*
 	 * Initialize the boot-time allocator (with low memory only):
 	 */
-	bootmap_size = init_bootmem(start_pfn, max_low_pfn);
+	bootmap_size = init_bootmem(start_pfn, max_low_pfn); // 初始化bootmem内存分配器
 
 	/*
 	 * Register fully available low RAM pages with the bootmem allocator.
@@ -903,7 +903,7 @@ static void __init display_cacheinfo(struct cpuinfo_x86 *c)
 		cpuid(0x80000005, &dummy, &dummy, &ecx, &edx);
 		printk("CPU: L1 I Cache: %dK (%d bytes/line), D cache %dK (%d bytes/line)\n",
 			edx>>24, edx&0xFF, ecx>>24, ecx&0xFF);
-		c->x86_cache_size=(ecx>>24)+(edx>>24);	
+		c->x86_cache_size=(ecx>>24)+(edx>>24);
 	}
 
 	if (n < 0x80000006)	/* Some chips just has a large L1. */
@@ -941,7 +941,7 @@ static void __init display_cacheinfo(struct cpuinfo_x86 *c)
  *	the chip setting when fixing the bug but they also tweaked some
  *	performance at the same time..
  */
- 
+
 extern void vide(void);
 __asm__(".align 4\nvide: ret");
 
@@ -955,7 +955,7 @@ static int __init init_amd(struct cpuinfo_x86 *c)
 	/* Bit 31 in normal CPUID used for nonstandard 3DNow ID;
 	   3DNow is IDd by bit 31 in extended CPUID (1*32+31) anyway */
 	clear_bit(0*32+31, &c->x86_capability);
-	
+
 	r = get_model_name(c);
 
 	switch(c->x86)
@@ -970,35 +970,35 @@ static int __init init_amd(struct cpuinfo_x86 *c)
 				}
 				break;
 			}
-			
+
 			if ( c->x86_model == 6 && c->x86_mask == 1 ) {
 				const int K6_BUG_LOOP = 1000000;
 				int n;
 				void (*f_vide)(void);
 				unsigned long d, d2;
-				
+
 				printk(KERN_INFO "AMD K6 stepping B detected - ");
-				
+
 				/*
-				 * It looks like AMD fixed the 2.6.2 bug and improved indirect 
+				 * It looks like AMD fixed the 2.6.2 bug and improved indirect
 				 * calls at the same time.
 				 */
 
 				n = K6_BUG_LOOP;
 				f_vide = vide;
 				rdtscl(d);
-				while (n--) 
+				while (n--)
 					f_vide();
 				rdtscl(d2);
 				d = d2-d;
-				
+
 				/* Knock these two lines out if it debugs out ok */
 				printk(KERN_INFO "K6 BUG %ld %d (Report these if test report is incorrect)\n", d, 20*K6_BUG_LOOP);
 				printk(KERN_INFO "AMD K6 stepping B detected - ");
 				/* -- cut here -- */
-				if (d > 20*K6_BUG_LOOP) 
+				if (d > 20*K6_BUG_LOOP)
 					printk("system stability may be impaired when more than 32 MB are used.\n");
-				else 
+				else
 					printk("probably OK (after B9730xxxx).\n");
 				printk(KERN_INFO "Please see http://www.mygale.com/~poulot/k6bug.html\n");
 			}
@@ -1010,10 +1010,10 @@ static int __init init_amd(struct cpuinfo_x86 *c)
 				/* We can only write allocate on the low 508Mb */
 				if(mbytes>508)
 					mbytes=508;
-					
+
 				rdmsr(0xC0000082, l, h);
 				if((l&0x0000FFFF)==0)
-				{		
+				{
 					l=(1<<0)|((mbytes/4)<<1);
 					save_flags(flags);
 					__cli();
@@ -1022,14 +1022,14 @@ static int __init init_amd(struct cpuinfo_x86 *c)
 					restore_flags(flags);
 					printk(KERN_INFO "Enabling old style K6 write allocation for %d Mb\n",
 						mbytes);
-					
+
 				}
 				break;
 			}
 			if (c->x86_model == 8 || c->x86_model == 9 || c->x86_model == 13)
 			{
 				/* The more serious chips .. */
-				
+
 				if(mbytes>4092)
 					mbytes=4092;
 
@@ -1049,7 +1049,7 @@ static int __init init_amd(struct cpuinfo_x86 *c)
 				/*  Set MTRR capability flag if appropriate */
 				if ( (c->x86_model == 13) ||
 				     (c->x86_model == 9) ||
-				     ((c->x86_model == 8) && 
+				     ((c->x86_model == 8) &&
 				     (c->x86_mask >= 8)) )
 					set_bit(X86_FEATURE_K6_MTRR, &c->x86_capability);
 				break;
@@ -1058,7 +1058,7 @@ static int __init init_amd(struct cpuinfo_x86 *c)
 			break;
 
 		case 6:	/* An Athlon/Duron. We can trust the BIOS probably */
-			break;		
+			break;
 	}
 
 	display_cacheinfo(c);
@@ -1186,7 +1186,7 @@ static void __init init_cyrix(struct cpuinfo_x86 *c)
 	 * the model, multiplier and stepping.  Black magic included,
 	 * to make the silicon step/rev numbers match the printed ones.
 	 */
-	 
+
 	switch (dir0_msn) {
 		unsigned char tmp;
 
@@ -1222,16 +1222,16 @@ static void __init init_cyrix(struct cpuinfo_x86 *c)
 	case 4: /* MediaGX/GXm */
 		/*
 		 *	Life sometimes gets weiiiiiiiird if we use this
-		 *	on the MediaGX. So we turn it off for now. 
+		 *	on the MediaGX. So we turn it off for now.
 		 */
-		
+
 #ifdef CONFIG_PCI
 		/* It isnt really a PCI quirk directly, but the cure is the
 		   same. The MediaGX has deep magic SMM stuff that handles the
 		   SB emulation. It thows away the fifo on disable_dma() which
-		   is wrong and ruins the audio. 
-                   
-		   Bug2: VSA1 has a wrap bug so that using maximum sized DMA 
+		   is wrong and ruins the audio.
+
+		   Bug2: VSA1 has a wrap bug so that using maximum sized DMA
 		   causes bad things. According to NatSemi VSA2 has another
 		   bug to do with 'hlt'. I've not seen any boards using VSA2
 		   and X doesn't seem to support it either so who cares 8).
@@ -1240,7 +1240,7 @@ static void __init init_cyrix(struct cpuinfo_x86 *c)
 
 		printk(KERN_INFO "Working around Cyrix MediaGX virtual DMA bugs.\n");
 		isa_dma_bridge_buggy = 2;
-#endif		
+#endif
 		c->x86_cache_size=16;	/* Yep 16K integrated cache thats it */
 
 		/* GXm supports extended cpuid levels 'ala' AMD */
@@ -1427,7 +1427,7 @@ static void __init init_transmeta(struct cpuinfo_x86 *c)
 	/* Print CMS and CPU revision */
 	max = cpuid_eax(0x80860000);
 	if ( max >= 0x80860001 ) {
-		cpuid(0x80860001, &dummy, &cpu_rev, &cpu_freq, &cpu_flags); 
+		cpuid(0x80860001, &dummy, &cpu_rev, &cpu_freq, &cpu_flags);
 		printk("CPU: Processor revision %u.%u.%u.%u, %u MHz\n",
 		       (cpu_rev >> 24) & 0xff,
 		       (cpu_rev >> 16) & 0xff,
@@ -1516,7 +1516,7 @@ static void __init init_intel(struct cpuinfo_x86 *c)
 
 		for ( i = 0 ; i < n ; i++ ) {
 			cpuid(2, &regs[0], &regs[1], &regs[2], &regs[3]);
-			
+
 			/* If bit 31 is set, this is an unknown format */
 			for ( j = 0 ; j < 3 ; j++ ) {
 				if ( regs[j] < 0 ) regs[j] = 0;
@@ -1590,7 +1590,7 @@ static void __init init_intel(struct cpuinfo_x86 *c)
 					}
 					break;
 				case 7:
-					if ( dl >= 8 ) 
+					if ( dl >= 8 )
 					{
 						/* L2 cache */
 						cs = 64<<(dl-8);
@@ -1627,8 +1627,8 @@ static void __init init_intel(struct cpuinfo_x86 *c)
 	/* SEP CPUID bug: Pentium Pro reports SEP but doesn't have it */
 	if ( c->x86 == 6 && c->x86_model < 3 && c->x86_mask < 3 )
 		clear_bit(X86_FEATURE_SEP, &c->x86_capability);
-	
-	/* Names for the Pentium II/Celeron processors 
+
+	/* Names for the Pentium II/Celeron processors
 	   detectable only by also checking the cache size.
 	   Dixon is NOT a Celeron. */
 	if (c->x86 == 6) {
@@ -1639,12 +1639,12 @@ static void __init init_intel(struct cpuinfo_x86 *c)
 			if (l2 == 256)
 				p = "Mobile Pentium II (Dixon)";
 			break;
-			
+
 		case 6:
 			if (l2 == 128)
 				p = "Celeron (Mendocino)";
 			break;
-			
+
 		case 8:
 			if (l2 == 128)
 				p = "Celeron (Coppermine)";
@@ -1695,8 +1695,8 @@ struct cpu_model_info {
 /* in particular, if CPUID levels 0x80000002..4 are supported, this isn't used */
 static struct cpu_model_info cpu_models[] __initdata = {
 	{ X86_VENDOR_INTEL,	4,
-	  { "486 DX-25/33", "486 DX-50", "486 SX", "486 DX/2", "486 SL", 
-	    "486 SX/2", NULL, "486 DX/2-WB", "486 DX/4", "486 DX/4-WB", NULL, 
+	  { "486 DX-25/33", "486 DX-50", "486 SX", "486 DX/2", "486 SL",
+	    "486 SX/2", NULL, "486 DX/2-WB", "486 DX/4", "486 DX/4-WB", NULL,
 	    NULL, NULL, NULL, NULL, NULL }},
 	{ X86_VENDOR_INTEL,	5,
 	  { "Pentium 60/66 A-step", "Pentium 60/66", "Pentium 75 - 200",
@@ -1704,7 +1704,7 @@ static struct cpu_model_info cpu_models[] __initdata = {
 	    "Mobile Pentium 75 - 200", "Mobile Pentium MMX", NULL, NULL, NULL,
 	    NULL, NULL, NULL, NULL }},
 	{ X86_VENDOR_INTEL,	6,
-	  { "Pentium Pro A-step", "Pentium Pro", NULL, "Pentium II (Klamath)", 
+	  { "Pentium Pro A-step", "Pentium Pro", NULL, "Pentium II (Klamath)",
 	    NULL, "Pentium II (Deschutes)", "Mobile Pentium II",
 	    "Pentium III (Katmai)", "Pentium III (Coppermine)", NULL,
 	    "Pentium III (Cascades)", NULL, NULL, NULL, NULL }},
@@ -1756,11 +1756,11 @@ static char __init *table_lookup_model(struct cpuinfo_x86 *c)
  *	Detect a NexGen CPU running without BIOS hypercode new enough
  *	to have CPUID. (Thanks to Herbert Oppmann)
  */
- 
+
 static int __init deep_magic_nexgen_probe(void)
 {
 	int ret;
-	
+
 	__asm__ __volatile__ (
 		"	movw	$0x5555, %%ax\n"
 		"	xorw	%%dx,%%dx\n"
@@ -1769,7 +1769,7 @@ static int __init deep_magic_nexgen_probe(void)
 		"	movl	$0, %%eax\n"
 		"	jnz	1f\n"
 		"	movl	$1, %%eax\n"
-		"1:\n" 
+		"1:\n"
 		: "=a" (ret) : : "cx", "dx" );
 	return  ret;
 }
@@ -1830,7 +1830,7 @@ static int __init have_cpuid_p(void)
  * by the fact that they preserve the flags across the division of 5/2.
  * PII and PPro exhibit this behavior too, but they have cpuid available.
  */
- 
+
 /*
  * Perform the Cyrix 5/2 test. A Cyrix won't change
  * the flags, while other 486 chips will.
@@ -1906,7 +1906,7 @@ void __init identify_cpu(struct cpuinfo_x86 *c)
 		      (int *)&c->x86_vendor_id[0],
 		      (int *)&c->x86_vendor_id[8],
 		      (int *)&c->x86_vendor_id[4]);
-		
+
 		get_cpu_vendor(c);
 
 		/* Initialize the standard set of capabilities */
@@ -1987,7 +1987,7 @@ void __init identify_cpu(struct cpuinfo_x86 *c)
 		init_transmeta(c);
 		break;
 	}
-	
+
 	printk("CPU: After vendor init, caps: %08x %08x %08x %08x\n",
 	       c->x86_capability[0],
 	       c->x86_capability[1],
@@ -2049,7 +2049,7 @@ void __init identify_cpu(struct cpuinfo_x86 *c)
 /*
  *	Perform early boot up checks for a valid TSC. See arch/i386/kernel/time.c
  */
- 
+
 void __init dodgy_tsc(void)
 {
 	get_cpu_vendor(&boot_cpu_data);
@@ -2081,7 +2081,7 @@ void __init print_cpu_info(struct cpuinfo_x86 *c)
 	else
 		printk("%s", c->x86_model_id);
 
-	if (c->x86_mask || c->cpuid_level >= 0) 
+	if (c->x86_mask || c->cpuid_level >= 0)
 		printk(" stepping %02x\n", c->x86_mask);
 	else
 		printk("\n");
@@ -2095,7 +2095,7 @@ int get_cpuinfo(char * buffer)
 {
 	char *p = buffer;
 
-	/* 
+	/*
 	 * These flag bits must match the definitions in <asm/cpufeature.h>.
 	 * NULL means this bit is undefined or reserved; either way it doesn't
 	 * have meaning as far as Linux is concerned.  Note that it's important
@@ -2161,7 +2161,7 @@ int get_cpuinfo(char * buffer)
 		/* Cache size */
 		if (c->x86_cache_size >= 0)
 			p += sprintf(p, "cache size\t: %d KB\n", c->x86_cache_size);
-		
+
 		/* We use exception 16 if we have hardware math and we've either seen it or the CPU claims it is internal */
 		fpu_exception = c->hard_math && (ignore_irq13 || cpu_has_fpu);
 		p += sprintf(p, "fdiv_bug\t: %s\n"

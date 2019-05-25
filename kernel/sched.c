@@ -205,7 +205,7 @@ static FASTCALL(void reschedule_idle(struct task_struct * p));
 static void reschedule_idle(struct task_struct * p)
 {
 #ifdef CONFIG_SMP
-	int this_cpu = smp_processor_id();
+	int this_cpu = smp_processor_id(); // 获取当前CPU
 	struct task_struct *tsk, *target_tsk;
 	int cpu, best_cpu, i, max_prio;
 	cycles_t oldest_idle;
@@ -215,9 +215,9 @@ static void reschedule_idle(struct task_struct * p)
 	 * idle now.
 	 */
 	best_cpu = p->processor;
-	if (can_schedule(p, best_cpu)) {
+	if (can_schedule(p, best_cpu)) { // 如果进程p能够在best_cpu调度
 		tsk = idle_task(best_cpu);
-		if (cpu_curr(best_cpu) == tsk) {
+		if (cpu_curr(best_cpu) == tsk) { // 如果best_cpu正在运行idle进程
 			int need_resched;
 send_now_idle:
 			/*
@@ -227,8 +227,8 @@ send_now_idle:
 			 */
 			need_resched = tsk->need_resched;
 			tsk->need_resched = 1;
-			if ((best_cpu != this_cpu) && !need_resched)
-				smp_send_reschedule(best_cpu);
+			if ((best_cpu != this_cpu) && !need_resched) // 如果当前CPU不是p最合适的CPU
+				smp_send_reschedule(best_cpu); // 发送重调度信号给最合适的CPU
 			return;
 		}
 	}
@@ -246,9 +246,9 @@ send_now_idle:
 
 	for (i = 0; i < smp_num_cpus; i++) {
 		cpu = cpu_logical_map(i);
-		if (!can_schedule(p, cpu))
+		if (!can_schedule(p, cpu)) // 如果进程p不能在指定的CPU中运行
 			continue;
-		tsk = cpu_curr(cpu);
+		tsk = cpu_curr(cpu); // 指定CPU当前运行的进程
 		/*
 		 * We use the first available idle CPU. This creates
 		 * a priority list between idle CPUs, but this is not
@@ -440,7 +440,7 @@ static inline void __schedule_tail(struct task_struct *prev)
 	 */
 	policy = prev->policy;
 	prev->policy = policy & ~SCHED_YIELD;
-	wmb();
+	wmb(); // 写屏障, 让CPU缓存失效
 
 	/*
 	 * fast path falls through. We have to clear has_cpu before
@@ -449,7 +449,7 @@ static inline void __schedule_tail(struct task_struct *prev)
 	 */
 	task_lock(prev);
 	prev->has_cpu = 0;
-	mb();
+	mb(); // 读屏障, 表示去内存读取数据
 	if (prev->state == TASK_RUNNING)
 		goto needs_resched;
 
@@ -475,8 +475,7 @@ needs_resched:
 		 * Avoid taking the runqueue lock in cases where
 		 * no preemption-check is necessery:
 		 */
-		if ((prev == idle_task(smp_processor_id())) ||
-						(policy & SCHED_YIELD))
+		if ((prev == idle_task(smp_processor_id())) || (policy & SCHED_YIELD))
 			goto out_unlock;
 
 		spin_lock_irqsave(&runqueue_lock, flags);
@@ -717,7 +716,7 @@ static inline void __wake_up_common (wait_queue_head_t *q, unsigned int mode,
 	tmp = head->next;
 	while (tmp != head) {
 		unsigned int state;
-                wait_queue_t *curr = list_entry(tmp, wait_queue_t, task_list);
+		wait_queue_t *curr = list_entry(tmp, wait_queue_t, task_list);
 
 		tmp = tmp->next;
 

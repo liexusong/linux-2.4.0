@@ -24,7 +24,7 @@ extern unsigned securebits;
    from user-level. */
 
 #define issecure(X) ( (1 << (X+1)) & SECUREBITS_DEFAULT ? 	\
-		      (1 << (X)) & SECUREBITS_DEFAULT :		\
-		      (1 << (X)) & securebits )
+                      (1 << (X)) & SECUREBITS_DEFAULT :		\
+                      (1 << (X)) & securebits )
 
 #endif /* !_LINUX_SECUREBITS_H */

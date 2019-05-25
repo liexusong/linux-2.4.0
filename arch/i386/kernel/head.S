@@ -55,11 +55,11 @@ startup_32:
 	movl %eax,%gs
 #ifdef CONFIG_SMP
 	orw %bx,%bx
-	jz 1f
+	jz 1f      # 如果是主CPU
 
 /*
  *	New page tables may be in 4Mbyte page mode and may
- *	be using the global pages. 
+ *	be using the global pages.
  *
  *	NOTE! If we are on a 486 we may have no cr4 at all!
  *	So we do not try to touch it unless we really have
@@ -92,7 +92,7 @@ startup_32:
 	jne 2b
 
 /*
- * Enable paging
+ * Enable paging 开启分页功能
  */
 3:
 	movl $swapper_pg_dir-__PAGE_OFFSET,%eax
@@ -265,7 +265,7 @@ is386:	pushl %ecx		# restore original EFLAGS
 	lldt %ax
 	cld			# gcc2 wants the direction flag cleared at all times
 #ifdef CONFIG_SMP
-	movb ready, %cl	
+	movb ready, %cl
 	cmpb $1,%cl
 	je 1f			# the first CPU calls start_kernel
 				# all other CPUs call initialize_secondary
@@ -465,7 +465,7 @@ ENTRY(gdt_table)
 	.quad 0x00009a0000000000	/* 0x50 APM CS 16 code (16 bit) */
 	.quad 0x0040920000000000	/* 0x58 APM DS    data */
 	.fill NR_CPUS*4,8,0		/* space for TSS's and LDT's */
-		
+
 /*
  * This is to aid debugging, the various locking macros will be putting
  * code fragments here.  When an oops occurs we'd rather know that it's

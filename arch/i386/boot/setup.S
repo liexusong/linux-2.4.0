@@ -91,12 +91,12 @@ type_of_loader:	.byte	0		# = 0, old one (LILO, Loadlin,
 
 # flags, unused bits must be zero (RFU) bit within loadflags
 loadflags:
-LOADED_HIGH	= 1			# If set, the kernel is loaded high
-CAN_USE_HEAP	= 0x80			# If set, the loader also has set
-					# heap_end_ptr to tell how much
-					# space behind setup.S can be used for
-					# heap purposes.
-					# Only the loader knows what is free
+LOADED_HIGH		= 1			# If set, the kernel is loaded high
+CAN_USE_HEAP	= 0x80		# If set, the loader also has set
+							# heap_end_ptr to tell how much
+							# space behind setup.S can be used for
+							# heap purposes.
+							# Only the loader knows what is free
 #ifndef __BIG_KERNEL__
 		.byte	0
 #else
@@ -104,7 +104,7 @@ CAN_USE_HEAP	= 0x80			# If set, the loader also has set
 #endif
 
 setup_move_size: .word  0x8000		# size to move, when setup is not
-					# loaded at 0x90000. We will move setup 
+					# loaded at 0x90000. We will move setup
 					# to 0x90000 then just before jumping
 					# into the kernel. However, only the
 					# loader knows how much data behind
@@ -113,9 +113,9 @@ setup_move_size: .word  0x8000		# size to move, when setup is not
 code32_start:				# here loaders can put a different
 					# start address for 32-bit code.
 #ifndef __BIG_KERNEL__
-		.long	0x1000		#   0x1000 = default for zImage
+				.long	0x1000		#   0x1000 = default for zImage
 #else
-		.long	0x100000	# 0x100000 = default for big kernel
+				.long	0x100000	# 0x100000 = default for big kernel
 #endif
 
 ramdisk_image:	.long	0		# address of loaded ramdisk image
@@ -126,14 +126,14 @@ ramdisk_image:	.long	0		# address of loaded ramdisk image
 ramdisk_size:	.long	0		# its size in bytes
 
 bootsect_kludge:
-		.word  bootsect_helper, SETUPSEG
+				.word  bootsect_helper, SETUPSEG
 
 heap_end_ptr:	.word	modelist+1024	# (Header version 0x0201 or later)
 					# space from here (exclusive) down to
 					# end of setup code can be used by setup
 					# for local heap purposes.
 
-pad1:		.word	0
+pad1:			.word	0
 cmd_line_ptr:	.long 0			# (Header version 0x0202 or later)
 					# If nonzero, a 32-bit pointer
 					# to the kernel command line.
@@ -157,13 +157,13 @@ start_of_setup:
 # Bootlin depends on this being done early
 	movw	$0x01500, %ax
 	movb	$0x81, %dl
-	int	$0x13
+	int		$0x13
 
 #ifdef SAFE_RESET_DISK_CONTROLLER
 # Reset the disk controller.
 	movw	$0x0000, %ax
 	movb	$0x80, %dl
-	int	$0x13
+	int		$0x13
 #endif
 
 # Set %ds = %cs, we know that SETUPSEG = %cs at this point
@@ -171,23 +171,23 @@ start_of_setup:
 	movw	%ax, %ds
 # Check signature at end of setup
 	cmpw	$SIG1, setup_sig1
-	jne	bad_sig
+	jne		bad_sig
 
 	cmpw	$SIG2, setup_sig2
-	jne	bad_sig
+	jne		bad_sig
 
-	jmp	good_sig1
+	jmp		good_sig1
 
 # Routine to print asciiz string at ds:si
 prtstr:
 	lodsb
 	andb	%al, %al
-	jz	fin
+	jz		fin
 
 	call	prtchr
-	jmp	prtstr
+	jmp		prtstr
 
-fin:	ret
+fin:		ret
 
 # Space printing
 prtsp2:	call	prtspc		# Print double space
@@ -206,7 +206,7 @@ prtchr:	pushw	%ax
 
 beep:	movb	$0x07, %al
 	jmp	prtchr
-	
+
 no_sig_mess: .string	"No setup signature found ..."
 
 good_sig1:
@@ -237,19 +237,19 @@ bad_sig:
 	movw	%cs, %ax			# aka SETUPSEG
 	movw	%ax, %ds
 	cmpw	$SIG1, setup_sig1
-	jne	no_sig
+	jne		no_sig
 
 	cmpw	$SIG2, setup_sig2
-	jne	no_sig
+	jne		no_sig
 
-	jmp	good_sig
+	jmp		good_sig
 
 no_sig:
-	lea	no_sig_mess, %si
+	lea		no_sig_mess, %si
 	call	prtstr
 
 no_sig_loop:
-	jmp	no_sig_loop
+	jmp		no_sig_loop
 
 good_sig:
 	movw	%cs, %ax			# aka SETUPSEG
@@ -257,14 +257,14 @@ good_sig:
 	movw	%ax, %ds
 # Check if an old loader tries to load a big-kernel
 	testb	$LOADED_HIGH, %cs:loadflags	# Do we have a big kernel?
-	jz	loader_ok			# No, no danger for old loaders.
+	jz		loader_ok			# No, no danger for old loaders.
 
 	cmpb	$0, %cs:type_of_loader 		# Do we have a loader that
 						# can deal with us?
 	jnz	loader_ok			# Yes, continue.
 
 	pushw	%cs				# No, we have an old loader,
-	popw	%ds				# die. 
+	popw	%ds				# die.
 	lea	loader_panic_mess, %si
 	call	prtstr
 
@@ -399,7 +399,7 @@ mem88:
 	movb	$0x81, %dl
 	int	$0x13
 	jc	no_disk1
-	
+
 	cmpb	$3, %ah
 	je	is_disk1
 
@@ -464,7 +464,7 @@ no_psmouse:
 	xorw	%bx, %bx
 	int	$0x15
 	jc	done_apm_bios			# Nope, no APM BIOS
-	
+
 	cmpw	$0x0504d, %bx			# Check for "PM" signature
 	jne	done_apm_bios			# No signature, no APM BIOS
 
@@ -481,7 +481,7 @@ no_psmouse:
 	xorl	%esi, %esi			#   ...
 	xorw	%di, %di			#   ...
 	int	$0x15
-	jc	no_32_apm_bios			# Ack, error. 
+	jc	no_32_apm_bios			# Ack, error.
 
 	movw	%ax,  (66)			# BIOS code segment
 	movl	%ebx, (68)			# BIOS entry point offset
@@ -525,7 +525,7 @@ done_apm_bios:
 	jmp	rmodeswtch_end
 
 rmodeswtch_normal:
-        pushw	%cs
+	pushw	%cs
 	call	default_switch
 
 rmodeswtch_end:
@@ -571,7 +571,7 @@ end_move:
 # then we load the segment descriptors
 	movw	%cs, %ax			# aka SETUPSEG
 	movw	%ax, %ds
-		
+
 # Check whether we need to be downward compatible with version <=201
 	cmpl	$0, cmd_line_ptr
 	jne	end_move_self		# loader uses version >=202 features
@@ -648,7 +648,7 @@ end_move_self:					# now we are at the right place
 #	like laptops powering off on boot happen. Corrected version by Kira
 #	Brown from Linux 2.2
 #
-	inb	$0x92, %al			# 
+	inb	$0x92, %al			#
 	orb	$02, %al			# "fast A20" version
 	outb	%al, $0x92			# some chips have only this
 
@@ -680,7 +680,7 @@ a20_wait:
 	movb	$0xFF, %al			# mask all interrupts for now
 	outb	%al, $0xA1
 	call	delay
-	
+
 	movb	$0xFB, %al			# mask all irq's but irq2 which
 	outb	%al, $0x21			# is cascaded
 
@@ -710,15 +710,15 @@ flush_instr:
 # NOTE: For high loaded big kernels we need a
 #	jmpi    0x100000,__KERNEL_CS
 #
-#	but we yet haven't reloaded the CS register, so the default size 
+#	but we yet haven't reloaded the CS register, so the default size
 #	of the target offset still is 16 bit.
 #       However, using an operant prefix (0x66), the CPU will properly
 #	take our 48 bit far pointer. (INTeL 80386 Programmer's Reference
 #	Manual, Mixing 16-bit and 32-bit code, page 16-6)
 
 	.byte 0x66, 0xea			# prefix + jmpi-opcode
-code32:	.long	0x1000				# will be set to 0x100000
-						# for big kernels
+code32:	.long	0x1000			# will be set to 0x100000
+								# for big kernels
 	.word	__KERNEL_CS
 
 # Here's a bunch of information about your current kernel..
@@ -815,7 +815,7 @@ bootsect_panic:
 	cld
 	leaw	bootsect_panic_mess, %si
 	call	prtstr
-	
+
 bootsect_panic_loop:
 	jmp	bootsect_panic_loop
 
@@ -900,10 +900,10 @@ idt_48:
 	.word	0				# idt limit = 0
 	.word	0, 0				# idt base = 0L
 gdt_48:
-	.word	0x8000				# gdt limit=2048,
-						#  256 GDT entries
+	.word	0x8000		# gdt limit=2048,
+						# 256 GDT entries
 
-	.word	0, 0				# gdt base (filled in later)
+	.word	0, 0		# gdt base (filled in later)
 
 # Include video setup & detection code
 

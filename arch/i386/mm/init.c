@@ -178,7 +178,7 @@ int do_check_pgt_cache(int low, int high)
  */
 
 #if CONFIG_HIGHMEM
-pte_t *kmap_pte;
+pte_t *kmap_pte; // 指向vmalloc(高端内存)的第一个页表项
 pgprot_t kmap_prot;
 
 #define kmap_get_fixmap_pte(vaddr)					\
@@ -190,7 +190,7 @@ void __init kmap_init(void)
 
 	/* cache the first kmap pte */
 	kmap_vstart = __fix_to_virt(FIX_KMAP_BEGIN);
-	kmap_pte = kmap_get_fixmap_pte(kmap_vstart);
+	kmap_pte = kmap_get_fixmap_pte(kmap_vstart); // 获取kmap_vstart地址在内核空间映射的页表项
 
 	kmap_prot = PAGE_KERNEL;
 }
@@ -273,6 +273,9 @@ void __set_fixmap (enum fixed_addresses idx, unsigned long phys, pgprot_t flags)
 	set_pte_phys(address, phys, flags);
 }
 
+/*
+ * 为页表分配内存
+ */
 static void __init fixrange_init (unsigned long start, unsigned long end, pgd_t *pgd_base)
 {
 	pgd_t *pgd;
@@ -398,7 +401,7 @@ static void __init pagetable_init (void)
 	pgd = swapper_pg_dir + __pgd_offset(vaddr);
 	pmd = pmd_offset(pgd, vaddr);
 	pte = pte_offset(pmd, vaddr);
-	pkmap_page_table = pte;
+	pkmap_page_table = pte; // 持久内存映射区页表项(kmap)
 #endif
 
 #if CONFIG_X86_PAE
@@ -561,18 +564,18 @@ void __init mem_init(void)
 		BUG();
 
 #ifdef CONFIG_HIGHMEM
-	highmem_start_page = mem_map + highstart_pfn;
+	highmem_start_page = mem_map + highstart_pfn; // 高端内存开始页面
 	max_mapnr = num_physpages = highend_pfn;
 #else
 	max_mapnr = num_physpages = max_low_pfn;
 #endif
-	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE);
+	high_memory = (void *) __va(max_low_pfn * PAGE_SIZE); // 内核空间最大虚拟内存地址
 
 	/* clear the zero-page */
 	memset(empty_zero_page, 0, PAGE_SIZE);
 
 	/* this will put all low memory onto the freelists */
-	totalram_pages += free_all_bootmem();
+	totalram_pages += free_all_bootmem(); // 释放所有可用的内存页
 
 	reservedpages = 0;
 	for (tmp = 0; tmp < max_low_pfn; tmp++)
@@ -581,6 +584,7 @@ void __init mem_init(void)
 		 */
 		if (page_is_ram(tmp) && PageReserved(mem_map+tmp))
 			reservedpages++;
+
 #ifdef CONFIG_HIGHMEM
 	for (tmp = highstart_pfn; tmp < highend_pfn; tmp++) {
 		struct page *page = mem_map + tmp;
@@ -597,6 +601,7 @@ void __init mem_init(void)
 	}
 	totalram_pages += totalhigh_pages;
 #endif
+
 	codesize =  (unsigned long) &_etext - (unsigned long) &_text;
 	datasize =  (unsigned long) &_edata - (unsigned long) &_etext;
 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
@@ -650,7 +655,7 @@ static int do_test_wp_bit(unsigned long vaddr)
 		 "=r" (flag)
 		:"2" (1)
 		:"memory");
-	
+
 	return flag;
 }
 

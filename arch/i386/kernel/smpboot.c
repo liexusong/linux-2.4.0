@@ -550,7 +550,7 @@ static void __init do_boot_cpu (int apicid)
 	 * We can't use kernel_thread since we must avoid to
 	 * reschedule the child.
 	 */
-	if (fork_by_hand() < 0)
+	if (fork_by_hand() < 0) // fork一个新进程(因为现在是关闭中断的, 所以不用担心被调度)
 		panic("failed fork for CPU %d", cpu);
 
 	/*
@@ -565,7 +565,7 @@ static void __init do_boot_cpu (int apicid)
 	x86_cpu_to_apicid[cpu] = apicid;
 	x86_apicid_to_cpu[apicid] = cpu;
 	idle->has_cpu = 1; /* we schedule the first task manually */
-	idle->thread.eip = (unsigned long) start_secondary;
+	idle->thread.eip = (unsigned long) start_secondary; // 进程要执行的入口
 
 	del_from_runqueue(idle);
 	unhash_process(idle);
@@ -840,7 +840,7 @@ void __init smp_boot_cpus(void)
 	 */
 
 	for (apicid = 0; apicid < NR_CPUS; apicid++) {
-		x86_apicid_to_cpu[apicid] = -1;
+		x86_apicid_to_cpu[apicid] = -1; // 逻辑CPU号到物理CPU号的转换
 		prof_counter[apicid] = 1;
 		prof_old_multiplier[apicid] = 1;
 		prof_multiplier[apicid] = 1;
