@@ -133,26 +133,29 @@ asmlinkage unsigned long sys_brk(unsigned long brk)
 		goto set_brk;
 
 	/* Always allow shrinking brk. */
-	if (brk <= mm->brk) {
+	if (brk <= mm->brk) { // 缩小堆空间
 		if (!do_munmap(mm, newbrk, oldbrk-newbrk))
 			goto set_brk;
 		goto out;
 	}
 
 	/* Check against rlimit.. */
+	// 检测是否超过限制
 	rlim = current->rlim[RLIMIT_DATA].rlim_cur;
 	if (rlim < RLIM_INFINITY && brk - mm->start_data > rlim)
 		goto out;
 
 	/* Check against existing mmap mappings. */
-	if (find_vma_intersection(mm, oldbrk, newbrk+PAGE_SIZE))
+	if (find_vma_intersection(mm, oldbrk, newbrk+PAGE_SIZE)) // 如果已经存在, 那么直接返回
 		goto out;
 
 	/* Check if we have enough memory.. */
+	// 是否有足够的内存页?
 	if (!vm_enough_memory((newbrk-oldbrk) >> PAGE_SHIFT))
 		goto out;
 
 	/* Ok, looks good - let it rip. */
+	// 所有判断都成功, 现在调用do_brk()进行扩展堆空间
 	if (do_brk(oldbrk, newbrk-oldbrk) != oldbrk)
 		goto out;
 set_brk:
@@ -402,6 +405,7 @@ unsigned long get_unmapped_area(unsigned long addr, unsigned long len)
 #include "mmap_avl.c"
 
 /* Look up the first VMA which satisfies  addr < vm_end,  NULL if none. */
+// 找到第一个结束地址比addr大的虚拟内存空间结构
 struct vm_area_struct * find_vma(struct mm_struct * mm, unsigned long addr)
 {
 	struct vm_area_struct *vma = NULL;
@@ -686,10 +690,16 @@ int do_munmap(struct mm_struct *mm, unsigned long addr, size_t len)
 		return 0;
 	/* we have  addr < mpnt->vm_end  */
 
-	if (mpnt->vm_start >= addr+len)
+	if (mpnt->vm_start >= addr+len) // 没有交集, 直接返回
 		return 0;
 
 	/* If we'll make "hole", check the vm areas limit */
+	// 如果当前虚拟内存空间会导致之前的内存空间分裂
+	// vm_start                          vm_end
+	// |-----------------------------------|
+	//            ^               ^
+	//            |               |
+	//           addr         addr+len
 	if ((mpnt->vm_start < addr && mpnt->vm_end > addr+len)
 	    && mm->map_count >= MAX_MAP_COUNT)
 		return -ENOMEM;
@@ -790,6 +800,7 @@ unsigned long do_brk(unsigned long addr, unsigned long len)
 	/*
 	 * mlock MCL_FUTURE?
 	 */
+	// 内存是否不能交换到磁盘?
 	if (mm->def_flags & VM_LOCKED) {
 		unsigned long locked = mm->locked_vm << PAGE_SHIFT;
 		locked += len;
@@ -812,7 +823,7 @@ unsigned long do_brk(unsigned long addr, unsigned long len)
 	if (mm->map_count > MAX_MAP_COUNT)
 		return -ENOMEM;
 
-	if (!vm_enough_memory(len >> PAGE_SHIFT))
+	if (!vm_enough_memory(len >> PAGE_SHIFT)) // 内存是否足够?
 		return -ENOMEM;
 
 	flags = vm_flags(PROT_READ|PROT_WRITE|PROT_EXEC,
@@ -822,20 +833,22 @@ unsigned long do_brk(unsigned long addr, unsigned long len)
 
 
 	/* Can we just expand an old anonymous mapping? */
+	// 如果新申请的内存空间与之前的内存空间相连并且特性一样, 那么就合并内存空间
 	if (addr) {
 		struct vm_area_struct * vma = find_vma(mm, addr-1);
-		if (vma && vma->vm_end == addr && !vma->vm_file &&
-		    vma->vm_flags == flags) {
+		if (vma && vma->vm_end == addr &&
+			!vma->vm_file &&
+		    vma->vm_flags == flags)
+		{
 			vma->vm_end = addr + len;
 			goto out;
 		}
 	}
 
-
 	/*
 	 * create a vma struct for an anonymous mapping
 	 */
-	vma = kmem_cache_alloc(vm_area_cachep, SLAB_KERNEL);
+	vma = kmem_cache_alloc(vm_area_cachep, SLAB_KERNEL); // 新申请一个虚拟内存空间结构
 	if (!vma)
 		return -ENOMEM;
 
@@ -849,13 +862,13 @@ unsigned long do_brk(unsigned long addr, unsigned long len)
 	vma->vm_file = NULL;
 	vma->vm_private_data = NULL;
 
-	insert_vm_struct(mm, vma);
+	insert_vm_struct(mm, vma); // 添加到虚拟内存管理器中
 
 out:
 	mm->total_vm += len >> PAGE_SHIFT;
 	if (flags & VM_LOCKED) {
 		mm->locked_vm += len >> PAGE_SHIFT;
-		make_pages_present(addr, addr + len);
+		make_pages_present(addr, addr + len); // 如果是要锁定的内存, 那么就需要在这里申请物理内存
 	}
 	return addr;
 }
