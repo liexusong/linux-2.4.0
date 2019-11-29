@@ -143,7 +143,7 @@ typedef struct page {
 	wait_queue_head_t wait;
 	struct page **pprev_hash;
 	struct buffer_head * buffers;
-	void *virtual; /* non-NULL if kmapped */ // 原来只用于kmap
+	void *virtual; /* non-NULL if kmapped */
 	struct zone_struct *zone;
 } mem_map_t;
 
@@ -154,22 +154,22 @@ typedef struct page {
 #define set_page_count(p,v) 	atomic_set(&(p)->count, v)
 
 /* Page flag bit values */
-#define PG_locked			0
-#define PG_error			1
-#define PG_referenced		2
-#define PG_uptodate			3
-#define PG_dirty			4
-#define PG_decr_after		5
-#define PG_active			6
-#define PG_inactive_dirty	7
-#define PG_slab				8
-#define PG_swap_cache		9
-#define PG_skip				10
+#define PG_locked		 0
+#define PG_error		 1
+#define PG_referenced		 2
+#define PG_uptodate		 3
+#define PG_dirty		 4
+#define PG_decr_after		 5
+#define PG_active		 6
+#define PG_inactive_dirty	 7
+#define PG_slab			 8
+#define PG_swap_cache		 9
+#define PG_skip			10
 #define PG_inactive_clean	11
-#define PG_highmem			12
+#define PG_highmem		12
 				/* bits 21-29 unused */
-#define PG_arch_1			30
-#define PG_reserved			31
+#define PG_arch_1		30
+#define PG_reserved		31
 
 /* Make it prettier to test the above... */
 #define Page_Uptodate(page)	test_bit(PG_uptodate, &(page)->flags)
@@ -455,10 +455,10 @@ extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int);
 /*
  * GFP bitmasks..
  */
-#define __GFP_WAIT	0x01  // 是否阻塞标志
-#define __GFP_HIGH	0x02  //
-#define __GFP_IO	0x04  //
-#define __GFP_DMA	0x08  // 是否DMA内存区
+#define __GFP_WAIT	0x01
+#define __GFP_HIGH	0x02
+#define __GFP_IO	0x04
+#define __GFP_DMA	0x08
 #ifdef CONFIG_HIGHMEM
 #define __GFP_HIGHMEM	0x10
 #else
@@ -466,13 +466,13 @@ extern struct page *filemap_nopage(struct vm_area_struct *, unsigned long, int);
 #endif
 
 
-#define GFP_BUFFER		(__GFP_HIGH | __GFP_WAIT)
-#define GFP_ATOMIC		(__GFP_HIGH)  // 不能阻塞的内存申请
-#define GFP_USER		(__GFP_WAIT | __GFP_IO)
-#define GFP_HIGHUSER	(__GFP_WAIT | __GFP_IO | __GFP_HIGHMEM)
-#define GFP_KERNEL		(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
-#define GFP_NFS			(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
-#define GFP_KSWAPD		(__GFP_IO)
+#define GFP_BUFFER	(__GFP_HIGH | __GFP_WAIT)
+#define GFP_ATOMIC	(__GFP_HIGH)
+#define GFP_USER	(             __GFP_WAIT | __GFP_IO)
+#define GFP_HIGHUSER	(             __GFP_WAIT | __GFP_IO | __GFP_HIGHMEM)
+#define GFP_KERNEL	(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
+#define GFP_NFS		(__GFP_HIGH | __GFP_WAIT | __GFP_IO)
+#define GFP_KSWAPD	(                          __GFP_IO)
 
 /* Flag - indicates that the buffer will be suitable for DMA.  Ignored on some
    platforms, used as appropriate on others */
@@ -510,6 +510,7 @@ extern struct vm_area_struct * find_vma_prev(struct mm_struct * mm, unsigned lon
 
 /* Look up the first VMA which intersects the interval start_addr..end_addr-1,
    NULL if none.  Assume start_addr < end_addr. */
+// 查找内存地址范围是否与已存在的内存地址发生交集
 static inline struct vm_area_struct * find_vma_intersection(struct mm_struct * mm, unsigned long start_addr, unsigned long end_addr)
 {
 	struct vm_area_struct * vma = find_vma(mm,start_addr);

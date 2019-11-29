@@ -547,11 +547,12 @@ static struct vm_area_struct * unmap_fixup(struct mm_struct *mm,
 	struct vm_area_struct *mpnt;
 	unsigned long end = addr + len;
 
+	// 减去要释放的内存页数量
 	area->vm_mm->total_vm -= len >> PAGE_SHIFT;
 	if (area->vm_flags & VM_LOCKED)
 		area->vm_mm->locked_vm -= len >> PAGE_SHIFT;
 
-	/* Unmapping the whole area. */
+	/* Unmapping the whole area. */ // 刚刚好, 直接释放就可以了
 	if (addr == area->vm_start && end == area->vm_end) {
 		if (area->vm_ops && area->vm_ops->close)
 			area->vm_ops->close(area);
@@ -563,10 +564,12 @@ static struct vm_area_struct * unmap_fixup(struct mm_struct *mm,
 
 	/* Work out to one of the ends. */
 	if (end == area->vm_end) {
+		/* arae->vm_start < addr <= end == area->vm_end */
 		area->vm_end = addr;
 		lock_vma_mappings(area);
 		spin_lock(&mm->page_table_lock);
 	} else if (addr == area->vm_start) {
+		/* arae->vm_start == addr <= end < area->vm_end */
 		area->vm_pgoff += (end - area->vm_start) >> PAGE_SHIFT;
 		area->vm_start = end;
 		lock_vma_mappings(area);
@@ -744,14 +747,15 @@ int do_munmap(struct mm_struct *mm, unsigned long addr, size_t len)
 
 		if (mpnt->vm_flags & VM_DENYWRITE &&
 		    (st != mpnt->vm_start || end != mpnt->vm_end) &&
-		    (file = mpnt->vm_file) != NULL) {
+		    (file = mpnt->vm_file) != NULL)
+		{
 			atomic_dec(&file->f_dentry->d_inode->i_writecount);
 		}
 		remove_shared_vm_struct(mpnt);
 		mm->map_count--;
 
 		flush_cache_range(mm, st, end);
-		zap_page_range(mm, st, size);
+		zap_page_range(mm, st, size); // 解绑与物理地址的映射
 		flush_tlb_range(mm, st, end);
 
 		/*
