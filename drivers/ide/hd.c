@@ -9,7 +9,7 @@
  * request-list, using interrupts to jump between functions. As
  * all the functions are called within interrupts, we may not
  * sleep. Special care is recommended.
- * 
+ *
  *  modified by Drew Eckhardt to check nr of hd's from the CMOS.
  *
  *  Thanks to Branko Lankester, lankeste@fwi.uva.nl, who found a bug
@@ -23,10 +23,10 @@
  *
  *  Modified 1995 Russell King for ARM processor.
  */
-  
+
 /* Uncomment the following if you want verbose error reports. */
 /* #define VERBOSE_ERRORS */
-  
+
 #include <linux/errno.h>
 #include <linux/signal.h>
 #include <linux/sched.h>
@@ -91,7 +91,7 @@ static int hd_error;
 struct hd_i_struct {
 	unsigned int head,sect,cyl,wpcom,lzone,ctl;
 };
-	
+
 #ifdef HD_TYPE
 static struct hd_i_struct hd_info[] = { HD_TYPE };
 static int NR_HD = ((sizeof (hd_info))/(sizeof (struct hd_i_struct)));
@@ -625,18 +625,18 @@ static int hd_ioctl(struct inode * inode, struct file * file,
 	switch (cmd) {
 		case HDIO_GETGEO:
 		{
-			struct hd_geometry g; 
+			struct hd_geometry g;
 			if (!loc)  return -EINVAL;
 			g.heads = hd_info[dev].head;
 			g.sectors = hd_info[dev].sect;
 			g.cylinders = hd_info[dev].cyl;
 			g.start = hd[MINOR(inode->i_rdev)].start_sect;
-			return copy_to_user(loc, &g, sizeof g) ? -EFAULT : 0; 
+			return copy_to_user(loc, &g, sizeof g) ? -EFAULT : 0;
 		}
 
          	case BLKGETSIZE:   /* Return device size */
 			if (!arg)  return -EINVAL;
-			return put_user(hd[MINOR(inode->i_rdev)].nr_sects, 
+			return put_user(hd[MINOR(inode->i_rdev)].nr_sects,
 					(long *) arg);
 
 		case BLKRRPART: /* Re-read partition tables */
@@ -684,7 +684,7 @@ static int hd_release(struct inode * inode, struct file * file)
 extern struct block_device_operations hd_fops;
 
 static struct gendisk hd_gendisk = {
-	MAJOR_NR,	/* Major number */	
+	MAJOR_NR,	/* Major number */
 	"hd",		/* Major name */
 	6,		/* Bits to shift to get real from partition */
 	1 << 6,		/* Number of partitions per real */
@@ -695,7 +695,7 @@ static struct gendisk hd_gendisk = {
 	NULL,		/* next */
 	&hd_fops,       /* file operations */
 };
-	
+
 static void hd_interrupt(int irq, void *dev_id, struct pt_regs *regs)
 {
 	void (*handler)(void) = DEVICE_INTR;
@@ -756,22 +756,22 @@ static void __init hd_geninit(void)
 		}
 
 	/*
-		We query CMOS about hard disks : it could be that 
+		We query CMOS about hard disks : it could be that
 		we have a SCSI/ESDI/etc controller that is BIOS
 		compatible with ST-506, and thus showing up in our
 		BIOS table, but not register compatible, and therefore
 		not present in CMOS.
 
 		Furthermore, we will assume that our ST-506 drives
-		<if any> are the primary drives in the system, and 
+		<if any> are the primary drives in the system, and
 		the ones reflected as drive 1 or 2.
 
 		The first drive is stored in the high nibble of CMOS
 		byte 0x12, the second in the low nibble.  This will be
-		either a 4 bit drive type or 0xf indicating use byte 0x19 
+		either a 4 bit drive type or 0xf indicating use byte 0x19
 		for an 8 bit type, drive 1, 0x1a for drive 2 in CMOS.
 
-		Needless to say, a non-zero value means we have 
+		Needless to say, a non-zero value means we have
 		an AT controller hard disk for that drive.
 
 		Currently the rtc_lock is a bit academic since this
@@ -887,7 +887,7 @@ static int revalidate_hddisk(kdev_t dev, int maxusage)
 	for (i=max_p - 1; i >=0 ; i--) {
 		int minor = start + i;
 		kdev_t devi = MKDEV(MAJOR_NR, minor);
-		struct super_block *sb = get_super(devi); 
+		struct super_block *sb = get_super(devi);
 
 		sync_dev(devi);
 		if (sb)

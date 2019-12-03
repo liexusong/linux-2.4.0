@@ -34,8 +34,8 @@ struct poll_table_struct;
  * nr_file rlimit, so it's safe to set up a ridiculously high absolute
  * upper limit on files-per-process.
  *
- * Some programs (notably those using select()) may have to be 
- * recompiled to take full advantage of the new limits..  
+ * Some programs (notably those using select()) may have to be
+ * recompiled to take full advantage of the new limits..
  */
 
 /* Fixed constants first: */
@@ -77,7 +77,7 @@ extern int leases_enable, dir_notify_enable, lease_break_time;
 #define SEL_EX		4
 
 /* public flags for file_system_type */
-#define FS_REQUIRES_DEV 1 
+#define FS_REQUIRES_DEV 1
 #define FS_NO_DCACHE	2 /* Only dcache the necessary things. */
 #define FS_NO_PRELIM	4 /* prevent preloading of dentries, even if
 			   * FS_NO_DCACHE is not set.
@@ -210,10 +210,10 @@ extern void inode_init(unsigned long);
  * Try to keep the most commonly used fields in single cache lines (16
  * bytes) to improve performance.  This ordering should be
  * particularly beneficial on 32-bit processors.
- * 
+ *
  * We use the first 16 bytes for the data which is used in searches
  * over the block hash lists (ie. getblk() and friends).
- * 
+ *
  * The second 16 bytes we use for lru buffer scans, as used by
  * sync_buffers() and refill_freelist().  -- sct
  */
@@ -362,74 +362,74 @@ struct address_space_operations {
 	int (*bmap)(struct address_space *, long);
 };
 
-struct address_space {
-	struct list_head	clean_pages;	/* list of clean pages */
-	struct list_head	dirty_pages;	/* list of dirty pages */
-	struct list_head	locked_pages;	/* list of locked pages */
-	unsigned long		nrpages;	/* number of total pages */
+struct address_space { // 为mmap而生
+	struct list_head	clean_pages;		/* list of clean pages */
+	struct list_head	dirty_pages;		/* list of dirty pages */
+	struct list_head	locked_pages;		/* list of locked pages */
+	unsigned long		nrpages;			/* number of total pages */
 	struct address_space_operations *a_ops;	/* methods */
-	struct inode		*host;		/* owner: inode, block_device */
-	struct vm_area_struct	*i_mmap;	/* list of private mappings */
-	struct vm_area_struct	*i_mmap_shared; /* list of shared mappings */
-	spinlock_t		i_shared_lock;  /* and spinlock protecting it */
+	struct inode		*host;				/* owner: inode, block_device */
+	struct vm_area_struct	*i_mmap;		/* list of private mappings */ // 私有内存映射
+	struct vm_area_struct	*i_mmap_shared; /* list of shared mappings */ // 共享内存映射
+	spinlock_t		i_shared_lock;  		/* and spinlock protecting it */
 };
 
 struct block_device {
-	struct list_head	bd_hash;
-	atomic_t		bd_count;
+	struct list_head		bd_hash;
+	atomic_t				bd_count;
 /*	struct address_space	bd_data; */
-	dev_t			bd_dev;  /* not a kdev_t - it's a search key */
-	atomic_t		bd_openers;
+	dev_t					bd_dev;  /* not a kdev_t - it's a search key */
+	atomic_t				bd_openers;
 	const struct block_device_operations *bd_op;
-	struct semaphore	bd_sem;	/* open/close mutex */
+	struct semaphore		bd_sem;	/* open/close mutex */
 };
 
 struct inode {
-	struct list_head	i_hash;
-	struct list_head	i_list;
-	struct list_head	i_dentry;
-	
-	struct list_head	i_dirty_buffers;
+	struct list_head		i_hash;
+	struct list_head		i_list;
+	struct list_head		i_dentry;
 
-	unsigned long		i_ino;
-	atomic_t		i_count;
-	kdev_t			i_dev;
-	umode_t			i_mode;
-	nlink_t			i_nlink;
-	uid_t			i_uid;
-	gid_t			i_gid;
-	kdev_t			i_rdev;
-	loff_t			i_size;
-	time_t			i_atime;
-	time_t			i_mtime;
-	time_t			i_ctime;
-	unsigned long		i_blksize;
-	unsigned long		i_blocks;
-	unsigned long		i_version;
-	struct semaphore	i_sem;
-	struct semaphore	i_zombie;
+	struct list_head		i_dirty_buffers;
+
+	unsigned long			i_ino;
+	atomic_t				i_count;
+	kdev_t					i_dev;
+	umode_t					i_mode;
+	nlink_t					i_nlink;
+	uid_t					i_uid;
+	gid_t					i_gid;
+	kdev_t					i_rdev;
+	loff_t					i_size;
+	time_t					i_atime;
+	time_t					i_mtime;
+	time_t					i_ctime;
+	unsigned long			i_blksize;
+	unsigned long			i_blocks;
+	unsigned long			i_version;
+	struct semaphore		i_sem;
+	struct semaphore		i_zombie;
 	struct inode_operations	*i_op;
 	struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
-	struct super_block	*i_sb;
-	wait_queue_head_t	i_wait;
-	struct file_lock	*i_flock;
+	struct super_block		*i_sb;
+	wait_queue_head_t		i_wait;
+	struct file_lock		*i_flock;
 	struct address_space	*i_mapping;
-	struct address_space	i_data;	
-	struct dquot		*i_dquot[MAXQUOTAS];
+	struct address_space	i_data;
+	struct dquot			*i_dquot[MAXQUOTAS];
 	struct pipe_inode_info	*i_pipe;
-	struct block_device	*i_bdev;
+	struct block_device		*i_bdev;
 
-	unsigned long		i_dnotify_mask; /* Directory notify events */
+	unsigned long			i_dnotify_mask; /* Directory notify events */
 	struct dnotify_struct	*i_dnotify; /* for directory notifications */
 
-	unsigned long		i_state;
+	unsigned long			i_state;
 
-	unsigned int		i_flags;
-	unsigned char		i_sock;
+	unsigned int			i_flags;
+	unsigned char			i_sock;
 
-	atomic_t		i_writecount;
-	unsigned int		i_attr_flags;
-	__u32			i_generation;
+	atomic_t				i_writecount;
+	unsigned int			i_attr_flags;
+	__u32					i_generation;
 	union {
 		struct minix_inode_info		minix_i;
 		struct ext2_inode_info		ext2_i;
@@ -686,27 +686,27 @@ struct super_block {
 
 	union {
 		struct minix_sb_info	minix_sb;
-		struct ext2_sb_info	ext2_sb;
-		struct hpfs_sb_info	hpfs_sb;
-		struct ntfs_sb_info	ntfs_sb;
+		struct ext2_sb_info		ext2_sb;
+		struct hpfs_sb_info		hpfs_sb;
+		struct ntfs_sb_info		ntfs_sb;
 		struct msdos_sb_info	msdos_sb;
 		struct isofs_sb_info	isofs_sb;
-		struct nfs_sb_info	nfs_sb;
-		struct sysv_sb_info	sysv_sb;
-		struct affs_sb_info	affs_sb;
-		struct ufs_sb_info	ufs_sb;
-		struct efs_sb_info	efs_sb;
+		struct nfs_sb_info		nfs_sb;
+		struct sysv_sb_info		sysv_sb;
+		struct affs_sb_info		affs_sb;
+		struct ufs_sb_info		ufs_sb;
+		struct efs_sb_info		efs_sb;
 		struct shmem_sb_info	shmem_sb;
 		struct romfs_sb_info	romfs_sb;
-		struct smb_sb_info	smbfs_sb;
-		struct hfs_sb_info	hfs_sb;
-		struct adfs_sb_info	adfs_sb;
-		struct qnx4_sb_info	qnx4_sb;
-		struct bfs_sb_info	bfs_sb;
-		struct udf_sb_info	udf_sb;
-		struct ncp_sb_info	ncpfs_sb;
+		struct smb_sb_info		smbfs_sb;
+		struct hfs_sb_info		hfs_sb;
+		struct adfs_sb_info		adfs_sb;
+		struct qnx4_sb_info		qnx4_sb;
+		struct bfs_sb_info		bfs_sb;
+		struct udf_sb_info		udf_sb;
+		struct ncp_sb_info		ncpfs_sb;
 		struct usbdev_sb_info   usbdevfs_sb;
-		void			*generic_sbp;
+		void					*generic_sbp;
 	} u;
 	/*
 	 * The next field is for VFS *only*. No filesystems have any business
@@ -880,7 +880,7 @@ extern int vfs_statfs(struct super_block *, struct statfs *);
 
 /* Return value for VFS lock functions - tells locks.c to lock conventionally
  * REALLY kosha for root NFS and nfs_lock
- */ 
+ */
 #define LOCK_USE_CLNT 1
 
 #define FLOCK_VERIFY_READ  1
@@ -1097,7 +1097,7 @@ extern int open_namei(const char *, int, int, struct nameidata *);
 
 extern int kernel_read(struct file *, unsigned long, char *, unsigned long);
 extern struct file * open_exec(const char *);
- 
+
 /* fs/dcache.c -- generic fs support functions */
 extern int is_subdir(struct dentry *, struct dentry *);
 extern ino_t find_inode_number(struct dentry *, struct qstr *);

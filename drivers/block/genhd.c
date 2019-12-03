@@ -50,7 +50,7 @@ void __init device_init(void)
 	soc_probe();
 #endif
 #ifdef CONFIG_IEEE1394
-        ieee1394_init();
+	ieee1394_init();
 #endif
 #ifdef CONFIG_BLK_CPQ_DA
 	cpqarray_init();

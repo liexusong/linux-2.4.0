@@ -172,8 +172,7 @@ out:
  */
 static inline unsigned long vm_flags(unsigned long prot, unsigned long flags)
 {
-#define _trans(x,bit1,bit2) \
-((bit1==bit2)?(x&bit1):(x&bit1)?bit2:0)
+#define _trans(x,bit1,bit2) ((bit1==bit2)?(x&bit1):(x&bit1)?bit2:0)
 
 	unsigned long prot_bits, flag_bits;
 	prot_bits =
@@ -188,8 +187,10 @@ static inline unsigned long vm_flags(unsigned long prot, unsigned long flags)
 #undef _trans
 }
 
-unsigned long do_mmap_pgoff(struct file * file, unsigned long addr, unsigned long len,
-	unsigned long prot, unsigned long flags, unsigned long pgoff)
+unsigned long do_mmap_pgoff(
+	struct file * file, unsigned long addr,
+	unsigned long len, unsigned long prot,
+	unsigned long flags, unsigned long pgoff)
 {
 	struct mm_struct * mm = current->mm;
 	struct vm_area_struct * vma;
@@ -253,11 +254,11 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr, unsigned lon
 	/* Obtain the address to map to. we verify (or select) it and ensure
 	 * that it represents a valid section of the address space.
 	 */
-	if (flags & MAP_FIXED) {
+	if (flags & MAP_FIXED) { // 对地址不作检测
 		if (addr & ~PAGE_MASK)
 			return -EINVAL;
 	} else {
-		addr = get_unmapped_area(addr, len);
+		addr = get_unmapped_area(addr, len); // 找到一个还没被映射的虚拟内存地址
 		if (!addr)
 			return -ENOMEM;
 	}
@@ -332,7 +333,7 @@ unsigned long do_mmap_pgoff(struct file * file, unsigned long addr, unsigned lon
 		}
 		vma->vm_file = file;
 		get_file(file);
-		error = file->f_op->mmap(file, vma);
+		error = file->f_op->mmap(file, vma); // 设置vma->ops
 		if (error)
 			goto unmap_and_free_vma;
 	} else if (flags & MAP_SHARED) {
@@ -400,7 +401,7 @@ unsigned long get_unmapped_area(unsigned long addr, unsigned long len)
 }
 #endif
 
-#define vm_avl_empty	(struct vm_area_struct *) NULL
+#define vm_avl_empty ((struct vm_area_struct *)NULL)
 
 #include "mmap_avl.c"
 

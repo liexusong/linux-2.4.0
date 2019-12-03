@@ -416,7 +416,7 @@ void filemap_fdatasync(struct address_space * mapping)
 
 	spin_lock(&pagecache_lock);
 
-        while (!list_empty(&mapping->dirty_pages)) {
+	while (!list_empty(&mapping->dirty_pages)) {
 		struct page *page = list_entry(mapping->dirty_pages.next, struct page, list);
 
 		list_del(&page->list);
@@ -453,7 +453,7 @@ void filemap_fdatawait(struct address_space * mapping)
 {
 	spin_lock(&pagecache_lock);
 
-        while (!list_empty(&mapping->locked_pages)) {
+	while (!list_empty(&mapping->locked_pages)) {
 		struct page *page = list_entry(mapping->locked_pages.next, struct page, list);
 
 		list_del(&page->list);
@@ -1438,6 +1438,7 @@ struct page * filemap_nopage(struct vm_area_struct * area,
 	struct page *page, **hash, *old_page;
 	unsigned long size, pgoff;
 
+	// 地址所在的内存页偏移量
 	pgoff = ((address - area->vm_start) >> PAGE_CACHE_SHIFT) + area->vm_pgoff;
 
 retry_all:
@@ -1550,7 +1551,7 @@ page_not_uptodate:
 	 * because there really aren't any performance issues here
 	 * and we need to check for errors.
 	 */
-	lock_page(page);
+	lock_page(page); // 可能会休眠
 
 	/* Somebody truncated the page on us? */
 	if (!page->mapping) {
