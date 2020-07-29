@@ -1,4 +1,7 @@
-sys_execute();
-do_mmap2();
-O_DIRECT;
-sys_write();
+inode;
+dentry;
+ext2_inode;
+path_init();
+path_walk();
+ext2_lookup();
+ext2_inode_info;

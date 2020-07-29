@@ -132,13 +132,13 @@ struct vm_operations_struct {
  * is used for linear searches (eg. clock algorithm scans).
  */
 typedef struct page {
-	struct list_head list;
-	struct address_space *mapping;
+	struct list_head list;         // 连接到伙伴分配器
+	struct address_space *mapping; // 与文件相关
 	unsigned long index;
 	struct page *next_hash;
 	atomic_t count;
 	unsigned long flags;	/* atomic flags, some possibly updated asynchronously */
-	struct list_head lru;
+	struct list_head lru;  // 连接到LRU链表
 	unsigned long age;
 	wait_queue_head_t wait;
 	struct page **pprev_hash;

@@ -29,7 +29,7 @@ struct swap_info_struct swap_info[MAX_SWAPFILES];
 static inline int scan_swap_map(struct swap_info_struct *si, unsigned short count)
 {
 	unsigned long offset;
-	/* 
+	/*
 	 * We try to cluster swap pages by allocating them
 	 * sequentially in swap.  Once we've allocated
 	 * SWAPFILE_CLUSTER pages this way, however, we resort to
@@ -150,13 +150,13 @@ void __swap_free(swp_entry_t entry, unsigned short count)
 	if (!entry.val)
 		goto out;
 
-	type = SWP_TYPE(entry);
+	type = SWP_TYPE(entry); // 获取页面所在的交换文件
 	if (type >= nr_swapfiles)
 		goto bad_nofile;
 	p = & swap_info[type];
 	if (!(p->flags & SWP_USED))
 		goto bad_device;
-	offset = SWP_OFFSET(entry);
+	offset = SWP_OFFSET(entry); // 获取页面所在交换文件的偏移量
 	if (offset >= p->max)
 		goto bad_offset;
 	if (!p->swap_map[offset])
@@ -388,7 +388,7 @@ static int try_to_unuse(unsigned int type)
 		swap_device_lock(si);
 		if (si->swap_map[i] > 0) {
 			if (si->swap_map[i] != SWAP_MAP_MAX)
-				printk("VM: Undead swap entry %08lx\n", 
+				printk("VM: Undead swap entry %08lx\n",
 								entry.val);
 			nr_swap_pages++;
 			si->swap_map[i] = 0;
@@ -405,7 +405,7 @@ asmlinkage long sys_swapoff(const char * specialfile)
 	struct nameidata nd;
 	int i, type, prev;
 	int err;
-	
+
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 
@@ -517,7 +517,7 @@ int get_swaparea_info(char *buf)
 					default:
 						usedswap++;
 				}
-			len += sprintf(buf + len, "%d\t%d\t%d\n", ptr->pages << (PAGE_SHIFT - 10), 
+			len += sprintf(buf + len, "%d\t%d\t%d\n", ptr->pages << (PAGE_SHIFT - 10),
 				usedswap << (PAGE_SHIFT - 10), ptr->prio);
 		}
 	}
@@ -557,7 +557,7 @@ asmlinkage long sys_swapon(const char * specialfile, int swap_flags)
 	unsigned long maxpages;
 	int swapfilesize;
 	struct block_device *bdev = NULL;
-	
+
 	if (!capable(CAP_SYS_ADMIN))
 		return -EPERM;
 	lock_kernel();
@@ -602,7 +602,7 @@ asmlinkage long sys_swapon(const char * specialfile, int swap_flags)
 
 		p->swap_device = dev;
 		set_blocksize(dev, PAGE_SIZE);
-		
+
 		bdev = swap_inode->i_bdev;
 		bdops = devfs_get_ops(devfs_get_handle_from_inode(swap_inode));
 		if (bdops) bdev->bd_op = bdops;
@@ -657,7 +657,7 @@ asmlinkage long sys_swapon(const char * specialfile, int swap_flags)
 		error = -EINVAL;
 		goto bad_swap;
 	}
-	
+
 	switch (swap_header_version) {
 	case 1:
 		memset(((char *) swap_header)+PAGE_SIZE-10,0,10);
@@ -676,7 +676,7 @@ asmlinkage long sys_swapon(const char * specialfile, int swap_flags)
 		nr_good_pages = j;
 		p->swap_map = vmalloc(p->max * sizeof(short));
 		if (!p->swap_map) {
-			error = -ENOMEM;		
+			error = -ENOMEM;
 			goto bad_swap;
 		}
 		for (i = 1 ; i < p->max ; i++) {
@@ -709,7 +709,7 @@ asmlinkage long sys_swapon(const char * specialfile, int swap_flags)
 		error = -EINVAL;
 		if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
 			goto bad_swap;
-		
+
 		/* OK, set up the swap map and apply the bad block list */
 		if (!(p->swap_map = vmalloc (p->max * sizeof(short)))) {
 			error = -ENOMEM;
@@ -728,10 +728,10 @@ asmlinkage long sys_swapon(const char * specialfile, int swap_flags)
 		nr_good_pages = swap_header->info.last_page -
 				swap_header->info.nr_badpages -
 				1 /* header page */;
-		if (error) 
+		if (error)
 			goto bad_swap;
 	}
-	
+
 	if (swapfilesize && p->max > swapfilesize) {
 		printk(KERN_WARNING
 		       "Swap area shorter than signature indicates\n");
@@ -914,7 +914,7 @@ bad_unused:
 /*
  * Kernel_lock protects against swap device deletion.
  */
-void get_swaphandle_info(swp_entry_t entry, unsigned long *offset, 
+void get_swaphandle_info(swp_entry_t entry, unsigned long *offset,
 			kdev_t *dev, struct inode **swapf)
 {
 	unsigned long type;

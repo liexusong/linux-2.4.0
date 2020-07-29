@@ -333,7 +333,7 @@ unsigned long do_mmap_pgoff(
 		}
 		vma->vm_file = file;
 		get_file(file);
-		error = file->f_op->mmap(file, vma); // 设置vma->ops
+		error = file->f_op->mmap(file, vma); // 设置 vma->ops = xxx (比如shmem_shared_vm_ops), 一般调用的是 generic_file_mmap()
 		if (error)
 			goto unmap_and_free_vma;
 	} else if (flags & MAP_SHARED) {

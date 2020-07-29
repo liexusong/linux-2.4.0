@@ -21,7 +21,7 @@
 
 extern __inline void apic_write(unsigned long reg, unsigned long v)
 {
-	*((volatile unsigned long *)(APIC_BASE+reg)) = v; // 想APIC的reg寄存器写个值v
+	*((volatile unsigned long *)(APIC_BASE+reg)) = v; // 向APIC寄存器reg写入值v
 }
 
 extern __inline void apic_write_atomic(unsigned long reg, unsigned long v)
@@ -31,7 +31,7 @@ extern __inline void apic_write_atomic(unsigned long reg, unsigned long v)
 
 extern __inline unsigned long apic_read(unsigned long reg)
 {
-	return *((volatile unsigned long *)(APIC_BASE+reg));
+	return *((volatile unsigned long *)(APIC_BASE+reg)); // 读取某个APIC寄存器的值
 }
 
 static __inline__ void apic_wait_icr_idle(void)

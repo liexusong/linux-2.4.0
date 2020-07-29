@@ -12,10 +12,10 @@
 #endif
 
 /* Responses from hook functions. */
-#define NF_DROP 0
+#define NF_DROP   0
 #define NF_ACCEPT 1
 #define NF_STOLEN 2
-#define NF_QUEUE 3
+#define NF_QUEUE  3
 #define NF_REPEAT 4
 #define NF_MAX_VERDICT NF_REPEAT
 
@@ -43,14 +43,14 @@ typedef unsigned int nf_hookfn(unsigned int hooknum,
 
 struct nf_hook_ops
 {
-	struct list_head list;
+	struct list_head list; // Link all same type hooks
 
 	/* User fills in from here down. */
 	nf_hookfn *hook;
-	int pf;
-	int hooknum;
+	int pf;            // 协议类型, 如: PF_INET
+	int hooknum;       // 钩子挂载点
 	/* Hooks are ordered in ascending priority. */
-	int priority;
+	int priority;      // 优先级
 };
 
 struct nf_sockopt_ops
@@ -78,14 +78,14 @@ struct nf_info
 {
 	/* The ops struct which sent us to userspace. */
 	struct nf_hook_ops *elem;
-	
+
 	/* If we're sent to userspace, this keeps housekeeping info */
 	int pf;
 	unsigned int hook;
 	struct net_device *indev, *outdev;
 	int (*okfn)(struct sk_buff *);
 };
-                                                                                
+
 /* Function to register/unregister hook points. */
 int nf_register_hook(struct nf_hook_ops *reg);
 void nf_unregister_hook(struct nf_hook_ops *reg);
@@ -130,15 +130,15 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
 		 int (*okfn)(struct sk_buff *));
 
 /* Call setsockopt() */
-int nf_setsockopt(struct sock *sk, int pf, int optval, char *opt, 
+int nf_setsockopt(struct sock *sk, int pf, int optval, char *opt,
 		  int len);
 int nf_getsockopt(struct sock *sk, int pf, int optval, char *opt,
 		  int *len);
 
 /* Packet queuing */
-typedef int (*nf_queue_outfn_t)(struct sk_buff *skb, 
+typedef int (*nf_queue_outfn_t)(struct sk_buff *skb,
                                 struct nf_info *info, void *data);
-extern int nf_register_queue_handler(int pf, 
+extern int nf_register_queue_handler(int pf,
                                      nf_queue_outfn_t outfn, void *data);
 extern int nf_unregister_queue_handler(int pf);
 extern void nf_reinject(struct sk_buff *skb,

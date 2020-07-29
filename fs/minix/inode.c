@@ -179,7 +179,7 @@ static struct super_block *minix_read_super(struct super_block *s, void *data,
 	const char * errmsg;
 	struct inode *root_inode;
 	unsigned int hblock;
-	
+
 	/* N.B. These should be compile-time tests.
 	   Unfortunately that is impossible. */
 	if (32 != sizeof (struct minix_inode))
@@ -209,6 +209,7 @@ static struct super_block *minix_read_super(struct super_block *s, void *data,
 	s->u.minix_sb.s_log_zone_size = ms->s_log_zone_size;
 	s->u.minix_sb.s_max_size = ms->s_max_size;
 	s->s_magic = ms->s_magic;
+
 	if (s->s_magic == MINIX_SUPER_MAGIC) {
 		s->u.minix_sb.s_version = MINIX_V1;
 		s->u.minix_sb.s_dirsize = 16;
@@ -246,12 +247,12 @@ static struct super_block *minix_read_super(struct super_block *s, void *data,
 	s->u.minix_sb.s_zmap = &map[s->u.minix_sb.s_imap_blocks];
 
 	block=2;
-	for (i=0 ; i < s->u.minix_sb.s_imap_blocks ; i++) {
+	for (i=0 ; i < s->u.minix_sb.s_imap_blocks ; i++) { // 读取inode位图
 		if (!(s->u.minix_sb.s_imap[i]=bread(dev,block,BLOCK_SIZE)))
 			goto out_no_bitmap;
 		block++;
 	}
-	for (i=0 ; i < s->u.minix_sb.s_zmap_blocks ; i++) {
+	for (i=0 ; i < s->u.minix_sb.s_zmap_blocks ; i++) { // 读取数据块位图
 		if (!(s->u.minix_sb.s_zmap[i]=bread(dev,block,BLOCK_SIZE)))
 			goto out_no_bitmap;
 		block++;

@@ -182,7 +182,7 @@ static int __blk_cleanup_queue(struct list_head *head)
  *     when a block device is being de-registered.  Currently, its
  *     primary task it to free all the &struct request structures that
  *     were allocated to the queue.
- * Caveat: 
+ * Caveat:
  *     Hopefully the low level driver will have finished any
  *     outstanding requests first...
  **/
@@ -223,7 +223,7 @@ void blk_cleanup_queue(request_queue_t * q)
  *    When a queue is plugged (see blk_queue_pluggable()) the head will be
  *    assumed to be inactive.
  **/
- 
+
 void blk_queue_headactive(request_queue_t * q, int active)
 {
 	q->head_active = active;
@@ -296,7 +296,7 @@ static inline int ll_new_segment(request_queue_t *q, struct request *req, int ma
 	return 0;
 }
 
-static int ll_back_merge_fn(request_queue_t *q, struct request *req, 
+static int ll_back_merge_fn(request_queue_t *q, struct request *req,
 			    struct buffer_head *bh, int max_segments)
 {
 	if (req->bhtail->b_data + req->bhtail->b_size == bh->b_data)
@@ -304,7 +304,7 @@ static int ll_back_merge_fn(request_queue_t *q, struct request *req,
 	return ll_new_segment(q, req, max_segments);
 }
 
-static int ll_front_merge_fn(request_queue_t *q, struct request *req, 
+static int ll_front_merge_fn(request_queue_t *q, struct request *req,
 			     struct buffer_head *bh, int max_segments)
 {
 	if (bh->b_data + bh->b_size == req->bh->b_data)
@@ -323,7 +323,7 @@ static int ll_merge_requests_fn(request_queue_t *q, struct request *req,
 		total_segments--;
 		same_segment = 1;
 	}
-    
+
 	if (total_segments > max_segments)
 		return 0;
 
@@ -612,7 +612,7 @@ static inline void add_request(request_queue_t * q, struct request * req,
 	if (major >= COMPAQ_SMART2_MAJOR+0 && major <= COMPAQ_SMART2_MAJOR+7)
 		(q->request_fn)(q);
 	if (major >= COMPAQ_CISS_MAJOR+0 && major <= COMPAQ_CISS_MAJOR+7)
-                (q->request_fn)(q);
+		(q->request_fn)(q);
 	if (major >= DAC960_MAJOR+0 && major <= DAC960_MAJOR+7)
 		(q->request_fn)(q);
 }
@@ -643,7 +643,7 @@ static void attempt_merge(request_queue_t * q,
 			  int max_segments)
 {
 	struct request *next;
-  
+
 	next = blkdev_next_request(req);
 	if (req->sector + req->nr_sectors != next->sector)
 		return;
@@ -693,7 +693,7 @@ static inline void attempt_front_merge(request_queue_t * q,
 }
 
 static int __make_request(request_queue_t * q, int rw,
-				  struct buffer_head * bh)
+						  struct buffer_head * bh)
 {
 	unsigned int sector, count;
 	int max_segments = MAX_SEGMENTS;
@@ -703,8 +703,8 @@ static int __make_request(request_queue_t * q, int rw,
 	int latency;
 	elevator_t *elevator = &q->elevator;
 
-	count = bh->b_size >> 9;
-	sector = bh->b_rsector;
+	count = bh->b_size >> 9;  // 扇区数
+	sector = bh->b_rsector;   // 扇区号
 
 	rw_ahead = 0;	/* normal case; gets changed below for READA */
 	switch (rw) {
@@ -762,10 +762,9 @@ again:
 		goto get_rq;
 	}
 
-	el_ret = elevator->elevator_merge_fn(q, &req, bh, rw,
-					     &max_sectors, &max_segments);
-	switch (el_ret) {
+	el_ret = elevator->elevator_merge_fn(q, &req, bh, rw, &max_sectors, &max_segments);
 
+	switch (el_ret) {
 		case ELEVATOR_BACK_MERGE:
 			if (!q->back_merge_fn(q, req, bh, max_segments))
 				break;
@@ -800,7 +799,7 @@ again:
 			printk("elevator returned crap (%d)\n", el_ret);
 			BUG();
 	}
-		
+
 	/*
 	 * Grab a free request from the freelist. Read first try their
 	 * own queue - if that is empty, we steal from the write list.
@@ -883,7 +882,7 @@ end_io:
  * */
 void generic_make_request (int rw, struct buffer_head * bh)
 {
-	int major = MAJOR(bh->b_rdev);
+	int major = MAJOR(bh->b_rdev); // 主设备号
 	request_queue_t *q;
 
 	if (!bh->b_end_io) BUG();
@@ -891,13 +890,13 @@ void generic_make_request (int rw, struct buffer_head * bh)
 		unsigned long maxsector = (blk_size[major][MINOR(bh->b_rdev)] << 1) + 1;
 		unsigned int sector, count;
 
-		count = bh->b_size >> 9;
-		sector = bh->b_rsector;
+		count = bh->b_size >> 9;   // 计算扇区数
+		sector = bh->b_rsector;    // 开始扇区号
 
-		if (maxsector < count || maxsector - count < sector) {
-			bh->b_state &= (1 << BH_Lock) | (1 << BH_Mapped);
+		if (maxsector < count || maxsector - count < sector) {  // 检测扇区数是否正确
+			bh->b_state &= (1 << BH_Lock) | (1 << BH_Mapped);   // 去除Lock和Mapped标志位
 			if (blk_size[major][MINOR(bh->b_rdev)]) {
-				
+
 				/* This may well happen - the kernel calls bread()
 				   without checking the size of the device, e.g.,
 				   when mounting a device. */
@@ -930,7 +929,6 @@ void generic_make_request (int rw, struct buffer_head * bh)
 			buffer_IO_error(bh);
 			break;
 		}
-
 	}
 	while (q->make_request_fn(q, rw, bh));
 }
@@ -951,19 +949,19 @@ void generic_make_request (int rw, struct buffer_head * bh)
  */
 void submit_bh(int rw, struct buffer_head * bh)
 {
-	if (!test_bit(BH_Lock, &bh->b_state))
+	if (!test_bit(BH_Lock, &bh->b_state)) // 如果缓存没被锁定, 说明有bug
 		BUG();
 
-	set_bit(BH_Req, &bh->b_state);
+	set_bit(BH_Req, &bh->b_state); // 设置BH_Req标志位
 
 	/*
 	 * First step, 'identity mapping' - RAID or LVM might
 	 * further remap this.
 	 */
-	bh->b_rdev = bh->b_dev;
-	bh->b_rsector = bh->b_blocknr * (bh->b_size>>9);
+	bh->b_rdev = bh->b_dev;  // 设置真正设备号
+	bh->b_rsector = bh->b_blocknr * (bh->b_size>>9); // 取得扇区号, 除以512(一个扇区的大小)
 
-	generic_make_request(rw, bh);
+	generic_make_request(rw, bh); // 生成IO请求
 
 	switch (rw) {
 		case WRITE:
@@ -1055,7 +1053,7 @@ void ll_rw_block(int rw, int nr, struct buffer_head * bhs[])
 		bh = bhs[i];
 
 		/* Only one thread can actually submit the I/O. */
-		if (test_and_set_bit(BH_Lock, &bh->b_state))
+		if (test_and_set_bit(BH_Lock, &bh->b_state)) // 先锁定缓存
 			continue;
 
 		/* We have the buffer lock */
@@ -1082,7 +1080,7 @@ void ll_rw_block(int rw, int nr, struct buffer_head * bhs[])
 			continue;
 		}
 
-		submit_bh(rw, bh);
+		submit_bh(rw, bh); // 提交IO请求
 	}
 	return;
 

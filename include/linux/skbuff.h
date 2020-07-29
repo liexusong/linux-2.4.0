@@ -10,7 +10,7 @@
  *	as published by the Free Software Foundation; either version
  *	2 of the License, or (at your option) any later version.
  */
- 
+
 #ifndef _LINUX_SKBUFF_H
 #define _LINUX_SKBUFF_H
 
@@ -88,23 +88,23 @@ struct sk_buff {
 		struct ipxhdr	*ipxh;
 		unsigned char	*raw;
 	} nh;
-  
+
 	/* Link layer header */
-	union 
-	{	
+	union
+	{
 	  	struct ethhdr	*ethernet;
 	  	unsigned char 	*raw;
 	} mac;
 
 	struct  dst_entry *dst;
 
-	/* 
+	/*
 	 * This is the control buffer. It is free to use for every
 	 * layer. Please put your private variables there. If you
 	 * want to keep them across layers you have to do a skb_clone()
 	 * first. This is owned by whoever has the skb queued ATM.
-	 */ 
-	char		cb[48];	 
+	 */
+	char		cb[48];
 
 	unsigned int 	len;			/* Length of actual data			*/
 	unsigned int	csum;			/* Checksum 					*/
@@ -125,13 +125,13 @@ struct sk_buff {
 	void 		(*destructor)(struct sk_buff *);	/* Destruct function		*/
 #ifdef CONFIG_NETFILTER
 	/* Can be used for communication between hooks. */
-        unsigned long	nfmark;
+	unsigned long	nfmark;
 	/* Cache info */
 	__u32		nfcache;
 	/* Associated connection, if any */
 	struct nf_ct_info *nfct;
 #ifdef CONFIG_NETFILTER_DEBUG
-        unsigned int nf_debug;
+	unsigned int nf_debug;
 #endif
 #endif /*CONFIG_NETFILTER*/
 
@@ -142,7 +142,7 @@ struct sk_buff {
 #endif
 
 #ifdef CONFIG_NET_SCHED
-       __u32           tc_index;               /* traffic control index */
+	__u32	   tc_index;	       /* traffic control index */
 #endif
 };
 
@@ -163,7 +163,7 @@ extern struct sk_buff *		alloc_skb(unsigned int size, int priority);
 extern void			kfree_skbmem(struct sk_buff *skb);
 extern struct sk_buff *		skb_clone(struct sk_buff *skb, int priority);
 extern struct sk_buff *		skb_copy(const struct sk_buff *skb, int priority);
-extern struct sk_buff *		skb_copy_expand(const struct sk_buff *skb, 
+extern struct sk_buff *		skb_copy_expand(const struct sk_buff *skb,
 						int newheadroom,
 						int newtailroom,
 						int priority);
@@ -186,7 +186,7 @@ static inline atomic_t *skb_datarefp(struct sk_buff *skb)
  *
  *	Returns true if the queue is empty, false otherwise.
  */
- 
+
 static inline int skb_queue_empty(struct sk_buff_head *list)
 {
 	return (list->next == (struct sk_buff *) list);
@@ -199,7 +199,7 @@ static inline int skb_queue_empty(struct sk_buff_head *list)
  *	Makes another reference to a socket buffer and returns a pointer
  *	to the buffer.
  */
- 
+
 static inline struct sk_buff *skb_get(struct sk_buff *skb)
 {
 	atomic_inc(&skb->users);
@@ -210,7 +210,7 @@ static inline struct sk_buff *skb_get(struct sk_buff *skb)
  * If users==1, we are the only owner and are can avoid redundant
  * atomic change.
  */
- 
+
 /**
  *	kfree_skb - free an sk_buff
  *	@skb: buffer to free
@@ -218,7 +218,7 @@ static inline struct sk_buff *skb_get(struct sk_buff *skb)
  *	Drop a reference to the buffer and free it if the usage count has
  *	hit zero.
  */
- 
+
 static inline void kfree_skb(struct sk_buff *skb)
 {
 	if (atomic_read(&skb->users) == 1 || atomic_dec_and_test(&skb->users))
@@ -229,7 +229,7 @@ static inline void kfree_skb(struct sk_buff *skb)
 static inline void kfree_skb_fast(struct sk_buff *skb)
 {
 	if (atomic_read(&skb->users) == 1 || atomic_dec_and_test(&skb->users))
-		kfree_skbmem(skb);	
+		kfree_skbmem(skb);
 }
 
 /**
@@ -253,17 +253,17 @@ static inline int skb_cloned(struct sk_buff *skb)
  *	Returns true if more than one person has a reference to this
  *	buffer.
  */
- 
+
 static inline int skb_shared(struct sk_buff *skb)
 {
 	return (atomic_read(&skb->users) != 1);
 }
 
-/** 
+/**
  *	skb_share_check - check if buffer is shared and if so clone it
  *	@skb: buffer to check
  *	@pri: priority for memory allocation
- *	
+ *
  *	If the buffer is shared the buffer is cloned and the old copy
  *	drops a reference. A new clone with a single reference is returned.
  *	If the buffer is not shared the original buffer is returned. When
@@ -272,7 +272,7 @@ static inline int skb_shared(struct sk_buff *skb)
  *
  *	NULL is returned on a memory allocation failure.
  */
- 
+
 static inline struct sk_buff *skb_share_check(struct sk_buff *skb, int pri)
 {
 	if (skb_shared(skb)) {
@@ -291,7 +291,7 @@ static inline struct sk_buff *skb_share_check(struct sk_buff *skb, int pri)
  *	and a couple of other messy ones. The normal one is tcpdumping
  *	a packet thats being forwarded.
  */
- 
+
 /**
  *	skb_unshare - make a copy of a shared buffer
  *	@skb: buffer to check
@@ -305,7 +305,7 @@ static inline struct sk_buff *skb_share_check(struct sk_buff *skb, int pri)
  *
  *	%NULL is returned on a memory allocation failure.
  */
- 
+
 static inline struct sk_buff *skb_unshare(struct sk_buff *skb, int pri)
 {
 	struct sk_buff *nskb;
@@ -329,7 +329,7 @@ static inline struct sk_buff *skb_unshare(struct sk_buff *skb, int pri)
  *	The reference count is not incremented and the reference is therefore
  *	volatile. Use with caution.
  */
- 
+
 static inline struct sk_buff *skb_peek(struct sk_buff_head *list_)
 {
 	struct sk_buff *list = ((struct sk_buff *)list_)->next;
@@ -364,9 +364,9 @@ static inline struct sk_buff *skb_peek_tail(struct sk_buff_head *list_)
  *	skb_queue_len	- get queue length
  *	@list_: list to measure
  *
- *	Return the length of an &sk_buff queue. 
+ *	Return the length of an &sk_buff queue.
  */
- 
+
 static inline __u32 skb_queue_len(struct sk_buff_head *list_)
 {
 	return(list_->qlen);
@@ -396,8 +396,8 @@ static inline void skb_queue_head_init(struct sk_buff_head *list)
  *	and you must therefore hold required locks before calling it.
  *
  *	A buffer cannot be placed on two lists at the same time.
- */	
- 
+ */
+
 static inline void __skb_queue_head(struct sk_buff_head *list, struct sk_buff *newsk)
 {
 	struct sk_buff *prev, *next;
@@ -423,7 +423,7 @@ static inline void __skb_queue_head(struct sk_buff_head *list, struct sk_buff *n
  *	safely.
  *
  *	A buffer cannot be placed on two lists at the same time.
- */	
+ */
 
 static inline void skb_queue_head(struct sk_buff_head *list, struct sk_buff *newsk)
 {
@@ -443,8 +443,8 @@ static inline void skb_queue_head(struct sk_buff_head *list, struct sk_buff *new
  *	and you must therefore hold required locks before calling it.
  *
  *	A buffer cannot be placed on two lists at the same time.
- */	
- 
+ */
+
 
 static inline void __skb_queue_tail(struct sk_buff_head *list, struct sk_buff *newsk)
 {
@@ -470,7 +470,7 @@ static inline void __skb_queue_tail(struct sk_buff_head *list, struct sk_buff *n
  *	safely.
  *
  *	A buffer cannot be placed on two lists at the same time.
- */	
+ */
 
 static inline void skb_queue_tail(struct sk_buff_head *list, struct sk_buff *newsk)
 {
@@ -598,7 +598,7 @@ static inline void skb_append(struct sk_buff *old, struct sk_buff *newsk)
  * remove sk_buff from list. _Must_ be called atomically, and with
  * the list known..
  */
- 
+
 static inline void __skb_unlink(struct sk_buff *skb, struct sk_buff_head *list)
 {
 	struct sk_buff * next, * prev;
@@ -619,9 +619,9 @@ static inline void __skb_unlink(struct sk_buff *skb, struct sk_buff_head *list)
  *
  *	Place a packet after a given packet in a list. The list locks are taken
  *	and this function is atomic with respect to other list locked calls
- *	
- *	Works even without knowing the list it is sitting on, which can be 
- *	handy at times. It also means that THE LIST MUST EXIST when you 
+ *
+ *	Works even without knowing the list it is sitting on, which can be
+ *	handy at times. It also means that THE LIST MUST EXIST when you
  *	unlink. Thus a list must have its contents unlinked before it is
  *	destroyed.
  */
@@ -653,7 +653,7 @@ static inline void skb_unlink(struct sk_buff *skb)
 
 static inline struct sk_buff *__skb_dequeue_tail(struct sk_buff_head *list)
 {
-	struct sk_buff *skb = skb_peek_tail(list); 
+	struct sk_buff *skb = skb_peek_tail(list);
 	if (skb)
 		__skb_unlink(skb, list);
 	return skb;
@@ -682,7 +682,7 @@ static inline struct sk_buff *skb_dequeue_tail(struct sk_buff_head *list)
 /*
  *	Add data to an sk_buff
  */
- 
+
 static inline unsigned char *__skb_put(struct sk_buff *skb, unsigned int len)
 {
 	unsigned char *tmp=skb->tail;
@@ -693,20 +693,20 @@ static inline unsigned char *__skb_put(struct sk_buff *skb, unsigned int len)
 
 /**
  *	skb_put - add data to a buffer
- *	@skb: buffer to use 
+ *	@skb: buffer to use
  *	@len: amount of data to add
  *
  *	This function extends the used data area of the buffer. If this would
  *	exceed the total buffer size the kernel will panic. A pointer to the
  *	first byte of the extra data is returned.
  */
- 
+
 static inline unsigned char *skb_put(struct sk_buff *skb, unsigned int len)
 {
-	unsigned char *tmp=skb->tail;
-	skb->tail+=len;
-	skb->len+=len;
-	if(skb->tail>skb->end) {
+	unsigned char *tmp = skb->tail;
+	skb->tail += len;
+	skb->len += len;
+	if(skb->tail > skb->end) {
 		skb_over_panic(skb, len, current_text_addr());
 	}
 	return tmp;
@@ -714,40 +714,41 @@ static inline unsigned char *skb_put(struct sk_buff *skb, unsigned int len)
 
 static inline unsigned char *__skb_push(struct sk_buff *skb, unsigned int len)
 {
-	skb->data-=len;
-	skb->len+=len;
+	skb->data -= len;
+	skb->len += len;
 	return skb->data;
 }
 
 /**
  *	skb_push - add data to the start of a buffer
- *	@skb: buffer to use 
+ *	@skb: buffer to use
  *	@len: amount of data to add
  *
  *	This function extends the used data area of the buffer at the buffer
  *	start. If this would exceed the total buffer headroom the kernel will
  *	panic. A pointer to the first byte of the extra data is returned.
  */
-
+// 压入数据
 static inline unsigned char *skb_push(struct sk_buff *skb, unsigned int len)
 {
-	skb->data-=len;
-	skb->len+=len;
-	if(skb->data<skb->head) {
+	skb->data -= len;
+	skb->len += len;
+	if(skb->data < skb->head) {
 		skb_under_panic(skb, len, current_text_addr());
 	}
 	return skb->data;
 }
 
+// 释放空间
 static inline char *__skb_pull(struct sk_buff *skb, unsigned int len)
 {
-	skb->len-=len;
-	return 	skb->data+=len;
+	skb->len -= len;
+	return skb->data += len;
 }
 
 /**
  *	skb_pull - remove data from the start of a buffer
- *	@skb: buffer to use 
+ *	@skb: buffer to use
  *	@len: amount of data to remove
  *
  *	This function removes data from the start of a buffer, returning
@@ -757,7 +758,7 @@ static inline char *__skb_pull(struct sk_buff *skb, unsigned int len)
  */
 
 static inline unsigned char * skb_pull(struct sk_buff *skb, unsigned int len)
-{	
+{
 	if (len > skb->len)
 		return NULL;
 	return __skb_pull(skb,len);
@@ -769,7 +770,7 @@ static inline unsigned char * skb_pull(struct sk_buff *skb, unsigned int len)
  *
  *	Return the number of bytes of free space at the head of an &sk_buff.
  */
- 
+
 static inline int skb_headroom(const struct sk_buff *skb)
 {
 	return skb->data-skb->head;
@@ -795,11 +796,11 @@ static inline int skb_tailroom(const struct sk_buff *skb)
  *	Increase the headroom of an empty &sk_buff by reducing the tail
  *	room. This is only allowed for an empty buffer.
  */
-
+// 在skb中保留len长度的空间
 static inline void skb_reserve(struct sk_buff *skb, unsigned int len)
 {
-	skb->data+=len;
-	skb->tail+=len;
+	skb->data += len;
+	skb->tail += len;
 }
 
 
@@ -889,7 +890,7 @@ static inline void __skb_queue_purge(struct sk_buff_head *list)
  *	%NULL is returned in there is no free memory. Although this function
  *	allocates memory it can be called from an interrupt.
  */
- 
+
 static inline struct sk_buff *dev_alloc_skb(unsigned int length)
 {
 	struct sk_buff *skb;
@@ -914,7 +915,7 @@ static inline struct sk_buff *dev_alloc_skb(unsigned int length)
  *	This function primarily exists to avoid making two copies when making
  *	a writable copy of a buffer and then growing the headroom.
  */
- 
+
 
 static inline struct sk_buff *
 skb_cow(struct sk_buff *skb, unsigned int headroom)

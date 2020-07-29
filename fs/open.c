@@ -230,7 +230,7 @@ asmlinkage long sys_utime(char * filename, struct utimbuf * times)
 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
 	if (times) {
 		error = get_user(newattrs.ia_atime, &times->actime);
-		if (!error) 
+		if (!error)
 			error = get_user(newattrs.ia_mtime, &times->modtime);
 		if (error)
 			goto dput_and_out;
@@ -410,7 +410,7 @@ asmlinkage long sys_chroot(const char * filename)
 
 	path_init(name, LOOKUP_POSITIVE | LOOKUP_FOLLOW |
 		      LOOKUP_DIRECTORY | LOOKUP_NOALT, &nd);
-	error = path_walk(name, &nd);	
+	error = path_walk(name, &nd);
 	putname(name);
 	if (error)
 		goto out;
@@ -546,7 +546,7 @@ static int chown_common(struct dentry * dentry, uid_t user, gid_t group)
 	 *
 	 * Removed the fsuid check (see the comment above) -- 19990830 SD.
 	 */
-	if (((inode->i_mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP)) 
+	if (((inode->i_mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP))
 		&& !S_ISDIR(inode->i_mode))
 	{
 		newattrs.ia_mode &= ~S_ISGID;
@@ -652,7 +652,7 @@ struct file *dentry_open(struct dentry *dentry, struct vfsmount *mnt, int flags)
 	f->f_vfsmnt = mnt;
 	f->f_pos = 0;
 	f->f_reada = 0;
-	f->f_op = fops_get(inode->i_fop);
+	f->f_op = fops_get(inode->i_fop); // f->f_op = inode->i_fop
 	if (inode->i_sb)
 		file_move(f, &inode->i_sb->s_files);
 	if (f->f_op && f->f_op->open) {
@@ -690,8 +690,8 @@ int get_unused_fd(void)
 	write_lock(&files->file_lock);
 
 repeat:
- 	fd = find_next_zero_bit(files->open_fds, 
-				files->max_fdset, 
+ 	fd = find_next_zero_bit(files->open_fds,
+				files->max_fdset,
 				files->next_fd);
 
 	/*
@@ -710,8 +710,8 @@ repeat:
 		}
 		goto out;
 	}
-	
-	/* 
+
+	/*
 	 * Check whether we need to expand the fd array.
 	 */
 	if (fd >= files->max_fds) {
@@ -748,16 +748,16 @@ asmlinkage long sys_open(const char * filename, int flags, int mode)
 #if BITS_PER_LONG != 32
 	flags |= O_LARGEFILE;
 #endif
-	tmp = getname(filename);
+	tmp = getname(filename); // 把文件名从用户空间复制到内核空间
 	fd = PTR_ERR(tmp);
 	if (!IS_ERR(tmp)) {
-		fd = get_unused_fd();
+		fd = get_unused_fd(); // 找到一个未被使用的文件句柄
 		if (fd >= 0) {
-			struct file *f = filp_open(tmp, flags, mode);
+			struct file *f = filp_open(tmp, flags, mode); // 找到一个未被使用的file对象
 			error = PTR_ERR(f);
 			if (IS_ERR(f))
 				goto out_error;
-			fd_install(fd, f);
+			fd_install(fd, f); // 把文件句柄与file对象关联起来
 		}
 out:
 		putname(tmp);

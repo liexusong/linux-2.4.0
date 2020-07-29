@@ -507,10 +507,10 @@ static inline void __add_to_page_cache(struct page * page,
 		BUG();
 
 	flags = page->flags & ~((1 << PG_uptodate) | (1 << PG_error) | (1 << PG_dirty) | (1 << PG_referenced) | (1 << PG_arch_1));
-	page->flags = flags | (1 << PG_locked);
+	page->flags = flags | (1 << PG_locked); // Lock page
 	page_cache_get(page);
 	page->index = offset;
-	add_page_to_inode_queue(mapping, page);
+	add_page_to_inode_queue(mapping, page); // 添加到address_space的链表中
 	add_page_to_hash_queue(page, hash);
 	lru_cache_add(page);
 }
@@ -1021,8 +1021,8 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 	int max_readahead = get_max_readahead(inode);
 
 	cached_page = NULL;
-	index = *ppos >> PAGE_CACHE_SHIFT;
-	offset = *ppos & ~PAGE_CACHE_MASK;
+	index = *ppos >> PAGE_CACHE_SHIFT; // page索引
+	offset = *ppos & ~PAGE_CACHE_MASK; // 在page中的偏移量
 
 /*
  * If the current position is outside the previous read-ahead window,
@@ -1067,7 +1067,7 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 		struct page *page, **hash;
 		unsigned long end_index, nr;
 
-		end_index = inode->i_size >> PAGE_CACHE_SHIFT;
+		end_index = inode->i_size >> PAGE_CACHE_SHIFT; // 文件最大的页索引
 		if (index > end_index)
 			break;
 		nr = PAGE_CACHE_SIZE;
@@ -1455,9 +1455,9 @@ retry_all:
 	 */
 	hash = page_hash(mapping, pgoff);
 retry_find:
-	page = __find_get_page(mapping, pgoff, hash);
+	page = __find_get_page(mapping, pgoff, hash); // 查找缓存是否已经存在
 	if (!page)
-		goto no_cached_page;
+		goto no_cached_page; // 跳去读取文件内容到内存
 
 	/*
 	 * Ok, found a page in the page cache, now we need to check
@@ -1708,7 +1708,7 @@ static struct vm_operations_struct file_private_mmap = {
 int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
 {
 	struct vm_operations_struct * ops;
-	struct inode *inode = file->f_dentry->d_inode;
+	struct inode *inode = file->f_dentry->d_inode; // 文件所属inode
 
 	ops = &file_private_mmap;
 	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE)) {

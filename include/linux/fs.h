@@ -220,8 +220,8 @@ extern void inode_init(unsigned long);
 struct buffer_head {
 	/* First cache line: */
 	struct buffer_head *b_next;	/* Hash queue list */
-	unsigned long b_blocknr;	/* block number */
-	unsigned short b_size;		/* block size */
+	unsigned long b_blocknr;	/* block number */ // 数据块编号
+	unsigned short b_size;		/* block size */   // 数据块大小
 	unsigned short b_list;		/* List that this buffer appears */
 	kdev_t b_dev;			/* device (B_FREE = free) */
 
@@ -253,12 +253,12 @@ void init_buffer(struct buffer_head *, bh_end_io_t *, void *);
 
 #define __buffer_state(bh, state)	(((bh)->b_state & (1UL << BH_##state)) != 0)
 
-#define buffer_uptodate(bh)	__buffer_state(bh,Uptodate)
-#define buffer_dirty(bh)	__buffer_state(bh,Dirty)
-#define buffer_locked(bh)	__buffer_state(bh,Lock)
-#define buffer_req(bh)		__buffer_state(bh,Req)
-#define buffer_mapped(bh)	__buffer_state(bh,Mapped)
-#define buffer_new(bh)		__buffer_state(bh,New)
+#define buffer_uptodate(bh)		__buffer_state(bh,Uptodate)
+#define buffer_dirty(bh)		__buffer_state(bh,Dirty)
+#define buffer_locked(bh)		__buffer_state(bh,Lock)
+#define buffer_req(bh)			__buffer_state(bh,Req)
+#define buffer_mapped(bh)		__buffer_state(bh,Mapped)
+#define buffer_new(bh)			__buffer_state(bh,New)
 #define buffer_protected(bh)	__buffer_state(bh,Protected)
 
 #define bh_offset(bh)		((unsigned long)(bh)->b_data & ~PAGE_MASK)
@@ -321,13 +321,13 @@ extern void set_bh_page(struct buffer_head *bh, struct page *page, unsigned long
  */
 struct iattr {
 	unsigned int	ia_valid;
-	umode_t		ia_mode;
-	uid_t		ia_uid;
-	gid_t		ia_gid;
-	loff_t		ia_size;
-	time_t		ia_atime;
-	time_t		ia_mtime;
-	time_t		ia_ctime;
+	umode_t			ia_mode;
+	uid_t			ia_uid;
+	gid_t			ia_gid;
+	loff_t			ia_size;
+	time_t			ia_atime;
+	time_t			ia_mtime;
+	time_t			ia_ctime;
 	unsigned int	ia_attr_flags;
 };
 
@@ -362,16 +362,16 @@ struct address_space_operations {
 	int (*bmap)(struct address_space *, long);
 };
 
-struct address_space { // 为mmap而生
-	struct list_head	clean_pages;		/* list of clean pages */
-	struct list_head	dirty_pages;		/* list of dirty pages */
-	struct list_head	locked_pages;		/* list of locked pages */
-	unsigned long		nrpages;			/* number of total pages */
-	struct address_space_operations *a_ops;	/* methods */
-	struct inode		*host;				/* owner: inode, block_device */
-	struct vm_area_struct	*i_mmap;		/* list of private mappings */ // 私有内存映射
-	struct vm_area_struct	*i_mmap_shared; /* list of shared mappings */ // 共享内存映射
-	spinlock_t		i_shared_lock;  		/* and spinlock protecting it */
+struct address_space { // 文件与内存页的关联结构
+	struct list_head		clean_pages;		/* list of clean pages */
+	struct list_head		dirty_pages;		/* list of dirty pages */
+	struct list_head		locked_pages;		/* list of locked pages */
+	unsigned long			nrpages;			/* number of total pages */
+	struct address_space_operations *a_ops;		/* methods */
+	struct inode			*host;				/* owner: inode, block_device */ // 所属inode
+	struct vm_area_struct	*i_mmap;			/* list of private mappings */   // 私有内存映射
+	struct vm_area_struct	*i_mmap_shared; 	/* list of shared mappings */    // 共享内存映射
+	spinlock_t				i_shared_lock;		/* and spinlock protecting it */ // 共享内存时的锁
 };
 
 struct block_device {
@@ -385,9 +385,9 @@ struct block_device {
 };
 
 struct inode {
-	struct list_head		i_hash;
+	struct list_head		i_hash;   // link global inode hashtable
 	struct list_head		i_list;
-	struct list_head		i_dentry;
+	struct list_head		i_dentry; // belongs to this inode's dentry list
 
 	struct list_head		i_dirty_buffers;
 
@@ -408,9 +408,9 @@ struct inode {
 	unsigned long			i_version;
 	struct semaphore		i_sem;
 	struct semaphore		i_zombie;
-	struct inode_operations	*i_op;
+	struct inode_operations	*i_op;  // inode's operations
 	struct file_operations	*i_fop;	/* former ->i_op->default_file_ops */
-	struct super_block		*i_sb;
+	struct super_block		*i_sb;  // belong to superblock
 	wait_queue_head_t		i_wait;
 	struct file_lock		*i_flock;
 	struct address_space	*i_mapping;
@@ -556,7 +556,7 @@ struct file_lock {
 	void (*fl_insert)(struct file_lock *);	/* lock insertion callback */
 	void (*fl_remove)(struct file_lock *);	/* lock removal callback */
 
-	struct fasync_struct *	fl_fasync; /* for lease break notifications */
+	struct fasync_struct *fl_fasync; /* for lease break notifications */
 
 	union {
 		struct nfs_lock_info	nfs_fl;
@@ -595,10 +595,10 @@ extern int lock_may_read(struct inode *, loff_t start, unsigned long count);
 extern int lock_may_write(struct inode *, loff_t start, unsigned long count);
 
 struct fasync_struct {
-	int	magic;
-	int	fa_fd;
+	int		magic;
+	int		fa_fd;
 	struct	fasync_struct	*fa_next; /* singly linked list */
-	struct	file 		*fa_file;
+	struct	file 			*fa_file;
 };
 
 #define FASYNC_MAGIC 0x4601
@@ -663,18 +663,18 @@ extern struct list_head super_blocks;
 
 #define sb_entry(list)	list_entry((list), struct super_block, s_list)
 struct super_block {
-	struct list_head	s_list;		/* Keep this first */
-	kdev_t				s_dev;
-	unsigned long		s_blocksize;
-	unsigned char		s_blocksize_bits;
+	struct list_head	s_list;		 /* Keep this first, link all superblock */
+	kdev_t				s_dev;            // 设备号
+	unsigned long		s_blocksize;      // 块大小
+	unsigned char		s_blocksize_bits; // 块大小占用的位
 	unsigned char		s_lock;
 	unsigned char		s_dirt;
-	struct file_system_type	*s_type;
-	struct super_operations	*s_op;
-	struct dquot_operations	*dq_op;
+	struct file_system_type	*s_type;  // 属于哪种文件系统
+	struct super_operations	*s_op;    // 超级块的操作列表
+	struct dquot_operations	*dq_op;   // 磁盘限额操作列表
 	unsigned long		s_flags;
 	unsigned long		s_magic;
-	struct dentry		*s_root;
+	struct dentry		*s_root;      // 挂载的根目录dentry
 	wait_queue_head_t	s_wait;
 
 	struct list_head	s_dirty;	/* dirty inodes */
@@ -859,7 +859,7 @@ struct file_system_type var = { 			\
 /* Alas, no aliases. Too much hassle with bringing module.h everywhere */
 #define fops_get(fops) \
 	(((fops) && (fops)->owner)	\
-		? ( try_inc_mod_count((fops)->owner) ? (fops) : NULL ) \
+		? (try_inc_mod_count((fops)->owner) ? (fops) : NULL) \
 		: (fops))
 
 #define fops_put(fops) \
@@ -988,11 +988,11 @@ extern int fs_may_remount_ro(struct super_block *);
 extern int try_to_free_buffers(struct page *, int);
 extern void refile_buffer(struct buffer_head * buf);
 
-#define BUF_CLEAN	0
-#define BUF_LOCKED	1	/* Buffers scheduled for write */
-#define BUF_DIRTY	2	/* Dirty buffers, not yet scheduled for write */
+#define BUF_CLEAN		0
+#define BUF_LOCKED		1	/* Buffers scheduled for write */
+#define BUF_DIRTY		2	/* Dirty buffers, not yet scheduled for write */
 #define BUF_PROTECTED	3	/* Ramdisk persistent storage */
-#define NR_LIST		4
+#define NR_LIST			4
 
 /*
  * This is called by bh->b_end_io() handlers when I/O has completed.
