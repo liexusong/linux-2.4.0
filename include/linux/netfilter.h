@@ -46,9 +46,9 @@ struct nf_hook_ops
 	struct list_head list; // Link all same type hooks
 
 	/* User fills in from here down. */
-	nf_hookfn *hook;
-	int pf;            // 协议类型, 如: PF_INET
-	int hooknum;       // 钩子挂载点
+	nf_hookfn *hook;   // 钩子函数
+	int pf;            // 协议类型, 如: PF_INET, PF_INET6
+	int hooknum;       // 钩子所在链(LOCAL_IN, FORWARD...)
 	/* Hooks are ordered in ascending priority. */
 	int priority;      // 优先级
 };

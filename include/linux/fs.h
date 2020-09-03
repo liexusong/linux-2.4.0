@@ -611,11 +611,11 @@ extern void kill_fasync(struct fasync_struct **, int, int);
 extern void __kill_fasync(struct fasync_struct *, int, int);
 
 struct nameidata {
-	struct dentry *dentry;
-	struct vfsmount *mnt;
-	struct qstr last;
-	unsigned int flags;
-	int last_type;
+	struct dentry *dentry; // 当前目录/文件的目录项对象
+	struct vfsmount *mnt;  // 当前目录/文件的挂载点信息
+	struct qstr last;      // 路径最后一个节点的名称
+	unsigned int flags;    // 查找路径dentry时使用的标志
+	int last_type;         // 最后一个节点的类型
 };
 
 #define DQUOT_USR_ENABLED	0x01		/* User diskquotas enabled */

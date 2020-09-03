@@ -1357,12 +1357,11 @@ int ipt_register_table(struct ipt_table *table)
 {
 	int ret;
 	struct ipt_table_info *newinfo;
-	static struct ipt_table_info bootstrap
-		= { 0, 0, { 0 }, { 0 }, { } };
+	static struct ipt_table_info bootstrap = { 0, 0, { 0 }, { 0 }, { } };
 
 	MOD_INC_USE_COUNT;
 	newinfo = vmalloc(sizeof(struct ipt_table_info)
-			  + SMP_ALIGN(table->table->size) * smp_num_cpus);
+			          + SMP_ALIGN(table->table->size) * smp_num_cpus);
 	if (!newinfo) {
 		ret = -ENOMEM;
 		MOD_DEC_USE_COUNT;
@@ -1466,13 +1465,13 @@ tcp_find_option(u_int8_t option,
 
 static int
 tcp_match(const struct sk_buff *skb,
-	  const struct net_device *in,
-	  const struct net_device *out,
-	  const void *matchinfo,
-	  int offset,
-	  const void *hdr,
-	  u_int16_t datalen,
-	  int *hotdrop)
+	const struct net_device *in,
+	const struct net_device *out,
+	const void *matchinfo,
+	int offset,
+	const void *hdr,
+	u_int16_t datalen,
+	int *hotdrop)
 {
 	const struct tcphdr *tcp = hdr;
 	const struct ipt_tcp *tcpinfo = matchinfo;
@@ -1522,10 +1521,10 @@ tcp_match(const struct sk_buff *skb,
 /* Called when user tries to insert an entry of this type. */
 static int
 tcp_checkentry(const char *tablename,
-	       const struct ipt_ip *ip,
-	       void *matchinfo,
-	       unsigned int matchsize,
-	       unsigned int hook_mask)
+	const struct ipt_ip *ip,
+	void *matchinfo,
+	unsigned int matchsize,
+	unsigned int hook_mask)
 {
 	const struct ipt_tcp *tcpinfo = matchinfo;
 
@@ -1656,20 +1655,20 @@ icmp_checkentry(const char *tablename,
 
 /* The built-in targets: standard (NULL) and error. */
 static struct ipt_target ipt_standard_target
-= { { NULL, NULL }, IPT_STANDARD_TARGET, NULL, NULL, NULL };
+	= { { NULL, NULL }, IPT_STANDARD_TARGET, NULL, NULL, NULL };
 static struct ipt_target ipt_error_target
-= { { NULL, NULL }, IPT_ERROR_TARGET, ipt_error, NULL, NULL };
+	= { { NULL, NULL }, IPT_ERROR_TARGET, ipt_error, NULL, NULL };
 
 static struct nf_sockopt_ops ipt_sockopts
-= { { NULL, NULL }, PF_INET, IPT_BASE_CTL, IPT_SO_SET_MAX+1, do_ipt_set_ctl,
-    IPT_BASE_CTL, IPT_SO_GET_MAX+1, do_ipt_get_ctl, 0, NULL  };
+	= { { NULL, NULL }, PF_INET, IPT_BASE_CTL, IPT_SO_SET_MAX+1, do_ipt_set_ctl,
+    	IPT_BASE_CTL, IPT_SO_GET_MAX+1, do_ipt_get_ctl, 0, NULL  };
 
 static struct ipt_match tcp_matchstruct
-= { { NULL, NULL }, "tcp", &tcp_match, &tcp_checkentry, NULL };
+	= { { NULL, NULL }, "tcp", &tcp_match, &tcp_checkentry, NULL };
 static struct ipt_match udp_matchstruct
-= { { NULL, NULL }, "udp", &udp_match, &udp_checkentry, NULL };
+	= { { NULL, NULL }, "udp", &udp_match, &udp_checkentry, NULL };
 static struct ipt_match icmp_matchstruct
-= { { NULL, NULL }, "icmp", &icmp_match, &icmp_checkentry, NULL };
+	= { { NULL, NULL }, "icmp", &icmp_match, &icmp_checkentry, NULL };
 
 #ifdef CONFIG_PROC_FS
 static inline int print_name(const struct ipt_table *t,

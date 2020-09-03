@@ -160,7 +160,7 @@ int vfs_permission(struct inode *inode, int mask)
 		 (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)))
 		return -EROFS; /* Nobody gets write access to a read-only fs */
 
-	if ((mask & S_IWOTH) && IS_IMMUTABLE(inode))
+	if ((mask & S_IWOTH) && IS_IMMUTABLE(inode)) // 不可修改文件的内容不能进行写操作
 		return -EACCES; /* Nobody gets write access to an immutable file */
 
 	if (current->fsuid == inode->i_uid)
@@ -284,7 +284,7 @@ static struct dentry * real_lookup(struct dentry * parent, struct qstr * name, i
 		result = ERR_PTR(-ENOMEM);
 		if (dentry) {
 			lock_kernel();
-			result = dir->i_op->lookup(dir, dentry); // 调用真实文件系统的lookup方法读取目录(如minix文件系统是: minix_lookup)
+			result = dir->i_op->lookup(dir, dentry); // 调用真实文件系统的lookup方法读取目录(如ext2文件系统是: ext2_lookup)
 			unlock_kernel();
 			if (result)
 				dput(dentry);
@@ -354,7 +354,7 @@ static inline int __follow_down(struct vfsmount **mnt, struct dentry **dentry)
 	struct list_head *p;
 	spin_lock(&dcache_lock);
 	p = (*dentry)->d_vfsmnt.next;
-	while (p != &(*dentry)->d_vfsmnt) { // 因为同一个目录有可能挂载很多个文件系统(虽然一般情况不会)
+	while (p != &(*dentry)->d_vfsmnt) { // 如果目录是一个挂载点, d_vfsmnt保存了挂载的信息
 		struct vfsmount *tmp;
 		tmp = list_entry(p, struct vfsmount, mnt_clash);
 		if (tmp->mnt_parent == *mnt) {
@@ -530,7 +530,7 @@ int path_walk(const char * name, struct nameidata *nd)
 			if (!inode->i_op)
 				break;
 		} else {
-			dput(nd->dentry);
+			dput(nd->dentry);    // 释放目录项对象(会暂时放置到LRU队列中)
 			nd->dentry = dentry; // 设置新的目录dentry结构
 		}
 		err = -ENOTDIR; // 如果不是一个目录
@@ -545,7 +545,7 @@ last_with_slashes:
 		lookup_flags |= LOOKUP_FOLLOW | LOOKUP_DIRECTORY;
 
 last_component:
-		if (lookup_flags & LOOKUP_PARENT)
+		if (lookup_flags & LOOKUP_PARENT) // 如果是查找路径的上一级目录
 			goto lookup_parent;
 		if (this.name[0] == '.')
 			switch (this.len) {

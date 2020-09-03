@@ -126,7 +126,7 @@ void dput(struct dentry *dentry)
 		return;
 
 repeat:
-	if (!atomic_dec_and_lock(&dentry->d_count, &dcache_lock))
+	if (!atomic_dec_and_lock(&dentry->d_count, &dcache_lock)) // 如果还有其他引用
 		return;
 
 	/* dput on a free dentry? */
@@ -140,9 +140,9 @@ repeat:
 			goto unhash_it;
 	}
 	/* Unreachable? Get rid of it */
-	if (list_empty(&dentry->d_hash))
+	if (list_empty(&dentry->d_hash)) // 如果不在dentry的hash表中
 		goto kill_it;
-	list_add(&dentry->d_lru, &dentry_unused);
+	list_add(&dentry->d_lru, &dentry_unused); // 添加到LRU链表中
 	dentry_stat.nr_unused++;
 	/*
 	 * Update the timestamp
@@ -665,7 +665,7 @@ void d_instantiate(struct dentry *entry, struct inode * inode)
 	spin_lock(&dcache_lock);
 	if (inode)
 		list_add(&entry->d_alias, &inode->i_dentry); // 把目录dentry结构添加到inode的i_dentry列表中
-	entry->d_inode = inode;
+	entry->d_inode = inode;                          // 把目录dentry结构的inode成员指向真实的inode
 	spin_unlock(&dcache_lock);
 }
 

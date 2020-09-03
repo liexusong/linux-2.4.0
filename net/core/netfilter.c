@@ -1,4 +1,4 @@
-/* netfilter.c: look after the filters for various protocols. 
+/* netfilter.c: look after the filters for various protocols.
  * Heavily influenced by the old firewall.c by David Bonn and Alan Cox.
  *
  * Thanks to Rob `CmdrTaco' Malda for not influencing this code in any
@@ -43,7 +43,7 @@ static DECLARE_MUTEX(nf_sockopt_mutex);
 struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 static LIST_HEAD(nf_sockopts);
 
-/* 
+/*
  * A queue handler may be registered for each protocol.  Each is protected by
  * long term mutex.  The handler must provide an an outfn() to accept packets
  * for queueing and must reinject all packets it receives, no matter what.
@@ -58,9 +58,10 @@ int nf_register_hook(struct nf_hook_ops *reg)
 	struct list_head *i;
 
 	br_write_lock_bh(BR_NETPROTO_LOCK);
-	for (i = nf_hooks[reg->pf][reg->hooknum].next; 
-	     i != &nf_hooks[reg->pf][reg->hooknum]; 
-	     i = i->next) {
+	for (i = nf_hooks[reg->pf][reg->hooknum].next;
+	     i != &nf_hooks[reg->pf][reg->hooknum];
+	     i = i->next)
+	{
 		if (reg->priority < ((struct nf_hook_ops *)i)->priority)
 			break;
 	}
@@ -79,8 +80,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
 /* Do exclusive ranges overlap? */
 static inline int overlap(int min1, int max1, int min2, int max2)
 {
-	return (min1 >= min2 && min1 < max2)
-		|| (max1 > min2 && max1 <= max2);
+	return (min1 >= min2 && min1 < max2) || (max1 > min2 && max1 <= max2);
 }
 
 /* Functions to register sockopt ranges (exclusive). */
@@ -95,13 +95,13 @@ int nf_register_sockopt(struct nf_sockopt_ops *reg)
 	for (i = nf_sockopts.next; i != &nf_sockopts; i = i->next) {
 		struct nf_sockopt_ops *ops = (struct nf_sockopt_ops *)i;
 		if (ops->pf == reg->pf
-		    && (overlap(ops->set_optmin, ops->set_optmax, 
+			&& (overlap(ops->set_optmin, ops->set_optmax,
 				reg->set_optmin, reg->set_optmax)
-			|| overlap(ops->get_optmin, ops->get_optmax, 
-				   reg->get_optmin, reg->get_optmax))) {
+			|| overlap(ops->get_optmin, ops->get_optmax,
+				reg->get_optmin, reg->get_optmax))) {
 			NFDEBUG("nf_sock overlap: %u-%u/%u-%u v %u-%u/%u-%u\n",
-				ops->set_optmin, ops->set_optmax, 
-				ops->get_optmin, ops->get_optmax, 
+				ops->set_optmin, ops->set_optmax,
+				ops->get_optmin, ops->get_optmax,
 				reg->set_optmin, reg->set_optmax,
 				reg->get_optmin, reg->get_optmax);
 			ret = -EBUSY;
@@ -167,7 +167,7 @@ static void debug_print_hooks_ip(unsigned int nf_debug)
 
 void nf_dump_skb(int pf, struct sk_buff *skb)
 {
-	printk("skb: pf=%i %s dev=%s len=%u\n", 
+	printk("skb: pf=%i %s dev=%s len=%u\n",
 	       pf,
 	       skb->sk ? "(owned)" : "(unowned)",
 	       skb->dev ? skb->dev->name : "(no dev)",
@@ -185,7 +185,7 @@ void nf_dump_skb(int pf, struct sk_buff *skb)
 			src_port = ntohs(tcp->source);
 			dst_port = ntohs(tcp->dest);
 		}
-	
+
 		printk("PROTO=%d %u.%u.%u.%u:%hu %u.%u.%u.%u:%hu"
 		       " L=%hu S=0x%2.2hX I=%hu F=0x%4.4hX T=%hu",
 		       ip->protocol, NIPQUAD(ip->saddr),
@@ -234,7 +234,7 @@ void nf_debug_ip_loopback_xmit(struct sk_buff *newskb)
 {
 	if (newskb->nf_debug != ((1 << NF_IP_LOCAL_OUT)
 				 | (1 << NF_IP_POST_ROUTING))) {
-		printk("ip_dev_loopback_xmit: bad owned skb = %p: ", 
+		printk("ip_dev_loopback_xmit: bad owned skb = %p: ",
 		       newskb);
 		debug_print_hooks_ip(newskb->nf_debug);
 		nf_dump_skb(PF_INET, newskb);
@@ -277,7 +277,7 @@ void nf_debug_ip_finish_output2(struct sk_buff *skb)
 #endif /*CONFIG_NETFILTER_DEBUG*/
 
 /* Call get/setsockopt() */
-static int nf_sockopt(struct sock *sk, int pf, int val, 
+static int nf_sockopt(struct sock *sk, int pf, int val,
 		      char *opt, int *len, int get)
 {
 	struct list_head *i;
@@ -311,7 +311,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
 	}
 	up(&nf_sockopt_mutex);
 	return -ENOPROTOOPT;
-	
+
  out:
 	down(&nf_sockopt_mutex);
 	ops->use--;
@@ -361,7 +361,7 @@ static unsigned int nf_iterate(struct list_head *head,
 			break;
 
 		default:
-			NFDEBUG("Evil return from %p(%u).\n", 
+			NFDEBUG("Evil return from %p(%u).\n",
 				elem->hook, hook);
 #endif
 		}
@@ -370,7 +370,7 @@ static unsigned int nf_iterate(struct list_head *head,
 }
 
 int nf_register_queue_handler(int pf, nf_queue_outfn_t outfn, void *data)
-{      
+{
 	int ret;
 
 	br_write_lock_bh(BR_NETPROTO_LOCK);
@@ -396,12 +396,12 @@ int nf_unregister_queue_handler(int pf)
 	return 0;
 }
 
-/* 
- * Any packet that leaves via this function must come back 
+/*
+ * Any packet that leaves via this function must come back
  * through nf_reinject().
  */
-static void nf_queue(struct sk_buff *skb, 
-		     struct list_head *elem, 
+static void nf_queue(struct sk_buff *skb,
+		     struct list_head *elem,
 		     int pf, unsigned int hook,
 		     struct net_device *indev,
 		     struct net_device *outdev,
@@ -424,7 +424,7 @@ static void nf_queue(struct sk_buff *skb,
 		return;
 	}
 
-	*info = (struct nf_info) { 
+	*info = (struct nf_info) {
 		(struct nf_hook_ops *)elem, pf, hook, indev, outdev, okfn };
 
 	/* Bump dev refs so they don't vanish while packet is out */
@@ -508,7 +508,7 @@ void nf_reinject(struct sk_buff *skb, struct nf_info *info,
 
 	if (verdict == NF_ACCEPT) {
 		verdict = nf_iterate(&nf_hooks[info->pf][info->hook],
-				     &skb, info->hook, 
+				     &skb, info->hook,
 				     info->indev, info->outdev, &elem,
 				     info->okfn);
 	}
@@ -519,7 +519,7 @@ void nf_reinject(struct sk_buff *skb, struct nf_info *info,
 		break;
 
 	case NF_QUEUE:
-		nf_queue(skb, elem, info->pf, info->hook, 
+		nf_queue(skb, elem, info->pf, info->hook,
 			 info->indev, info->outdev, info->okfn);
 		break;
 
@@ -532,7 +532,7 @@ void nf_reinject(struct sk_buff *skb, struct nf_info *info,
 	/* Release those devices we held, or Alexey will kill me. */
 	if (info->indev) dev_put(info->indev);
 	if (info->outdev) dev_put(info->outdev);
-	
+
 	kfree(info);
 	return;
 }

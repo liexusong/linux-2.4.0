@@ -33,57 +33,118 @@ static struct
 	struct ipt_standard entries[3];
 	struct ipt_error term;
 } initial_table __initdata
-= { { "filter", FILTER_VALID_HOOKS, 4,
-      sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
-      { [NF_IP_LOCAL_IN] 0,
-	[NF_IP_FORWARD] sizeof(struct ipt_standard),
-	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2 },
-      { [NF_IP_LOCAL_IN] 0,
-	[NF_IP_FORWARD] sizeof(struct ipt_standard),
-	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2 },
-      0, NULL, { } },
-    {
+= {
+	// Field: repl
+	{
+		"filter",
+		FILTER_VALID_HOOKS,
+		4,
+		sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
+		{
+			[NF_IP_LOCAL_IN] 0,
+			[NF_IP_FORWARD] sizeof(struct ipt_standard),
+			[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2,
+		},
+		{
+			[NF_IP_LOCAL_IN] 0,
+			[NF_IP_FORWARD] sizeof(struct ipt_standard),
+			[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2,
+		},
+		0,
+		NULL,
+		{},
+	},
+	// Field: entries
+	{
 	    /* LOCAL_IN */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
-		-NF_ACCEPT - 1 } },
-	    /* FORWARD */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
-		-NF_ACCEPT - 1 } },
-	    /* LOCAL_OUT */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
-		-NF_ACCEPT - 1 } }
-    },
-    /* ERROR */
-    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-	0,
-	sizeof(struct ipt_entry),
-	sizeof(struct ipt_error),
-	0, { 0, 0 }, { } },
-      { { { { IPT_ALIGN(sizeof(struct ipt_error_target)), IPT_ERROR_TARGET } },
-	  { } },
-	"ERROR"
+	    {
+	    	{
+	    		{{0}, {0}, {0}, {0}, "", "", {0}, {0}, 0, 0, 0},
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{0, 0},
+				{},
+			},
+			{
+				{
+					{{ IPT_ALIGN(sizeof(struct ipt_standard_target)), ""},
+				},
+				{},
+			},
+				-NF_ACCEPT - 1,
+			}
+		},
+		/* FORWARD */
+		{
+			{
+				{{0}, {0}, {0}, {0}, "", "", {0}, {0}, 0, 0, 0},
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{},
+			},
+			{
+				{
+					{{IPT_ALIGN(sizeof(struct ipt_standard_target)), ""}},
+					{},
+				},
+				-NF_ACCEPT - 1,
+			},
+		},
+		/* LOCAL_OUT */
+		{
+			{
+				{{0}, {0}, {0}, {0}, "", "", {0}, {0}, 0, 0, 0},
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{},
+			},
+			{
+				{
+					{{IPT_ALIGN(sizeof(struct ipt_standard_target)), ""}},
+					{},
+				},
+				-NF_ACCEPT - 1,
+			},
+		},
+	},
+	// Field: term
+	/* ERROR */
+	{
+		{
+			{{0}, {0}, {0}, {0}, "", "", {0}, {0}, 0, 0, 0},
+			0,
+			sizeof(struct ipt_entry),
+			sizeof(struct ipt_error),
+			0,
+			{0, 0},
+			{},
+		},
+		{
+			{
+				{{IPT_ALIGN(sizeof(struct ipt_error_target)), IPT_ERROR_TARGET}},
+				{},
+			},
+			"ERROR",
       }
-    }
+    },
 };
 
-static struct ipt_table packet_filter
-= { { NULL, NULL }, "filter", &initial_table.repl,
-    FILTER_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL };
+static struct ipt_table packet_filter = {
+	{ NULL, NULL },
+	"filter",
+	&initial_table.repl,
+	FILTER_VALID_HOOKS,
+	RW_LOCK_UNLOCKED,
+	NULL,
+};
 
 /* The work comes in here from netfilter.c. */
 static unsigned int
@@ -114,11 +175,28 @@ ipt_local_out_hook(unsigned int hook,
 	return ipt_do_table(pskb, hook, in, out, &packet_filter, NULL);
 }
 
-static struct nf_hook_ops ipt_ops[]
-= { { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_FILTER },
-    { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_FORWARD, NF_IP_PRI_FILTER },
-    { { NULL, NULL }, ipt_local_out_hook, PF_INET, NF_IP_LOCAL_OUT,
-		NF_IP_PRI_FILTER }
+static struct nf_hook_ops ipt_ops[] = {
+	{
+		{ NULL, NULL },
+		ipt_hook,
+		PF_INET,
+		NF_IP_LOCAL_IN,
+		NF_IP_PRI_FILTER,
+	},
+	{
+		{ NULL, NULL },
+		ipt_hook,
+		PF_INET,
+		NF_IP_FORWARD,
+		NF_IP_PRI_FILTER,
+	},
+	{
+		{ NULL, NULL },
+		ipt_local_out_hook,
+		PF_INET,
+		NF_IP_LOCAL_OUT,
+		NF_IP_PRI_FILTER,
+	},
 };
 
 /* Default to forward because I got too much mail already. */

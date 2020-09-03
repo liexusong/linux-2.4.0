@@ -13,7 +13,7 @@ typedef unsigned short	sa_family_t;
 /*
  *	1003.1g requires sa_family_t and that sa_data is char.
  */
- 
+
 struct sockaddr {
 	sa_family_t	sa_family;	/* address family, AF_xxx	*/
 	char		sa_data[14];	/* 14 bytes of protocol address	*/
@@ -29,15 +29,15 @@ struct linger {
  *	system, not 4.3. Thus msg_accrights(len) are now missing. They
  *	belong in an obscure libc emulation or the bin.
  */
- 
+
 struct msghdr {
-	void	*	msg_name;	/* Socket name			*/
-	int		msg_namelen;	/* Length of name		*/
-	struct iovec *	msg_iov;	/* Data blocks			*/
-	__kernel_size_t	msg_iovlen;	/* Number of blocks		*/
-	void 	*	msg_control;	/* Per protocol magic (eg BSD file descriptor passing) */
+	void			*msg_name;		/* Socket name			*/
+	int				msg_namelen;	/* Length of name		*/
+	struct iovec	*msg_iov;		/* Data blocks			*/
+	__kernel_size_t	msg_iovlen;		/* Number of blocks		*/
+	void 			*msg_control;	/* Per protocol magic (eg BSD file descriptor passing) */
 	__kernel_size_t	msg_controllen;	/* Length of cmsg list */
-	unsigned	msg_flags;
+	unsigned		msg_flags;
 };
 
 /*
@@ -74,10 +74,10 @@ struct cmsghdr {
 /*
  *	This mess will go away with glibc
  */
- 
+
 #ifdef __KERNEL__
 #define __KINLINE static inline
-#elif  defined(__GNUC__) 
+#elif  defined(__GNUC__)
 #define __KINLINE static __inline__
 #elif defined(__cplusplus)
 #define __KINLINE static inline
@@ -98,7 +98,7 @@ struct cmsghdr {
  *	inside range, given by msg->msg_controllen before using
  *	ansillary object DATA.				--ANK (980731)
  */
- 
+
 __KINLINE struct cmsghdr * __cmsg_nxthdr(void *__ctl, __kernel_size_t __size,
 					       struct cmsghdr *__cmsg)
 {
@@ -189,10 +189,10 @@ struct ucred {
 /* Maximum queue length specifiable by listen.  */
 #define SOMAXCONN	128
 
-/* Flags we can use with send/ and recv. 
+/* Flags we can use with send/ and recv.
    Added those for 1003.1g not all are supported yet
  */
- 
+
 #define MSG_OOB		1
 #define MSG_PEEK	2
 #define MSG_DONTROUTE	4
@@ -238,11 +238,11 @@ struct ucred {
 
 #ifdef __KERNEL__
 extern int memcpy_fromiovec(unsigned char *kdata, struct iovec *iov, int len);
-extern int memcpy_fromiovecend(unsigned char *kdata, struct iovec *iov, 
+extern int memcpy_fromiovecend(unsigned char *kdata, struct iovec *iov,
 				int offset, int len);
-extern int csum_partial_copy_fromiovecend(unsigned char *kdata, 
-					  struct iovec *iov, 
-					  int offset, 
+extern int csum_partial_copy_fromiovecend(unsigned char *kdata,
+					  struct iovec *iov,
+					  int offset,
 					  unsigned int len, int *csump);
 
 extern int verify_iovec(struct msghdr *m, struct iovec *iov, char *address, int mode);

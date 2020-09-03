@@ -8,7 +8,7 @@
  *		modify it under the terms of the GNU General Public License
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include <linux/config.h>
@@ -49,16 +49,16 @@
 
 struct netlink_opt
 {
-	u32			pid;
-	unsigned		groups;
-	u32			dst_pid;
-	unsigned		dst_groups;
-	unsigned long		state;
-	int			(*handler)(int unit, struct sk_buff *skb);
-	wait_queue_head_t	wait;
+	u32						pid;
+	unsigned				groups;
+	u32						dst_pid;
+	unsigned				dst_groups;
+	unsigned long			state;
+	int						(*handler)(int unit, struct sk_buff *skb);
+	wait_queue_head_t		wait;
 	struct netlink_callback	*cb;
-	spinlock_t		cb_lock;
-	void			(*data_ready)(struct sock *sk, int bytes);
+	spinlock_t				cb_lock;
+	void					(*data_ready)(struct sock *sk, int bytes);
 };
 
 static struct sock *nl_table[MAX_LINKS];
@@ -305,7 +305,7 @@ static int netlink_bind(struct socket *sock, struct sockaddr *addr, int addr_len
 	struct sock *sk = sock->sk;
 	int err;
 	struct sockaddr_nl *nladdr=(struct sockaddr_nl *)addr;
-	
+
 	if (nladdr->nl_family != AF_NETLINK)
 		return -EINVAL;
 
@@ -367,7 +367,7 @@ static int netlink_getname(struct socket *sock, struct sockaddr *addr, int *addr
 {
 	struct sock *sk = sock->sk;
 	struct sockaddr_nl *nladdr=(struct sockaddr_nl *)addr;
-	
+
 	nladdr->nl_family = AF_NETLINK;
 	*addr_len = sizeof(*nladdr);
 
@@ -395,12 +395,12 @@ int netlink_unicast(struct sock *ssk, struct sk_buff *skb, u32 pid, int nonblock
 	int len = skb->len;
 	int protocol = ssk->protocol;
 	long timeo;
-        DECLARE_WAITQUEUE(wait, current);
+	DECLARE_WAITQUEUE(wait, current);
 
 	timeo = sock_sndtimeo(ssk, nonblock);
 
 retry:
-	sk = netlink_lookup(protocol, pid);
+	sk = netlink_lookup(protocol, pid); // 获取到pid对应的sock
 	if (sk == NULL)
 		goto no_dst;
 
@@ -413,8 +413,9 @@ retry:
 	}
 #endif
 
-	if (atomic_read(&sk->rmem_alloc) > sk->rcvbuf ||
-	    test_bit(0, &sk->protinfo.af_netlink->state)) {
+	if (atomic_read(&sk->rmem_alloc) > sk->rcvbuf
+	    || test_bit(0, &sk->protinfo.af_netlink->state))
+	{
 		if (!timeo) {
 			if (ssk->protinfo.af_netlink->pid == 0)
 				netlink_overrun(sk);
@@ -682,7 +683,7 @@ void netlink_data_ready(struct sock *sk, int len)
 }
 
 /*
- *	We export these functions to other modules. They provide a 
+ *	We export these functions to other modules. They provide a
  *	complete set of kernel non-blocking support for message
  *	queueing.
  */
@@ -696,7 +697,7 @@ netlink_kernel_create(int unit, void (*input)(struct sock *sk, int len))
 	if (unit<0 || unit>=MAX_LINKS)
 		return NULL;
 
-	if (!(sock = sock_alloc())) 
+	if (!(sock = sock_alloc()))
 		return NULL;
 
 	sock->type = SOCK_RAW;
@@ -732,7 +733,7 @@ static int netlink_dump(struct sock *sk)
 	struct sk_buff *skb;
 	struct nlmsghdr *nlh;
 	int len;
-	
+
 	skb = sock_rmalloc(sk, NLMSG_GOODSIZE, 0, GFP_KERNEL);
 	if (!skb)
 		return -ENOBUFS;
@@ -840,8 +841,8 @@ static rwlock_t nl_emu_lock = RW_LOCK_UNLOCKED;
 
 /*
  *	Backward compatibility.
- */	
- 
+ */
+
 int netlink_attach(int unit, int (*function)(int, struct sk_buff *skb))
 {
 	struct sock *sk = netlink_kernel_create(unit, NULL);
@@ -891,18 +892,18 @@ int netlink_post(int unit, struct sk_buff *skb)
 
 
 #ifdef CONFIG_PROC_FS
-static int netlink_read_proc(char *buffer, char **start, off_t offset,
-			     int length, int *eof, void *data)
+static int netlink_read_proc(char *buffer, char **start,
+	off_t offset, int length, int *eof, void *data)
 {
 	off_t pos=0;
 	off_t begin=0;
 	int len=0;
 	int i;
 	struct sock *s;
-	
+
 	len+= sprintf(buffer,"sk       Eth Pid    Groups   "
 		      "Rmem     Wmem     Dump     Locks\n");
-	
+
 	for (i=0; i<MAX_LINKS; i++) {
 		read_lock(&nl_table_lock);
 		for (s = nl_table[i]; s; s = s->next) {
@@ -918,7 +919,7 @@ static int netlink_read_proc(char *buffer, char **start, off_t offset,
 				     );
 
 			buffer[len++]='\n';
-		
+
 			pos=begin+len;
 			if(pos<offset) {
 				len=0;

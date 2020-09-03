@@ -181,7 +181,7 @@ static struct dentry *ext2_lookup(struct inode * dir, struct dentry *dentry)
 		if (!inode)
 			return ERR_PTR(-EACCES);
 	}
-	d_add(dentry, inode);
+	d_add(dentry, inode); // 把dentry添加到inode的i_dentry列表中和添加到dentry_hashtable哈希表中
 	return NULL;
 }
 
@@ -455,8 +455,7 @@ static int ext2_mkdir(struct inode * dir, struct dentry * dentry, int mode)
 	if (dir->i_mode & S_ISGID)
 		inode->i_mode |= S_ISGID;
 	mark_inode_dirty(inode);
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len,
-			     inode);
+	err = ext2_add_entry(dir, dentry->d_name.name, dentry->d_name.len, inode);
 	if (err)
 		goto out_no_entry;
 	dir->i_nlink++;
@@ -619,7 +618,7 @@ end_unlink:
 	return retval;
 }
 
-static int ext2_symlink (struct inode * dir, struct dentry *dentry, const char * symname)
+static int ext2_symlink(struct inode * dir, struct dentry *dentry, const char * symname)
 {
 	struct inode * inode;
 	int l, err;
@@ -628,14 +627,14 @@ static int ext2_symlink (struct inode * dir, struct dentry *dentry, const char *
 	if (l > dir->i_sb->s_blocksize)
 		return -ENAMETOOLONG;
 
-	inode = ext2_new_inode (dir, S_IFLNK);
+	inode = ext2_new_inode(dir, S_IFLNK);
 	err = PTR_ERR(inode);
 	if (IS_ERR(inode))
 		return err;
 
 	inode->i_mode = S_IFLNK | S_IRWXUGO;
 
-	if (l > sizeof (inode->u.ext2_i.i_data)) {
+	if (l > sizeof(inode->u.ext2_i.i_data)) {
 		inode->i_op = &page_symlink_inode_operations;
 		inode->i_mapping->a_ops = &ext2_aops;
 		err = block_symlink(inode, symname, l);
@@ -648,7 +647,7 @@ static int ext2_symlink (struct inode * dir, struct dentry *dentry, const char *
 	}
 	mark_inode_dirty(inode);
 
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len,
+	err = ext2_add_entry(dir, dentry->d_name.name, dentry->d_name.len,
 			     inode);
 	if (err)
 		goto out_no_entry;
