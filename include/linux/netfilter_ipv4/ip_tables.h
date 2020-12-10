@@ -30,14 +30,14 @@
 /* Yes, Virginia, you have to zero the padding. */
 struct ipt_ip {
 	/* Source and destination IP addr */
-	struct in_addr src, dst;
+	struct in_addr src, dst;   // 源地址与目标地址
 	/* Mask for src and dest IP addr */
-	struct in_addr smsk, dmsk;
-	char iniface[IFNAMSIZ], outiface[IFNAMSIZ];
+	struct in_addr smsk, dmsk; // 源掩码与目标掩码
+	char iniface[IFNAMSIZ], outiface[IFNAMSIZ]; // 输入接口与输出接口
 	unsigned char iniface_mask[IFNAMSIZ], outiface_mask[IFNAMSIZ];
 
 	/* Protocol, 0 = ANY */
-	u_int16_t proto;
+	u_int16_t proto; // 协议类型
 
 	/* Flags word */
 	u_int8_t flags;
@@ -109,7 +109,7 @@ struct ipt_counters
 /* Values for "inv" field in struct ipt_ip. */
 #define IPT_INV_VIA_IN		0x01	/* Invert the sense of IN IFACE. */
 #define IPT_INV_VIA_OUT		0x02	/* Invert the sense of OUT IFACE */
-#define IPT_INV_TOS		0x04	/* Invert the sense of TOS. */
+#define IPT_INV_TOS			0x04	/* Invert the sense of TOS. */
 #define IPT_INV_SRCIP		0x08	/* Invert the sense of SRC IP. */
 #define IPT_INV_DSTIP		0x10	/* Invert the sense of DST OP. */
 #define IPT_INV_FRAG		0x20	/* Invert the sense of FRAG. */
@@ -297,38 +297,38 @@ ipt_get_target(struct ipt_entry *e)
 
 /* fn returns 0 to continue iteration */
 #define IPT_MATCH_ITERATE(e, fn, args...)	\
-({						\
-	unsigned int __i;			\
-	int __ret = 0;				\
-	struct ipt_entry_match *__m;		\
-						\
+({											\
+	unsigned int __i;						\
+	int __ret = 0;							\
+	struct ipt_entry_match *__m;			\
+											\
 	for (__i = sizeof(struct ipt_entry);	\
-	     __i < (e)->target_offset;		\
-	     __i += __m->u.match_size) {	\
-		__m = (void *)(e) + __i;	\
-						\
-		__ret = fn(__m , ## args);	\
-		if (__ret != 0)			\
-			break;			\
-	}					\
-	__ret;					\
+	     __i < (e)->target_offset;			\
+	     __i += __m->u.match_size) {		\
+		__m = (void *)(e) + __i;			\
+											\
+		__ret = fn(__m , ## args);			\
+		if (__ret != 0)						\
+			break;							\
+	}										\
+	__ret;									\
 })
 
 /* fn returns 0 to continue iteration */
 #define IPT_ENTRY_ITERATE(entries, size, fn, args...)		\
-({								\
-	unsigned int __i;					\
-	int __ret = 0;						\
-	struct ipt_entry *__e;					\
-								\
+({															\
+	unsigned int __i;										\
+	int __ret = 0;											\
+	struct ipt_entry *__e;									\
+															\
 	for (__i = 0; __i < (size); __i += __e->next_offset) {	\
-		__e = (void *)(entries) + __i;			\
-								\
-		__ret = fn(__e , ## args);			\
-		if (__ret != 0)					\
-			break;					\
-	}							\
-	__ret;							\
+		__e = (void *)(entries) + __i;						\
+															\
+		__ret = fn(__e , ## args);							\
+		if (__ret != 0)										\
+			break;											\
+	}														\
+	__ret;													\
 })
 
 /*
@@ -380,21 +380,21 @@ struct ipt_target
 
 	/* Returns verdict. */
 	unsigned int (*target)(struct sk_buff **pskb,
-			       unsigned int hooknum,
-			       const struct net_device *in,
-			       const struct net_device *out,
-			       const void *targinfo,
-			       void *userdata);
+					       unsigned int hooknum,
+					       const struct net_device *in,
+					       const struct net_device *out,
+					       const void *targinfo,
+					       void *userdata);
 
 	/* Called when user tries to insert an entry of this type:
            hook_mask is a bitmask of hooks from which it can be
            called. */
 	/* Should return true or false. */
 	int (*checkentry)(const char *tablename,
-			  const struct ipt_entry *e,
-			  void *targinfo,
-			  unsigned int targinfosize,
-			  unsigned int hook_mask);
+					  const struct ipt_entry *e,
+					  void *targinfo,
+					  unsigned int targinfosize,
+					  unsigned int hook_mask);
 
 	/* Called when entry of this type deleted. */
 	void (*destroy)(void *targinfo, unsigned int targinfosize);

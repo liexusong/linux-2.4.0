@@ -23,7 +23,7 @@ struct irqaction {
 
 /* Who gets which entry in bh_base.  Things which will occur most often
    should come first */
-   
+
 enum {
 	TIMER_BH = 0,
 	TQUEUE_BH,
@@ -160,10 +160,11 @@ static inline void tasklet_schedule(struct tasklet_struct *t)
 		int cpu = smp_processor_id();
 		unsigned long flags;
 
+        // First: 把t添加到tasklet列表中
 		local_irq_save(flags);
 		t->next = tasklet_vec[cpu].list;
 		tasklet_vec[cpu].list = t;
-		__cpu_raise_softirq(cpu, TASKLET_SOFTIRQ);
+		__cpu_raise_softirq(cpu, TASKLET_SOFTIRQ); // Second: 通知内核需要处理softirq任务
 		local_irq_restore(flags);
 	}
 }

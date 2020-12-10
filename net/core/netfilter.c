@@ -40,6 +40,9 @@
    sleep. */
 static DECLARE_MUTEX(nf_sockopt_mutex);
 
+/*
+ * nf_hooks[协议][钩子列表]
+ */
 struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 static LIST_HEAD(nf_sockopts);
 
@@ -53,6 +56,9 @@ static struct nf_queue_handler_t {
 	void *data;
 } queue_handler[NPROTO];
 
+/*
+ * 注册过滤钩子
+ */
 int nf_register_hook(struct nf_hook_ops *reg)
 {
 	struct list_head *i;
@@ -443,7 +449,9 @@ static void nf_queue(struct sk_buff *skb,
 }
 
 /* We have BR_NETPROTO_LOCK here */
-int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
+int nf_hook_slow(int pf,
+		 unsigned int hook,
+		 struct sk_buff *skb,
 		 struct net_device *indev,
 		 struct net_device *outdev,
 		 int (*okfn)(struct sk_buff *))
@@ -461,8 +469,7 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
 #endif
 
 	elem = &nf_hooks[pf][hook];
-	verdict = nf_iterate(&nf_hooks[pf][hook], &skb, hook, indev,
-			     outdev, &elem, okfn);
+	verdict = nf_iterate(&nf_hooks[pf][hook], &skb, hook, indev, outdev, &elem, okfn);
 	if (verdict == NF_QUEUE) {
 		NFDEBUG("nf_hook: Verdict = QUEUE.\n");
 		nf_queue(skb, elem, pf, hook, indev, outdev, okfn);

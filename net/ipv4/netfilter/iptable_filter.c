@@ -36,43 +36,46 @@ static struct
 = {
 	// Field: repl
 	{
-		"filter",
-		FILTER_VALID_HOOKS,
-		4,
-		sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
+		"filter",               // name
+		FILTER_VALID_HOOKS,     // valid_hooks
+		4,                      // num_entries
+		sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error), // size (3 * ipt_standard + ipt_error)
+		// hook_entry
 		{
 			[NF_IP_LOCAL_IN] 0,
 			[NF_IP_FORWARD] sizeof(struct ipt_standard),
 			[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2,
 		},
+		// underflow
 		{
 			[NF_IP_LOCAL_IN] 0,
 			[NF_IP_FORWARD] sizeof(struct ipt_standard),
 			[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2,
 		},
-		0,
-		NULL,
-		{},
+		0,                      // num_counters
+		NULL,                   // counters
+		{},                     // entries
 	},
 	// Field: entries
 	{
 	    /* LOCAL_IN */
 	    {
+	    	// entry
 	    	{
 	    		{{0}, {0}, {0}, {0}, "", "", {0}, {0}, 0, 0, 0},
 				0,
-				sizeof(struct ipt_entry),
-				sizeof(struct ipt_standard),
+				sizeof(struct ipt_entry),    // target_offset
+				sizeof(struct ipt_standard), // next_offset
 				0,
 				{0, 0},
 				{},
 			},
+			// target
 			{
 				{
-					{{ IPT_ALIGN(sizeof(struct ipt_standard_target)), ""},
+					{{ IPT_ALIGN(sizeof(struct ipt_standard_target)), ""}},
+					{},
 				},
-				{},
-			},
 				-NF_ACCEPT - 1,
 			}
 		},
@@ -138,12 +141,12 @@ static struct
 };
 
 static struct ipt_table packet_filter = {
-	{ NULL, NULL },
-	"filter",
-	&initial_table.repl,
-	FILTER_VALID_HOOKS,
-	RW_LOCK_UNLOCKED,
-	NULL,
+	{ NULL, NULL },        /* list */
+	"filter",              /* name */
+	&initial_table.repl,   /* table */
+	FILTER_VALID_HOOKS,    /* valid_hooks */
+	RW_LOCK_UNLOCKED,      /* lock */
+	NULL,                  /* private */
 };
 
 /* The work comes in here from netfilter.c. */
@@ -159,10 +162,10 @@ ipt_hook(unsigned int hook,
 
 static unsigned int
 ipt_local_out_hook(unsigned int hook,
-		   struct sk_buff **pskb,
-		   const struct net_device *in,
-		   const struct net_device *out,
-		   int (*okfn)(struct sk_buff *))
+				   struct sk_buff **pskb,
+				   const struct net_device *in,
+				   const struct net_device *out,
+				   int (*okfn)(struct sk_buff *))
 {
 	/* root is playing with raw sockets. */
 	if ((*pskb)->len < sizeof(struct iphdr)
@@ -177,11 +180,11 @@ ipt_local_out_hook(unsigned int hook,
 
 static struct nf_hook_ops ipt_ops[] = {
 	{
-		{ NULL, NULL },
-		ipt_hook,
-		PF_INET,
-		NF_IP_LOCAL_IN,
-		NF_IP_PRI_FILTER,
+		{ NULL, NULL },   /* list */
+		ipt_hook,         /* hook */
+		PF_INET,          /* pf */
+		NF_IP_LOCAL_IN,   /* hooknum */
+		NF_IP_PRI_FILTER, /* priority */
 	},
 	{
 		{ NULL, NULL },

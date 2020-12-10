@@ -43,14 +43,14 @@ typedef unsigned int nf_hookfn(unsigned int hooknum,
 
 struct nf_hook_ops
 {
-	struct list_head list; // Link all same type hooks
+	struct list_head list; // 连接相同协议和类型的钩子
 
 	/* User fills in from here down. */
 	nf_hookfn *hook;   // 钩子函数
 	int pf;            // 协议类型, 如: PF_INET, PF_INET6
 	int hooknum;       // 钩子所在链(LOCAL_IN, FORWARD...)
 	/* Hooks are ordered in ascending priority. */
-	int priority;      // 优先级
+	int priority;      // 优先级(通过优先级来管理钩子的顺序)
 };
 
 struct nf_sockopt_ops
@@ -119,10 +119,10 @@ extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 #ifdef CONFIG_NETFILTER_DEBUG
 #define NF_HOOK nf_hook_slow
 #else
-#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)			\
-(list_empty(&nf_hooks[(pf)][(hook)])					\
- ? (okfn)(skb)								\
- : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn)))
+#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)	\
+    (list_empty(&nf_hooks[(pf)][(hook)])			\
+        ? (okfn)(skb)								\
+        : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn)))
 #endif
 
 int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,

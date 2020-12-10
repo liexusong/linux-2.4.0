@@ -59,13 +59,13 @@ struct sk_buff_head {
 
 struct sk_buff {
 	/* These two members must be first. */
-	struct sk_buff	* next;			/* Next buffer in list 				*/
-	struct sk_buff	* prev;			/* Previous buffer in list 			*/
+	struct sk_buff		*next;			/* Next buffer in list 					*/
+	struct sk_buff		*prev;			/* Previous buffer in list 				*/
 
-	struct sk_buff_head * list;		/* List we are on				*/
-	struct sock	*sk;			/* Socket we are owned by 			*/
-	struct timeval	stamp;			/* Time we arrived				*/
-	struct net_device	*dev;		/* Device we arrived on/are leaving by		*/
+	struct sk_buff_head *list;			/* List we are on						*/
+	struct sock			*sk;			/* Socket we are owned by 				*/
+	struct timeval		stamp;			/* Time we arrived						*/
+	struct net_device	*dev;			/* Device we arrived on/are leaving by 	*/
 
 	/* Transport layer header */
 	union
@@ -110,10 +110,10 @@ struct sk_buff {
 	unsigned int	csum;			/* Checksum 					*/
 	volatile char 	used;			/* Data moved to user and not MSG_PEEK		*/
 	unsigned char	cloned, 		/* head may be cloned (check refcnt to be sure). */
-  			pkt_type,		/* Packet class					*/
-  			ip_summed;		/* Driver fed us an IP checksum			*/
-	__u32		priority;		/* Packet queueing priority			*/
-	atomic_t	users;			/* User count - see datagram.c,tcp.c 		*/
+  					pkt_type,		/* Packet class					*/
+  					ip_summed;		/* Driver fed us an IP checksum			*/
+	__u32			priority;		/* Packet queueing priority			*/
+	atomic_t		users;			/* User count - see datagram.c,tcp.c 		*/
 	unsigned short	protocol;		/* Packet protocol from driver. 		*/
 	unsigned short	security;		/* Security level of packet			*/
 	unsigned int	truesize;		/* Buffer size 					*/
@@ -157,10 +157,10 @@ struct sk_buff {
 
 #include <asm/system.h>
 
-extern void			__kfree_skb(struct sk_buff *skb);
+extern void					__kfree_skb(struct sk_buff *skb);
 extern struct sk_buff *		skb_peek_copy(struct sk_buff_head *list);
 extern struct sk_buff *		alloc_skb(unsigned int size, int priority);
-extern void			kfree_skbmem(struct sk_buff *skb);
+extern void					kfree_skbmem(struct sk_buff *skb);
 extern struct sk_buff *		skb_clone(struct sk_buff *skb, int priority);
 extern struct sk_buff *		skb_copy(const struct sk_buff *skb, int priority);
 extern struct sk_buff *		skb_copy_expand(const struct sk_buff *skb,
@@ -700,7 +700,7 @@ static inline unsigned char *__skb_put(struct sk_buff *skb, unsigned int len)
  *	exceed the total buffer size the kernel will panic. A pointer to the
  *	first byte of the extra data is returned.
  */
-
+// 在尾部添加数据
 static inline unsigned char *skb_put(struct sk_buff *skb, unsigned int len)
 {
 	unsigned char *tmp = skb->tail;
@@ -728,7 +728,7 @@ static inline unsigned char *__skb_push(struct sk_buff *skb, unsigned int len)
  *	start. If this would exceed the total buffer headroom the kernel will
  *	panic. A pointer to the first byte of the extra data is returned.
  */
-// 压入数据
+// 在头部添加数据
 static inline unsigned char *skb_push(struct sk_buff *skb, unsigned int len)
 {
 	skb->data -= len;
@@ -739,7 +739,7 @@ static inline unsigned char *skb_push(struct sk_buff *skb, unsigned int len)
 	return skb->data;
 }
 
-// 释放空间
+// 去掉头部len部分数据
 static inline char *__skb_pull(struct sk_buff *skb, unsigned int len)
 {
 	skb->len -= len;
@@ -770,10 +770,10 @@ static inline unsigned char * skb_pull(struct sk_buff *skb, unsigned int len)
  *
  *	Return the number of bytes of free space at the head of an &sk_buff.
  */
-
+// header部分的长度
 static inline int skb_headroom(const struct sk_buff *skb)
 {
-	return skb->data-skb->head;
+	return skb->data - skb->head;
 }
 
 /**
@@ -782,10 +782,10 @@ static inline int skb_headroom(const struct sk_buff *skb)
  *
  *	Return the number of bytes of free space at the tail of an sk_buff
  */
-
+// 尾部剩余空间
 static inline int skb_tailroom(const struct sk_buff *skb)
 {
-	return skb->end-skb->tail;
+	return skb->end - skb->tail;
 }
 
 /**
@@ -803,7 +803,7 @@ static inline void skb_reserve(struct sk_buff *skb, unsigned int len)
 	skb->tail += len;
 }
 
-
+// 保留len长度的数据
 static inline void __skb_trim(struct sk_buff *skb, unsigned int len)
 {
 	skb->len = len;

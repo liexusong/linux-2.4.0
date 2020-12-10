@@ -244,11 +244,11 @@ static inline int call_expect(const struct ip_nat_expect *i,
 }
 
 int ip_nat_rule_find(struct sk_buff **pskb,
-		     unsigned int hooknum,
-		     const struct net_device *in,
-		     const struct net_device *out,
-		     struct ip_conntrack *ct,
-		     struct ip_nat_info *info)
+				     unsigned int hooknum,
+				     const struct net_device *in,
+				     const struct net_device *out,
+				     struct ip_conntrack *ct,
+				     struct ip_nat_info *info)
 {
 	int ret;
 

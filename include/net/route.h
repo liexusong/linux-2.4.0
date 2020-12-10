@@ -43,8 +43,8 @@ struct rt_key
 {
 	__u32			dst;
 	__u32			src;
-	int			iif;
-	int			oif;
+	int				iif;
+	int				oif;
 #ifdef CONFIG_IP_ROUTE_FWMARK
 	__u32			fwmark;
 #endif
@@ -61,26 +61,26 @@ struct rtable
 		struct rtable		*rt_next;
 	} u;
 
-	unsigned		rt_flags;
-	unsigned		rt_type;
+	unsigned			rt_flags;
+	unsigned			rt_type;
 
-	__u32			rt_dst;	/* Path destination	*/
-	__u32			rt_src;	/* Path source		*/
-	int			rt_iif;
+	__u32				rt_dst;	/* Path destination	*/
+	__u32				rt_src;	/* Path source		*/
+	int					rt_iif;
 
 	/* Info on neighbour */
-	__u32			rt_gateway;
+	__u32				rt_gateway;
 
 	/* Cache lookup keys */
 	struct rt_key		key;
 
 	/* Miscellaneous cached information */
-	__u32			rt_spec_dst; /* RFC1122 specific destination */
+	__u32				rt_spec_dst; /* RFC1122 specific destination */
 	struct inet_peer	*peer; /* long-living peer info */
 
 #ifdef CONFIG_IP_ROUTE_NAT
-	__u32			rt_src_map;
-	__u32			rt_dst_map;
+	__u32				rt_src_map;
+	__u32				rt_dst_map;
 #endif
 };
 

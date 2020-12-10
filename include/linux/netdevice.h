@@ -67,7 +67,7 @@ struct divert_blk;
  *	Compute the worst case header length according to the protocols
  *	used.
  */
- 
+
 #if !defined(CONFIG_AX25) && !defined(CONFIG_AX25_MODULE) && !defined(CONFIG_TR)
 #define LL_MAX_HEADER	32
 #else
@@ -89,7 +89,7 @@ struct divert_blk;
  *	Network device statistics. Akin to the 2.0 ether stats but
  *	with byte counters.
  */
- 
+
 struct net_device_stats
 {
 	unsigned long	rx_packets;		/* total packets received	*/
@@ -117,7 +117,7 @@ struct net_device_stats
 	unsigned long	tx_fifo_errors;
 	unsigned long	tx_heartbeat_errors;
 	unsigned long	tx_window_errors;
-	
+
 	/* for cslip etc */
 	unsigned long	rx_compressed;
 	unsigned long	tx_compressed;
@@ -166,9 +166,9 @@ extern struct netif_rx_stats netdev_rx_stat[];
 /*
  *	We tag multicasts with these structures.
  */
- 
+
 struct dev_mc_list
-{	
+{
 	struct dev_mc_list	*next;
 	__u8			dmi_addr[MAX_ADDR_LEN];
 	unsigned char		dmi_addrlen;
@@ -205,7 +205,7 @@ enum netdev_state_t
 
 /*
  * This structure holds at boot time configured netdevice settings. They
- * are then used in the device probing. 
+ * are then used in the device probing.
  */
 struct netdev_boot_setup {
 	char name[IFNAMSIZ];
@@ -232,7 +232,7 @@ struct net_device
 	 * (i.e. as seen by users in the "Space.c" file).  It is the name
 	 * the interface.
 	 */
-	char			name[IFNAMSIZ];
+	char				name[IFNAMSIZ];
 
 	/*
 	 *	I/O specific fields
@@ -256,7 +256,7 @@ struct net_device
 	unsigned long		state;
 
 	struct net_device	*next;
-	
+
 	/* The device initialization function. Called only once. */
 	int			(*init)(struct net_device *dev);
 
@@ -284,10 +284,10 @@ struct net_device
 
 	unsigned short		flags;	/* interface flags (a la BSD)	*/
 	unsigned short		gflags;
-	unsigned		mtu;	/* interface MTU value		*/
+	unsigned			mtu;	/* interface MTU value		*/
 	unsigned short		type;	/* interface hardware type	*/
 	unsigned short		hard_header_len;	/* hardware hdr length	*/
-	void			*priv;	/* pointer to private data	*/
+	void				*priv;	/* pointer to private data	*/
 
 	struct net_device	*master; /* Pointer to master device of a group,
 					  * which this device is member of.
@@ -300,19 +300,19 @@ struct net_device
 	unsigned char		addr_len;	/* hardware address length	*/
 
 	struct dev_mc_list	*mc_list;	/* Multicast mac addresses	*/
-	int			mc_count;	/* Number of installed mcasts	*/
-	int			promiscuity;
-	int			allmulti;
+	int					mc_count;	/* Number of installed mcasts	*/
+	int					promiscuity;
+	int					allmulti;
 
-	int			watchdog_timeo;
+	int					watchdog_timeo;
 	struct timer_list	watchdog_timer;
 
 	/* Protocol specific pointers */
-	
+
 	void 			*atalk_ptr;	/* AppleTalk link 	*/
-	void			*ip_ptr;	/* IPv4 specific data	*/  
-	void                    *dn_ptr;        /* DECnet specific data */
-	void                    *ip6_ptr;       /* IPv6 specific data */
+	void			*ip_ptr;	/* IPv4 specific data	*/
+	void			*dn_ptr;        /* DECnet specific data */
+	void			*ip6_ptr;       /* IPv6 specific data */
 	void			*ec_ptr;	/* Econet specific data	*/
 
 	struct Qdisc		*qdisc;
@@ -326,17 +326,17 @@ struct net_device
 	/* cpu id of processor entered to hard_start_xmit or -1,
 	   if nobody entered there.
 	 */
-	int			xmit_lock_owner;
+	int				xmit_lock_owner;
 	/* device queue lock */
 	spinlock_t		queue_lock;
 	/* Number of references to this device */
 	atomic_t		refcnt;
 	/* The flag marking that device is unregistered, but held by an user */
-	int			deadbeaf;
+	int				deadbeaf;
 
 	/* Net device features */
-	int			features;
-#define NETIF_F_SG		1	/* Scatter/gather IO. */
+	int				features;
+#define NETIF_F_SG			1	/* Scatter/gather IO. */
 #define NETIF_F_IP_CSUM		2	/* Can checksum only TCP/UDP over IPv4. */
 #define NETIF_F_NO_CSUM		4	/* Does not require checksum. F.e. loopack. */
 #define NETIF_F_HW_CSUM		8	/* Can checksum all the packets. */
@@ -345,47 +345,46 @@ struct net_device
 #define NETIF_F_FRAGLIST	1	/* Scatter/gather IO. */
 
 	/* Called after device is detached from network. */
-	void			(*uninit)(struct net_device *dev);
+	void		(*uninit)(struct net_device *dev);
 	/* Called after last user reference disappears. */
-	void			(*destructor)(struct net_device *dev);
+	void		(*destructor)(struct net_device *dev);
 
 	/* Pointers to interface service routines.	*/
 	int			(*open)(struct net_device *dev);
 	int			(*stop)(struct net_device *dev);
-	int			(*hard_start_xmit) (struct sk_buff *skb,
-						    struct net_device *dev);
+	int			(*hard_start_xmit) (struct sk_buff *skb,struct net_device *dev);
 	int			(*hard_header) (struct sk_buff *skb,
-						struct net_device *dev,
-						unsigned short type,
-						void *daddr,
-						void *saddr,
-						unsigned len);
+								struct net_device *dev,
+								unsigned short type,
+								void *daddr,
+								void *saddr,
+								unsigned len);
 	int			(*rebuild_header)(struct sk_buff *skb);
-#define HAVE_MULTICAST			 
-	void			(*set_multicast_list)(struct net_device *dev);
-#define HAVE_SET_MAC_ADDR  		 
+#define HAVE_MULTICAST
+	void		(*set_multicast_list)(struct net_device *dev);
+#define HAVE_SET_MAC_ADDR
 	int			(*set_mac_address)(struct net_device *dev,
-						   void *addr);
+								   void *addr);
 #define HAVE_PRIVATE_IOCTL
 	int			(*do_ioctl)(struct net_device *dev,
-					    struct ifreq *ifr, int cmd);
+						    struct ifreq *ifr, int cmd);
 #define HAVE_SET_CONFIG
 	int			(*set_config)(struct net_device *dev,
-					      struct ifmap *map);
+						      struct ifmap *map);
 #define HAVE_HEADER_CACHE
 	int			(*hard_header_cache)(struct neighbour *neigh,
-						     struct hh_cache *hh);
-	void			(*header_cache_update)(struct hh_cache *hh,
-						       struct net_device *dev,
-						       unsigned char *  haddr);
+								     struct hh_cache *hh);
+	void		(*header_cache_update)(struct hh_cache *hh,
+								       struct net_device *dev,
+								       unsigned char *  haddr);
 #define HAVE_CHANGE_MTU
 	int			(*change_mtu)(struct net_device *dev, int new_mtu);
 
 #define HAVE_TX_TIMEOUT
-	void			(*tx_timeout) (struct net_device *dev);
+	void		(*tx_timeout) (struct net_device *dev);
 
 	int			(*hard_header_parse)(struct sk_buff *skb,
-						     unsigned char *haddr);
+								     unsigned char *haddr);
 	int			(*neigh_setup)(struct net_device *dev, struct neigh_parms *);
 	int			(*accept_fastpath)(struct net_device *, struct dst_entry*);
 
@@ -398,7 +397,7 @@ struct net_device
 #ifdef CONFIG_NET_FASTROUTE
 #define NETDEV_FASTROUTE_HMASK 0xF
 	/* Semi-private data. Keep it at the end of device struct. */
-	rwlock_t		fastpath_lock;
+	rwlock_t			fastpath_lock;
 	struct dst_entry	*fastpath[NETDEV_FASTROUTE_HMASK+1];
 #endif
 #ifdef CONFIG_NET_DIVERT
@@ -408,7 +407,7 @@ struct net_device
 };
 
 
-struct packet_type 
+struct packet_type
 {
 	unsigned short		type;	/* This is really htons(ether_type).	*/
 	struct net_device		*dev;	/* NULL is wildcarded here		*/

@@ -1010,7 +1010,7 @@ static void generic_file_readahead(int reada_ok,
  * This is really ugly. But the goto's actually try to clarify some
  * of the logic when it comes to error handling etc.
  */
-void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * desc, read_actor_t actor)
+void do_generic_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
 {
 	struct inode *inode = filp->f_dentry->d_inode;
 	struct address_space *mapping = inode->i_mapping;
@@ -1058,7 +1058,7 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 			filp->f_ramax = needed;
 
 		if (reada_ok && filp->f_ramax < MIN_READAHEAD)
-				filp->f_ramax = MIN_READAHEAD;
+			filp->f_ramax = MIN_READAHEAD;
 		if (filp->f_ramax > max_readahead)
 			filp->f_ramax = max_readahead;
 	}
@@ -1263,12 +1263,12 @@ ssize_t generic_file_read(struct file * filp, char * buf, size_t count, loff_t *
 	return retval;
 }
 
-static int file_send_actor(read_descriptor_t * desc, struct page *page, unsigned long offset , unsigned long size)
+static int file_send_actor(read_descriptor_t *desc, struct page *page, unsigned long offset , unsigned long size)
 {
 	char *kaddr;
 	ssize_t written;
 	unsigned long count = desc->count;
-	struct file *file = (struct file *) desc->buf;
+	struct file *file = (struct file *)desc->buf;
 	mm_segment_t old_fs;
 
 	if (size > count)
@@ -1292,8 +1292,8 @@ static int file_send_actor(read_descriptor_t * desc, struct page *page, unsigned
 asmlinkage ssize_t sys_sendfile(int out_fd, int in_fd, off_t *offset, size_t count)
 {
 	ssize_t retval;
-	struct file * in_file, * out_file;
-	struct inode * in_inode, * out_inode;
+	struct file *in_file, *out_file;
+	struct inode *in_inode, *out_inode;
 
 	/*
 	 * Get input file, and verify that it is ok..
@@ -1346,7 +1346,7 @@ asmlinkage ssize_t sys_sendfile(int out_fd, int in_fd, off_t *offset, size_t cou
 
 		desc.written = 0;
 		desc.count = count;
-		desc.buf = (char *) out_file;
+		desc.buf = (char *)out_file;
 		desc.error = 0;
 		do_generic_file_read(in_file, ppos, &desc, file_send_actor);
 

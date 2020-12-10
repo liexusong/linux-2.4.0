@@ -41,7 +41,7 @@ static void __br_handle_frame(struct sk_buff *skb)
 	struct net_bridge_port *p;
 	int passedup;
 
-	dest = skb->mac.ethernet->h_dest;
+	dest = skb->mac.ethernet->h_dest; // 目标mac地址
 
 	p = skb->dev->br_port;
 	br = p->br;
@@ -68,7 +68,8 @@ static void __br_handle_frame(struct sk_buff *skb)
 
 	if (!passedup &&
 	    (dest[0] & 1) &&
-	    (br->dev.flags & IFF_ALLMULTI || br->dev.mc_list != NULL)) {
+	    (br->dev.flags & IFF_ALLMULTI || br->dev.mc_list != NULL))
+	{
 		struct sk_buff *skb2;
 
 		skb2 = skb_clone(skb, GFP_ATOMIC);

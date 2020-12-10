@@ -131,7 +131,7 @@ static void 	chipset_init(struct net_device *dev, int startp);
  * If dev->base_addr == 2, allocate space for the device and return success
  * (detachable devices only).
  */
-int __init 
+int __init
 netcard_probe(struct net_device *dev)
 {
 	int i;
@@ -167,10 +167,10 @@ static int __init netcard_probe1(struct net_device *dev, int ioaddr)
 	int i;
 
 	/*
-	 * For ethernet adaptors the first three octets of the station address 
+	 * For ethernet adaptors the first three octets of the station address
 	 * contains the manufacturer's unique code. That might be a good probe
 	 * method. Ideally you would add additional checks.
-	 */ 
+	 */
 	if (inb(ioaddr + 0) != SA_ADDR0
 		||	 inb(ioaddr + 1) != SA_ADDR1
 		||	 inb(ioaddr + 2) != SA_ADDR2) {
@@ -259,7 +259,7 @@ static int __init netcard_probe1(struct net_device *dev, int ioaddr)
 		if (i <= 0) {
 			printk("DMA probe failed.\n");
 			return -EAGAIN;
-		} 
+		}
 		if (request_dma(dev->dma, cardname)) {
 			printk("probed DMA %d allocation failed.\n", dev->dma);
 			return -EAGAIN;
@@ -282,14 +282,14 @@ static int __init netcard_probe1(struct net_device *dev, int ioaddr)
 	/* Grab the region so that no one else tries to probe our ioports. */
 	request_region(ioaddr, NETCARD_IO_EXTENT, cardname);
 
-	dev->open		= net_open;
-	dev->stop		= net_close;
-	dev->hard_start_xmit	= net_send_packet;
-	dev->get_stats		= net_get_stats;
+	dev->open = net_open;
+	dev->stop = net_close;
+	dev->hard_start_xmit = net_send_packet;
+	dev->get_stats = net_get_stats;
 	dev->set_multicast_list = &set_multicast_list;
 
-        dev->tx_timeout		= &net_tx_timeout;
-        dev->watchdog_timeo	= MY_TX_TIMEOUT; 
+	dev->tx_timeout = &net_tx_timeout;
+	dev->watchdog_timeo = MY_TX_TIMEOUT;
 
 	/* Fill in the fields of the device structure with ethernet values. */
 	ether_setup(dev);
@@ -461,7 +461,7 @@ void net_tx(struct net_device *dev)
 	 * condition, and space has now been made available,
 	 * wake up the queue.
 	 */
-	if (netif_queue_stopped(dev) && ! tx_full(dev))
+	if (netif_queue_stopped(dev) && !tx_full(dev))
 		netif_wake_queue(dev);
 
 	spin_unlock(&np->lock);
@@ -512,7 +512,7 @@ net_rx(struct net_device *dev)
 	do {
 		int status = inw(ioaddr);
 		int pkt_len = inw(ioaddr);
-	  
+
 		if (pkt_len == 0)		/* Read all the frames? */
 			break;			/* Done for now */
 
@@ -527,7 +527,7 @@ net_rx(struct net_device *dev)
 			struct sk_buff *skb;
 
 			lp->stats.rx_bytes+=pkt_len;
-			
+
 			skb = dev_alloc_skb(pkt_len);
 			if (skb == NULL) {
 				printk(KERN_NOTICE "%s: Memory squeeze, dropping packet.\n",
@@ -622,7 +622,7 @@ set_multicast_list(struct net_device *dev)
 
 		outw(MULTICAST, ioaddr);
 	}
-	else 
+	else
 		outw(0, ioaddr);
 }
 

@@ -110,6 +110,6 @@ list_named_insert(struct list_head *head, void *new)
 
 /* Find this named element in the list. */
 #define list_named_find(head, name)			\
-LIST_FIND(head, __list_cmp_name, void *, name)
+	LIST_FIND(head, __list_cmp_name, void *, name)
 
 #endif /*_LISTHELP_H*/

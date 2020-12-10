@@ -26,44 +26,43 @@ struct sk_buff;
 
 struct dst_entry
 {
-	struct dst_entry        *next;
-	atomic_t		__refcnt;	/* client references	*/
-	int			__use;
-	struct net_device       *dev;
-	int			obsolete;
-	int			flags;
-#define DST_HOST		1
-	unsigned long		lastuse;
-	unsigned long		expires;
+	struct dst_entry		*next;
+	atomic_t				__refcnt;	/* client references	*/
+	int						__use;
+	struct net_device		*dev;
+	int						obsolete;
+	int						flags;
+#define DST_HOST			1
+	unsigned long			lastuse;
+	unsigned long			expires;
 
-	unsigned		mxlock;
-	unsigned		pmtu;
-	unsigned		window;
-	unsigned		rtt;
-	unsigned		rttvar;
-	unsigned		ssthresh;
-	unsigned		cwnd;
-	unsigned		advmss;
-	unsigned		reordering;
+	unsigned				mxlock;
+	unsigned				pmtu;
+	unsigned				window;
+	unsigned				rtt;
+	unsigned				rttvar;
+	unsigned				ssthresh;
+	unsigned				cwnd;
+	unsigned				advmss;
+	unsigned				reordering;
 
-	unsigned long		rate_last;	/* rate limiting for ICMP */
-	unsigned long		rate_tokens;
+	unsigned long			rate_last;	/* rate limiting for ICMP */
+	unsigned long			rate_tokens;
 
-	int			error;
+	int						error;
 
-	struct neighbour	*neighbour;
-	struct hh_cache		*hh;
+	struct neighbour		*neighbour;
+	struct hh_cache			*hh;
 
-	int			(*input)(struct sk_buff*);
-	int			(*output)(struct sk_buff*);
+	int						(*input)(struct sk_buff*);
+	int						(*output)(struct sk_buff*);
 
 #ifdef CONFIG_NET_CLS_ROUTE
-	__u32			tclassid;
+	__u32					tclassid;
 #endif
 
 	struct  dst_ops	        *ops;
-		
-	char			info[0];
+	char					info[0];
 };
 
 

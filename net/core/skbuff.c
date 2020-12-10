@@ -186,7 +186,7 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 	}
 
 	/* Get the DATA. Size must match skb_add_mtu(). */
-	size = ((size + 15) & ~15);
+	size = ((size + 15) & ~15); // 16字节对齐
 	data = kmalloc(size + sizeof(atomic_t), gfp_mask);
 	if (data == NULL)
 		goto nodata;
@@ -198,7 +198,7 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 	skb->head = data;
 	skb->data = data;
 	skb->tail = data;
-	skb->end = data + size;
+	skb->end  = data + size;
 
 	/* Set up other state */
 	skb->len = 0;

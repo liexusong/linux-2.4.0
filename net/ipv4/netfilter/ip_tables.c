@@ -36,11 +36,11 @@
 #endif
 
 #ifdef CONFIG_NETFILTER_DEBUG
-#define IP_NF_ASSERT(x)						\
-do {								\
-	if (!(x))						\
-		printk("IP_NF_ASSERT: %s:%s:%u\n",		\
-		       __FUNCTION__, __FILE__, __LINE__);	\
+#define IP_NF_ASSERT(x)								\
+do {												\
+	if (!(x))										\
+		printk("IP_NF_ASSERT: %s:%s:%u\n",			\
+				__FUNCTION__, __FILE__, __LINE__);	\
 } while(0)
 #else
 #define IP_NF_ASSERT(x)
@@ -221,17 +221,16 @@ ipt_error(struct sk_buff **pskb,
 
 static inline
 int do_match(struct ipt_entry_match *m,
-	     const struct sk_buff *skb,
-	     const struct net_device *in,
-	     const struct net_device *out,
-	     int offset,
-	     const void *hdr,
-	     u_int16_t datalen,
-	     int *hotdrop)
+		     const struct sk_buff *skb,
+		     const struct net_device *in,
+		     const struct net_device *out,
+		     int offset,
+		     const void *hdr,
+		     u_int16_t datalen,
+		     int *hotdrop)
 {
 	/* Stop iteration if it doesn't match */
-	if (!m->u.kernel.match->match(skb, in, out, m->data,
-				      offset, hdr, datalen, hotdrop))
+	if (!m->u.kernel.match->match(skb, in, out, m->data, offset, hdr, datalen, hotdrop))
 		return 1;
 	else
 		return 0;
@@ -246,11 +245,11 @@ get_entry(void *base, unsigned int offset)
 /* Returns one of the generic firewall policies, like NF_ACCEPT. */
 unsigned int
 ipt_do_table(struct sk_buff **pskb,
-	     unsigned int hook,
-	     const struct net_device *in,
-	     const struct net_device *out,
-	     struct ipt_table *table,
-	     void *userdata)
+			 unsigned int hook,
+			 const struct net_device *in,
+			 const struct net_device *out,
+			 struct ipt_table *table,
+			 void *userdata)
 {
 	static const char nulldevname[IFNAMSIZ] = { 0 };
 	u_int16_t offset;
@@ -279,13 +278,15 @@ ipt_do_table(struct sk_buff **pskb,
 	offset = ntohs(ip->frag_off) & IP_OFFSET;
 
 	read_lock_bh(&table->lock);
+
 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
+
 	table_base = (void *)table->private->entries
-		+ TABLE_OFFSET(table->private,
-			       cpu_number_map(smp_processor_id()));
+			   + TABLE_OFFSET(table->private, cpu_number_map(smp_processor_id()));
+
 	e = get_entry(table_base, table->private->hook_entry[hook]);
 
-#ifdef CONFIG_NETFILTER_DEBUG
+#if 0
 	/* Check noone else using our table */
 	if (((struct ipt_entry *)table_base)->comefrom != 0xdead57ac
 	    && ((struct ipt_entry *)table_base)->comefrom != 0xeeeeeeec) {
@@ -305,19 +306,18 @@ ipt_do_table(struct sk_buff **pskb,
 		IP_NF_ASSERT(e);
 		IP_NF_ASSERT(back);
 		(*pskb)->nfcache |= e->nfcache;
-		if (ip_packet_match(ip, indev, outdev, &e->ip, offset)) {
+		if (ip_packet_match(ip, indev, outdev, &e->ip, offset)) { // IP匹配
 			struct ipt_entry_target *t;
 
-			if (IPT_MATCH_ITERATE(e, do_match,
-					      *pskb, in, out,
-					      offset, protohdr,
-					      datalen, &hotdrop) != 0)
+			// 遍历所有 match 规则进行匹配
+			if (IPT_MATCH_ITERATE(e, do_match, *pskb, in, out, offset, protohdr, datalen, &hotdrop) != 0)
 				goto no_match;
 
 			ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
 
 			t = ipt_get_target(e);
 			IP_NF_ASSERT(t->u.kernel.target);
+			// 匹配成功
 			/* Standard target? */
 			if (!t->u.kernel.target->target) {
 				int v;
@@ -330,36 +330,30 @@ ipt_do_table(struct sk_buff **pskb,
 						break;
 					}
 					e = back;
-					back = get_entry(table_base,
-							 back->comefrom);
+					back = get_entry(table_base, back->comefrom);
 					continue;
 				}
-				if (table_base + v
-				    != (void *)e + e->next_offset) {
+
+				if (table_base + v != (void *)e + e->next_offset) {
 					/* Save old back ptr in next entry */
-					struct ipt_entry *next
-						= (void *)e + e->next_offset;
-					next->comefrom
-						= (void *)back - table_base;
+					struct ipt_entry *next = (void *)e + e->next_offset;
+					next->comefrom = (void *)back - table_base;
 					/* set back pointer to next entry */
 					back = next;
 				}
 
 				e = get_entry(table_base, v);
+
 			} else {
 				/* Targets which reenter must return
                                    abs. verdicts */
-#ifdef CONFIG_NETFILTER_DEBUG
+#if 0
 				((struct ipt_entry *)table_base)->comefrom
 					= 0xeeeeeeec;
 #endif
-				verdict = t->u.kernel.target->target(pskb,
-								     hook,
-								     in, out,
-								     t->data,
-								     userdata);
+				verdict = t->u.kernel.target->target(pskb, hook, in, out, t->data, userdata);
 
-#ifdef CONFIG_NETFILTER_DEBUG
+#if 0
 				if (((struct ipt_entry *)table_base)->comefrom
 				    != 0xeeeeeeec
 				    && verdict == IPT_CONTINUE) {
@@ -388,7 +382,7 @@ ipt_do_table(struct sk_buff **pskb,
 		}
 	} while (!hotdrop);
 
-#ifdef CONFIG_NETFILTER_DEBUG
+#if 0
 	((struct ipt_entry *)table_base)->comefrom = 0xdead57ac;
 #endif
 	read_unlock_bh(&table->lock);
@@ -398,7 +392,8 @@ ipt_do_table(struct sk_buff **pskb,
 #else
 	if (hotdrop)
 		return NF_DROP;
-	else return verdict;
+	else
+		return verdict;
 #endif
 }
 
@@ -435,10 +430,10 @@ find_inlist_lock_noload(struct list_head *head,
 #else
 static void *
 find_inlist_lock(struct list_head *head,
-		 const char *name,
-		 const char *prefix,
-		 int *error,
-		 struct semaphore *mutex)
+				 const char *name,
+				 const char *prefix,
+				 int *error,
+				 struct semaphore *mutex)
 {
 	void *ret;
 
@@ -498,8 +493,7 @@ mark_source_chains(struct ipt_table_info *newinfo, unsigned int valid_hooks)
 	   to 0 as we leave), and comefrom to save source hook bitmask */
 	for (hook = 0; hook < NF_IP_NUMHOOKS; hook++) {
 		unsigned int pos = newinfo->hook_entry[hook];
-		struct ipt_entry *e
-			= (struct ipt_entry *)(newinfo->entries + pos);
+		struct ipt_entry *e = (struct ipt_entry *)(newinfo->entries + pos);
 
 		if (!(valid_hooks & (1 << hook)))
 			continue;
@@ -508,30 +502,28 @@ mark_source_chains(struct ipt_table_info *newinfo, unsigned int valid_hooks)
 		e->counters.pcnt = pos;
 
 		for (;;) {
-			struct ipt_standard_target *t
-				= (void *)ipt_get_target(e);
+			struct ipt_standard_target *t = (void *)ipt_get_target(e);
 
 			if (e->comefrom & (1 << NF_IP_NUMHOOKS)) {
 				printk("iptables: loop hook %u pos %u %08X.\n",
 				       hook, pos, e->comefrom);
 				return 0;
 			}
-			e->comefrom
-				|= ((1 << hook) | (1 << NF_IP_NUMHOOKS));
+			e->comefrom |= ((1 << hook) | (1 << NF_IP_NUMHOOKS));
 
 			/* Unconditional return/END. */
 			if (e->target_offset == sizeof(struct ipt_entry)
-			    && (strcmp(t->target.u.user.name,
-				       IPT_STANDARD_TARGET) == 0)
+			    && strcmp(t->target.u.user.name, IPT_STANDARD_TARGET) == 0
 			    && t->verdict < 0
-			    && unconditional(&e->ip)) {
+			    && unconditional(&e->ip))
+			{
 				unsigned int oldpos, size;
 
 				/* Return: backtrack through the last
 				   big jump. */
 				do {
 					e->comefrom ^= (1<<NF_IP_NUMHOOKS);
-#ifdef DEBUG_IP_FIREWALL_USER
+#if 0
 					if (e->comefrom
 					    & (1 << NF_IP_NUMHOOKS)) {
 						duprintf("Back unset "
@@ -548,22 +540,22 @@ mark_source_chains(struct ipt_table_info *newinfo, unsigned int valid_hooks)
 					if (pos == oldpos)
 						goto next;
 
-					e = (struct ipt_entry *)
-						(newinfo->entries + pos);
+					e = (struct ipt_entry *)(newinfo->entries + pos);
+
 				} while (oldpos == pos + e->next_offset);
 
 				/* Move along one */
 				size = e->next_offset;
-				e = (struct ipt_entry *)
-					(newinfo->entries + pos + size);
+				e = (struct ipt_entry *)(newinfo->entries + pos + size);
 				e->counters.pcnt = pos;
 				pos += size;
+
 			} else {
 				int newpos = t->verdict;
 
-				if (strcmp(t->target.u.user.name,
-					   IPT_STANDARD_TARGET) == 0
-				    && newpos >= 0) {
+				if (strcmp(t->target.u.user.name, IPT_STANDARD_TARGET) == 0
+				    && newpos >= 0)
+				{
 					/* This a jump; chase it. */
 					duprintf("Jump rule %u -> %u\n",
 						 pos, newpos);
@@ -571,8 +563,7 @@ mark_source_chains(struct ipt_table_info *newinfo, unsigned int valid_hooks)
 					/* ... this is a fallthru */
 					newpos = pos + e->next_offset;
 				}
-				e = (struct ipt_entry *)
-					(newinfo->entries + newpos);
+				e = (struct ipt_entry *)(newinfo->entries + newpos);
 				e->counters.pcnt = pos;
 				pos = newpos;
 			}
@@ -724,21 +715,23 @@ check_entry(struct ipt_entry *e, const char *name, unsigned int size,
 
 static inline int
 check_entry_size_and_hooks(struct ipt_entry *e,
-			   struct ipt_table_info *newinfo,
-			   unsigned char *base,
-			   unsigned char *limit,
-			   const unsigned int *hook_entries,
-			   const unsigned int *underflows,
-			   unsigned int *i)
+						   struct ipt_table_info *newinfo,
+						   unsigned char *base,
+						   unsigned char *limit,
+						   const unsigned int *hook_entries,
+						   const unsigned int *underflows,
+						   unsigned int *i)
 {
 	unsigned int h;
 
+	// check 1:
 	if ((unsigned long)e % __alignof__(struct ipt_entry) != 0
 	    || (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
 		duprintf("Bad offset %p\n", e);
 		return -EINVAL;
 	}
 
+	// check 2:
 	if (e->next_offset
 	    < sizeof(struct ipt_entry) + sizeof(struct ipt_entry_target)) {
 		duprintf("checking: element %p size %u\n",
@@ -747,6 +740,7 @@ check_entry_size_and_hooks(struct ipt_entry *e,
 	}
 
 	/* Check hooks & underflows */
+	// for (h = 0; h < 5; h++)
 	for (h = 0; h < NF_IP_NUMHOOKS; h++) {
 		if ((unsigned char *)e - base == hook_entries[h])
 			newinfo->hook_entry[h] = hook_entries[h];
@@ -789,12 +783,12 @@ cleanup_entry(struct ipt_entry *e, unsigned int *i)
    newinfo) */
 static int
 translate_table(const char *name,
-		unsigned int valid_hooks,
-		struct ipt_table_info *newinfo,
-		unsigned int size,
-		unsigned int number,
-		const unsigned int *hook_entries,
-		const unsigned int *underflows)
+				unsigned int valid_hooks,
+				struct ipt_table_info *newinfo,
+				unsigned int size,
+				unsigned int number,
+				const unsigned int *hook_entries,
+				const unsigned int *underflows)
 {
 	unsigned int i;
 	int ret;
@@ -811,12 +805,19 @@ translate_table(const char *name,
 	duprintf("translate_table: size %u\n", newinfo->size);
 	i = 0;
 	/* Walk through entries, checking offsets. */
-	ret = IPT_ENTRY_ITERATE(newinfo->entries, newinfo->size,
-				check_entry_size_and_hooks,
-				newinfo,
-				newinfo->entries,
-				newinfo->entries + size,
-				hook_entries, underflows, &i);
+	/*
+	 * check_entry_size_and_hooks(entry, newinfo, newinfo->entries,
+	 *       newinfo->entries + size, hook_entries, underflows, &i)
+	 */
+	ret = IPT_ENTRY_ITERATE(newinfo->entries,
+							newinfo->size,
+							check_entry_size_and_hooks,
+							newinfo,                       /* struct ipt_table_info *newinfo */
+							newinfo->entries,              /* unsigned char *base */
+							newinfo->entries + size,       /* unsigned char *limit */
+							hook_entries,                  /* unsigned int *hook_entries */
+							underflows,                    /* unsigned int *underflows */
+							&i);
 	if (ret != 0)
 		return ret;
 
@@ -869,13 +870,13 @@ translate_table(const char *name,
 
 static struct ipt_table_info *
 replace_table(struct ipt_table *table,
-	      unsigned int num_counters,
-	      struct ipt_table_info *newinfo,
-	      int *error)
+			  unsigned int num_counters,
+			  struct ipt_table_info *newinfo,
+			  int *error)
 {
 	struct ipt_table_info *oldinfo;
 
-#ifdef CONFIG_NETFILTER_DEBUG
+#if 0
 	{
 		struct ipt_entry *table_base;
 		unsigned int i;
@@ -1357,7 +1358,7 @@ int ipt_register_table(struct ipt_table *table)
 {
 	int ret;
 	struct ipt_table_info *newinfo;
-	static struct ipt_table_info bootstrap = { 0, 0, { 0 }, { 0 }, { } };
+	static struct ipt_table_info bootstrap = {0, 0, {0}, {0}, {}};
 
 	MOD_INC_USE_COUNT;
 	newinfo = vmalloc(sizeof(struct ipt_table_info)
@@ -1367,13 +1368,17 @@ int ipt_register_table(struct ipt_table *table)
 		MOD_DEC_USE_COUNT;
 		return ret;
 	}
+
+	// 复制 table->table->entries 的数据到 newinfo->entries 中
 	memcpy(newinfo->entries, table->table->entries, table->table->size);
 
-	ret = translate_table(table->name, table->valid_hooks,
-			      newinfo, table->table->size,
-			      table->table->num_entries,
-			      table->table->hook_entry,
-			      table->table->underflow);
+	ret = translate_table(table->name,
+						  table->valid_hooks,
+						  newinfo,
+						  table->table->size,
+						  table->table->num_entries,
+						  table->table->hook_entry,
+						  table->table->underflow);
 	if (ret != 0) {
 		vfree(newinfo);
 		MOD_DEC_USE_COUNT;
