@@ -39,17 +39,17 @@ static struct
 		"filter",               // name
 		FILTER_VALID_HOOKS,     // valid_hooks
 		4,                      // num_entries
-		sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error), // size (3 * ipt_standard + ipt_error)
+		sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error), // size: (3 * ipt_standard + ipt_error)
 		// hook_entry
 		{
-			[NF_IP_LOCAL_IN] 0,
-			[NF_IP_FORWARD] sizeof(struct ipt_standard),
+			[NF_IP_LOCAL_IN]  0,
+			[NF_IP_FORWARD]   sizeof(struct ipt_standard),
 			[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2,
 		},
 		// underflow
 		{
-			[NF_IP_LOCAL_IN] 0,
-			[NF_IP_FORWARD] sizeof(struct ipt_standard),
+			[NF_IP_LOCAL_IN]  0,
+			[NF_IP_FORWARD]   sizeof(struct ipt_standard),
 			[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2,
 		},
 		0,                      // num_counters
@@ -60,7 +60,7 @@ static struct
 	{
 	    /* LOCAL_IN */
 	    {
-	    	// entry
+	    	// Field: entry
 	    	{
 	    		{{0}, {0}, {0}, {0}, "", "", {0}, {0}, 0, 0, 0},
 				0,
@@ -70,7 +70,7 @@ static struct
 				{0, 0},
 				{},
 			},
-			// target
+			// Field: target
 			{
 				{
 					{{ IPT_ALIGN(sizeof(struct ipt_standard_target)), ""}},
@@ -136,8 +136,8 @@ static struct
 				{},
 			},
 			"ERROR",
-      }
-    },
+		}
+	},
 };
 
 static struct ipt_table packet_filter = {
@@ -152,10 +152,10 @@ static struct ipt_table packet_filter = {
 /* The work comes in here from netfilter.c. */
 static unsigned int
 ipt_hook(unsigned int hook,
-	 struct sk_buff **pskb,
-	 const struct net_device *in,
-	 const struct net_device *out,
-	 int (*okfn)(struct sk_buff *))
+		 struct sk_buff **pskb,
+		 const struct net_device *in,
+		 const struct net_device *out,
+		 int (*okfn)(struct sk_buff *))
 {
 	return ipt_do_table(pskb, hook, in, out, &packet_filter, NULL);
 }

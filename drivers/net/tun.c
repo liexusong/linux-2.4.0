@@ -169,7 +169,7 @@ int tun_net_init(struct net_device *dev)
 /* Character device part */
 
 /* Poll */
-static unsigned int tun_chr_poll(struct file *file, poll_table * wait)
+static unsigned int tun_chr_poll(struct file *file, poll_table *wait)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
 
@@ -234,7 +234,7 @@ tun_get_user(struct tun_struct *tun, const char *buf, size_t count)
 }
 
 /* Write */
-static ssize_t tun_chr_write(struct file * file, const char * buf,
+static ssize_t tun_chr_write(struct file *file, const char *buf,
 							 size_t count, loff_t *pos)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
@@ -383,7 +383,7 @@ static int tun_set_iff(struct tun_struct *tun, unsigned long arg)
 }
 
 static int tun_chr_ioctl(struct inode *inode, struct file *file,
-			 unsigned int cmd, unsigned long arg)
+						 unsigned int cmd, unsigned long arg)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
 

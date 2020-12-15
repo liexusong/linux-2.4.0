@@ -119,6 +119,12 @@ extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 #ifdef CONFIG_NETFILTER_DEBUG
 #define NF_HOOK nf_hook_slow
 #else
+// pf: 协议族名
+// hook: 钩子阶段
+// skb: 要过滤的数据包
+// indev: 输入设备对象
+// outdev: 输出设备对象
+// okfn: 如果钩子函数执行成功, 那么将会调用这个函数
 #define NF_HOOK(pf, hook, skb, indev, outdev, okfn)	\
     (list_empty(&nf_hooks[(pf)][(hook)])			\
         ? (okfn)(skb)								\

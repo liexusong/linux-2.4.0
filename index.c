@@ -1,6 +1,6 @@
-MAX_TCP_HEADER;
-init_devfs_fs();
-ip_rcv();
-xt_table;
+NF_HOOK();
+ipt_entry_match;
+ipt_standard_target;
+ipt_standard;
 iptable_filter_init();
-ipt_do_table();
+net_rx_action();

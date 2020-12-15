@@ -419,8 +419,7 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	 * 运行 nf_hooks[PF_INET][NF_IP_PRE_ROUTING] 链上的钩子函数
 	 * 如果所有钩子函数都通过, 那么执行: ip_rcv_finish() 函数
 	 */
-	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL,
-		       ip_rcv_finish);
+	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL, ip_rcv_finish);
 
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);

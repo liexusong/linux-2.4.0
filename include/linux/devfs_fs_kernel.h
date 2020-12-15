@@ -42,7 +42,7 @@
 #define DEVFS_SPECIAL_CHR     0
 #define DEVFS_SPECIAL_BLK     1
 
-typedef struct devfs_entry * devfs_handle_t;
+typedef struct devfs_entry *devfs_handle_t;
 
 
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -68,7 +68,7 @@ extern devfs_handle_t devfs_find_handle (devfs_handle_t dir, const char *name,
 					 char type, int traverse_symlinks);
 extern int devfs_get_flags (devfs_handle_t de, unsigned int *flags);
 extern int devfs_set_flags (devfs_handle_t de, unsigned int flags);
-extern int devfs_get_maj_min (devfs_handle_t de, 
+extern int devfs_get_maj_min (devfs_handle_t de,
 			      unsigned int *major, unsigned int *minor);
 extern devfs_handle_t devfs_get_handle_from_inode (struct inode *inode);
 extern int devfs_generate_path (devfs_handle_t de, char *path, int buflen);
@@ -142,7 +142,7 @@ static inline int devfs_set_flags (devfs_handle_t de, unsigned int flags)
 {
     return 0;
 }
-static inline int devfs_get_maj_min (devfs_handle_t de, 
+static inline int devfs_get_maj_min (devfs_handle_t de,
 				     unsigned int *major, unsigned int *minor)
 {
     return 0;

@@ -1323,7 +1323,7 @@ static void net_rx_action(struct softirq_action *h)
 		struct net_device *rx_dev;
 
 		local_irq_disable();
-		skb = __skb_dequeue(&queue->input_pkt_queue);
+		skb = __skb_dequeue(&queue->input_pkt_queue); // 获取一个要发送的skb
 		local_irq_enable();
 
 		if (skb == NULL)

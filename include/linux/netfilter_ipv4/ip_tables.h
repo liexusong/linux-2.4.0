@@ -233,7 +233,7 @@ struct ipt_replace
 	char name[IPT_TABLE_MAXNAMELEN];
 
 	/* Which hook entry points are valid: bitmask.  You can't
-           change this. */
+		   change this. */
 	unsigned int valid_hooks;
 
 	/* Number of entries */
@@ -303,8 +303,8 @@ ipt_get_target(struct ipt_entry *e)
 	struct ipt_entry_match *__m;			\
 											\
 	for (__i = sizeof(struct ipt_entry);	\
-	     __i < (e)->target_offset;			\
-	     __i += __m->u.match_size) {		\
+		 __i < (e)->target_offset;			\
+		 __i += __m->u.match_size) {		\
 		__m = (void *)(e) + __i;			\
 											\
 		__ret = fn(__m , ## args);			\
@@ -346,23 +346,23 @@ struct ipt_match
 	const char name[IPT_FUNCTION_MAXNAMELEN];
 
 	/* Return true or false: return FALSE and set *hotdrop = 1 to
-           force immediate packet drop. */
+		   force immediate packet drop. */
 	int (*match)(const struct sk_buff *skb,
-		     const struct net_device *in,
-		     const struct net_device *out,
-		     const void *matchinfo,
-		     int offset,
-		     const void *hdr,
-		     u_int16_t datalen,
-		     int *hotdrop);
+				 const struct net_device *in,
+				 const struct net_device *out,
+				 const void *matchinfo,
+				 int offset,
+				 const void *hdr,
+				 u_int16_t datalen,
+				 int *hotdrop);
 
 	/* Called when user tries to insert an entry of this type. */
 	/* Should return true or false. */
 	int (*checkentry)(const char *tablename,
-			  const struct ipt_ip *ip,
-			  void *matchinfo,
-			  unsigned int matchinfosize,
-			  unsigned int hook_mask);
+					  const struct ipt_ip *ip,
+					  void *matchinfo,
+					  unsigned int matchinfosize,
+					  unsigned int hook_mask);
 
 	/* Called when entry of this type deleted. */
 	void (*destroy)(void *matchinfo, unsigned int matchinfosize);
@@ -380,15 +380,15 @@ struct ipt_target
 
 	/* Returns verdict. */
 	unsigned int (*target)(struct sk_buff **pskb,
-					       unsigned int hooknum,
-					       const struct net_device *in,
-					       const struct net_device *out,
-					       const void *targinfo,
-					       void *userdata);
+						   unsigned int hooknum,
+						   const struct net_device *in,
+						   const struct net_device *out,
+						   const void *targinfo,
+						   void *userdata);
 
 	/* Called when user tries to insert an entry of this type:
-           hook_mask is a bitmask of hooks from which it can be
-           called. */
+		   hook_mask is a bitmask of hooks from which it can be
+		   called. */
 	/* Should return true or false. */
 	int (*checkentry)(const char *tablename,
 					  const struct ipt_entry *e,
