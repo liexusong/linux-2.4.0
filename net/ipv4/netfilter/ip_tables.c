@@ -691,10 +691,8 @@ check_entry(struct ipt_entry *e, const char *name, unsigned int size, unsigned i
 			goto cleanup_matches;
 		}
 	} else if (t->u.kernel.target->checkentry
-		   && !t->u.kernel.target->checkentry(name, e, t->data,
-							  t->u.target_size
-							  - sizeof(*t),
-							  e->comefrom)) {
+		   && !t->u.kernel.target->checkentry(name, e, t->data, t->u.target_size - sizeof(*t), e->comefrom))
+	{
 		if (t->u.kernel.target->me)
 			__MOD_DEC_USE_COUNT(t->u.kernel.target->me);
 		duprintf("ip_tables: check failed for `%s'.\n",
@@ -1075,8 +1073,8 @@ do_replace(void *user, unsigned int len)
 	memset(counters, 0, tmp.num_counters * sizeof(struct ipt_counters));
 
 	ret = translate_table(tmp.name, tmp.valid_hooks,
-				  newinfo, tmp.size, tmp.num_entries,
-				  tmp.hook_entry, tmp.underflow);
+						  newinfo, tmp.size, tmp.num_entries,
+						  tmp.hook_entry, tmp.underflow);
 	if (ret != 0)
 		goto free_newinfo_counters;
 
@@ -1462,13 +1460,13 @@ tcp_find_option(u_int8_t option,
 
 static int
 tcp_match(const struct sk_buff *skb,
-	const struct net_device *in,
-	const struct net_device *out,
-	const void *matchinfo,
-	int offset,
-	const void *hdr,
-	u_int16_t datalen,
-	int *hotdrop)
+		const struct net_device *in,
+		const struct net_device *out,
+		const void *matchinfo,
+		int offset,
+		const void *hdr,
+		u_int16_t datalen,
+		int *hotdrop)
 {
 	const struct tcphdr *tcp = hdr;
 	const struct ipt_tcp *tcpinfo = matchinfo;

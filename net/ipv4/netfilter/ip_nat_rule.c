@@ -170,11 +170,11 @@ LIST_HEAD(nat_expect_list);
 
 /* Source NAT */
 static unsigned int ipt_snat_target(struct sk_buff **pskb,
-					unsigned int hooknum,
-					const struct net_device *in,
-					const struct net_device *out,
-					const void *targinfo,
-					void *userinfo)
+									unsigned int hooknum,
+									const struct net_device *in,
+									const struct net_device *out,
+									const void *targinfo,
+									void *userinfo)
 {
 	struct ip_conntrack *ct;
 	enum ip_conntrack_info ctinfo;
