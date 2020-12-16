@@ -4,3 +4,4 @@ ipt_standard_target;
 ipt_standard;
 iptable_filter_init();
 net_rx_action();
+ipt_hook();

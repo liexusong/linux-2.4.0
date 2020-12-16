@@ -606,14 +606,12 @@ standard_check(const struct ipt_entry_target *t, unsigned int max_offset)
 
 	if (targ->verdict >= 0
 		&& targ->verdict > max_offset - sizeof(struct ipt_entry)) {
-		duprintf("ipt_standard_check: bad verdict (%i)\n",
-			 targ->verdict);
+		duprintf("ipt_standard_check: bad verdict (%i)\n", targ->verdict);
 		return 0;
 	}
 
 	if (targ->verdict < -NF_MAX_VERDICT - 1) {
-		duprintf("ipt_standard_check: bad negative verdict (%i)\n",
-			 targ->verdict);
+		duprintf("ipt_standard_check: bad negative verdict (%i)\n", targ->verdict);
 		return 0;
 	}
 	return 1;
@@ -670,12 +668,14 @@ check_entry(struct ipt_entry *e, const char *name, unsigned int size, unsigned i
 	}
 
 	j = 0;
+
+	// 遍历 match 列表, 并且调用 check_match 函数处理
 	ret = IPT_MATCH_ITERATE(e, check_match, name, &e->ip, e->comefrom, &j);
 	if (ret != 0)
 		goto cleanup_matches;
 
-	t = ipt_get_target(e);
-	target = find_target_lock(t->u.user.name, &ret, &ipt_mutex);
+	t = ipt_get_target(e); // 获取 target 条目
+	target = find_target_lock(t->u.user.name, &ret, &ipt_mutex); // 获取 target 对应的操作
 	if (!target) {
 		duprintf("check_entry: `%s' not found\n", t->u.user.name);
 		goto cleanup_matches;
@@ -818,8 +818,7 @@ translate_table(const char *name,
 		return ret;
 
 	if (i != number) {
-		duprintf("translate_table: %u not %u entries\n",
-			 i, number);
+		duprintf("translate_table: %u not %u entries\n", i, number);
 		return -EINVAL;
 	}
 
@@ -846,19 +845,17 @@ translate_table(const char *name,
 	/* Finally, each sanity check must pass */
 	i = 0;
 	ret = IPT_ENTRY_ITERATE(newinfo->entries, newinfo->size,
-				check_entry, name, size, &i);
+							check_entry, name, size, &i);
 
 	if (ret != 0) {
-		IPT_ENTRY_ITERATE(newinfo->entries, newinfo->size,
-				  cleanup_entry, &i);
+		IPT_ENTRY_ITERATE(newinfo->entries, newinfo->size, cleanup_entry, &i);
 		return ret;
 	}
 
 	/* And one copy for every other CPU */
 	for (i = 1; i < smp_num_cpus; i++) {
 		memcpy(newinfo->entries + SMP_ALIGN(newinfo->size)*i,
-			   newinfo->entries,
-			   SMP_ALIGN(newinfo->size));
+			   newinfo->entries, SMP_ALIGN(newinfo->size));
 	}
 
 	return ret;
@@ -1496,21 +1493,14 @@ tcp_match(const struct sk_buff *skb,
 
 	/* Must not be a fragment. */
 	return !offset
-		&& port_match(tcpinfo->spts[0], tcpinfo->spts[1],
-				  ntohs(tcp->source),
+		&& port_match(tcpinfo->spts[0], tcpinfo->spts[1], ntohs(tcp->source),
 				  !!(tcpinfo->invflags & IPT_TCP_INV_SRCPT))
-		&& port_match(tcpinfo->dpts[0], tcpinfo->dpts[1],
-				  ntohs(tcp->dest),
+		&& port_match(tcpinfo->dpts[0], tcpinfo->dpts[1], ntohs(tcp->dest),
 				  !!(tcpinfo->invflags & IPT_TCP_INV_DSTPT))
-		&& FWINVTCP((((unsigned char *)tcp)[13]
-				 & tcpinfo->flg_mask)
-				== tcpinfo->flg_cmp,
-				IPT_TCP_INV_FLAGS)
+		&& FWINVTCP((((unsigned char *)tcp)[13] & tcpinfo->flg_mask) == tcpinfo->flg_cmp, IPT_TCP_INV_FLAGS)
 		&& (!tcpinfo->option
 			|| tcp_find_option(tcpinfo->option, tcp, datalen,
-					   tcpinfo->invflags
-					   & IPT_TCP_INV_OPTION,
-					   hotdrop));
+							   tcpinfo->invflags & IPT_TCP_INV_OPTION, hotdrop));
 }
 
 /* Called when user tries to insert an entry of this type. */
@@ -1666,9 +1656,8 @@ static struct ipt_match icmp_matchstruct =
 	{ { NULL, NULL }, "icmp", &icmp_match, &icmp_checkentry, NULL };
 
 #ifdef CONFIG_PROC_FS
-static inline int print_name(const struct ipt_table *t,
-							 off_t start_offset, char *buffer, int length,
-							 off_t *pos, unsigned int *count)
+static inline int print_name(const struct ipt_table *t, off_t start_offset,
+							 char *buffer,int length, off_t *pos, unsigned int *count)
 {
 	if ((*count)++ >= start_offset) {
 		unsigned int namelen;

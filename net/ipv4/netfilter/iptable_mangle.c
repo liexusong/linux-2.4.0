@@ -41,21 +41,23 @@ static struct
 } initial_table __initdata
 = {
 	{
-		"mangle",
-		MANGLE_VALID_HOOKS,
-		3,
-		sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
+		"mangle",                                                    // name
+		MANGLE_VALID_HOOKS,                                          // valid_hooks
+		3,                                                           // num_entries
+		sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),  // size
+		                                                             // hook_entry
 		{
 			[NF_IP_PRE_ROUTING] 0,
 			[NF_IP_LOCAL_OUT]   sizeof(struct ipt_standard)
 		},
+		                                                             // underflow
 		{
 			[NF_IP_PRE_ROUTING] 0,
 			[NF_IP_LOCAL_OUT]   sizeof(struct ipt_standard)
 		},
-		0,
-		NULL,
-		{ }
+		0,                                                           // num_counters
+		NULL,                                                        // counters
+		{ }                                                          // entries
   	},
 	{
 		/* PRE_ROUTING */

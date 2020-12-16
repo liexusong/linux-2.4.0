@@ -127,9 +127,9 @@ struct ipt_entry
 	unsigned int nfcache;
 
 	/* Size of ipt_entry + matches */
-	u_int16_t target_offset;
+	u_int16_t target_offset; // target的偏移量
 	/* Size of ipt_entry + matches + target */
-	u_int16_t next_offset;
+	u_int16_t next_offset;   // 下一个entry的偏移量
 
 	/* Back pointer */
 	unsigned int comefrom;

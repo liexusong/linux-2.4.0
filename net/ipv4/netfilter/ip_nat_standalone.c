@@ -99,8 +99,7 @@ ip_nat_fn(unsigned int hooknum,
 			int in_hashes = info->initialized;
 			unsigned int ret;
 
-			ret = ip_nat_rule_find(pskb, hooknum, in, out,
-					       ct, info);
+			ret = ip_nat_rule_find(pskb, hooknum, in, out, ct, info);
 			if (ret != NF_ACCEPT) {
 				WRITE_UNLOCK(&ip_nat_lock);
 				return ret;

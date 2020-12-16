@@ -308,7 +308,7 @@ static void print_packet(struct iphdr *ip,
 
 
 int ip_fw_chk(struct iphdr *ip, struct net_device *rif, __u16 *redirport,
-	      struct ip_fw *chain, int policy, int mode)
+			  struct ip_fw *chain, int policy, int mode)
 {
 	struct ip_fw *f;
 	struct tcphdr		*tcp=(struct tcphdr *)((__u32 *)ip+ip->ihl);
@@ -1299,7 +1299,7 @@ int ipfw_acct_out(struct firewall_ops *this, int pf, struct net_device *dev,
 }
 #endif
 
-struct firewall_ops ipfw_ops=
+struct firewall_ops ipfw_ops =
 {
 	NULL,
 	ipfw_forward_check,

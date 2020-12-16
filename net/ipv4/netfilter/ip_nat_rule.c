@@ -271,8 +271,8 @@ static int ipt_dnat_checkentry(const char *tablename,
 
 static inline unsigned int
 alloc_null_binding(struct ip_conntrack *conntrack,
-		   struct ip_nat_info *info,
-		   unsigned int hooknum)
+				   struct ip_nat_info *info,
+				   unsigned int hooknum)
 {
 	/* Force range to this IP; let proto decide mapping for
 	   per-proto parts (hence not IP_NAT_RANGE_PROTO_SPECIFIED).
