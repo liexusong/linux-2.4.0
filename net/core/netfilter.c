@@ -64,6 +64,7 @@ int nf_register_hook(struct nf_hook_ops *reg)
 	struct list_head *i;
 
 	br_write_lock_bh(BR_NETPROTO_LOCK);
+
 	for (i = nf_hooks[reg->pf][reg->hooknum].next;
 		 i != &nf_hooks[reg->pf][reg->hooknum];
 		 i = i->next)
@@ -71,8 +72,11 @@ int nf_register_hook(struct nf_hook_ops *reg)
 		if (reg->priority < ((struct nf_hook_ops *)i)->priority)
 			break;
 	}
+
 	list_add(&reg->list, i->prev);
+
 	br_write_unlock_bh(BR_NETPROTO_LOCK);
+
 	return 0;
 }
 
@@ -178,7 +182,7 @@ void nf_dump_skb(int pf, struct sk_buff *skb)
 		   skb->dev ? skb->dev->name : "(no dev)",
 		   skb->len);
 	switch (pf) {
-	case PF_INET: {
+	case PF_INET:
 		const struct iphdr *ip = skb->nh.iph;
 		__u32 *opt = (__u32 *) (ip + 1);
 		int opti;
@@ -202,7 +206,6 @@ void nf_dump_skb(int pf, struct sk_buff *skb)
 		for (opti = 0; opti < (ip->ihl - sizeof(struct iphdr) / 4); opti++)
 			printk(" O=0x%8.8X", *opt++);
 		printk("\n");
-	}
 	}
 }
 
@@ -327,8 +330,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
 	return ret;
 }
 
-int nf_setsockopt(struct sock *sk, int pf, int val, char *opt,
-		  int len)
+int nf_setsockopt(struct sock *sk, int pf, int val, char *opt, int len)
 {
 	return nf_sockopt(sk, pf, val, opt, &len, 0);
 }
@@ -460,15 +462,8 @@ int nf_hook_slow(int pf,
 	unsigned int verdict;
 	int ret = 0;
 
-#if 0
-	if (skb->nf_debug & (1 << hook)) {
-		printk("nf_hook: hook %i already set.\n", hook);
-		nf_dump_skb(pf, skb);
-	}
-	skb->nf_debug |= (1 << hook);
-#endif
-
 	elem = &nf_hooks[pf][hook];
+
 	verdict = nf_iterate(&nf_hooks[pf][hook], &skb,
 						 hook, indev, outdev, &elem, okfn);
 	if (verdict == NF_QUEUE) {
@@ -498,6 +493,7 @@ nf_reinject(struct sk_buff *skb, struct nf_info *info, unsigned int verdict)
 
 	/* We don't have BR_NETPROTO_LOCK here */
 	br_read_lock_bh(BR_NETPROTO_LOCK);
+
 	for (i = nf_hooks[info->pf][info->hook].next; i != elem; i = i->next) {
 		if (i == &nf_hooks[info->pf][info->hook]) {
 			/* The module which sent it to userspace is gone. */
@@ -535,6 +531,7 @@ nf_reinject(struct sk_buff *skb, struct nf_info *info, unsigned int verdict)
 		kfree_skb(skb);
 		break;
 	}
+
 	br_read_unlock_bh(BR_NETPROTO_LOCK);
 
 	/* Release those devices we held, or Alexey will kill me. */

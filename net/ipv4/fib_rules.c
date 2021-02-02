@@ -52,8 +52,8 @@
 struct fib_rule
 {
 	struct fib_rule *r_next;
-	atomic_t	r_clntref;
-	u32		r_preference;
+	atomic_t		r_clntref;
+	u32				r_preference;
 	unsigned char	r_table;
 	unsigned char	r_action;
 	unsigned char	r_dst_len;
@@ -70,9 +70,9 @@ struct fib_rule
 #endif
 	int		r_ifindex;
 #ifdef CONFIG_NET_CLS_ROUTE
-	__u32		r_tclassid;
+	__u32	r_tclassid;
 #endif
-	char		r_ifname[IFNAMSIZ];
+	char	r_ifname[IFNAMSIZ];
 	int		r_dead;
 };
 

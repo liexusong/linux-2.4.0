@@ -214,7 +214,7 @@ int netdev_nit=0;
  *	is linked into kernel lists and may not be freed until it has been
  *	removed from the kernel lists.
  */
-
+// 注册网络层处理函数(处理包)
 void dev_add_pack(struct packet_type *pt)
 {
 	int hash;
@@ -230,10 +230,10 @@ void dev_add_pack(struct packet_type *pt)
 #endif
 	if (pt->type == htons(ETH_P_ALL)) {
 		netdev_nit++;
-		pt->next=ptype_all;
-		ptype_all=pt;
+		pt->next = ptype_all;
+		ptype_all = pt;
 	} else {
-		hash=ntohs(pt->type)&15;
+		hash = ntohs(pt->type) & 15;
 		pt->next = ptype_base[hash];
 		ptype_base[hash] = pt;
 	}
@@ -903,7 +903,7 @@ void dev_queue_xmit_nit(struct sk_buff *skb, struct net_device *dev)
 int dev_queue_xmit(struct sk_buff *skb)
 {
 	struct net_device *dev = skb->dev;
-	struct Qdisc  *q;
+	struct Qdisc *q;
 
 	/* Grab device queue */
 	spin_lock_bh(&dev->queue_lock);
@@ -1308,7 +1308,7 @@ static inline void handle_diverter(struct sk_buff *skb)
 }
 #endif   /* CONFIG_NET_DIVERT */
 
-
+/* 网络软中断: 接收数据包 */
 static void net_rx_action(struct softirq_action *h)
 {
 	int this_cpu = smp_processor_id();
@@ -1368,8 +1368,7 @@ static void net_rx_action(struct softirq_action *h)
 
 
 #if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
-			if (skb->dev->br_port != NULL &&
-			    br_handle_frame_hook != NULL) {
+			if (skb->dev->br_port != NULL && br_handle_frame_hook != NULL) {
 				handle_bridge(skb, pt_prev);
 				dev_put(rx_dev);
 				continue;

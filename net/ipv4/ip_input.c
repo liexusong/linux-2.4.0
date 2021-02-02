@@ -196,7 +196,7 @@ int ip_call_ra_chain(struct sk_buff *skb)
 
 /* Handle this out of line, it is rare. */
 static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
-			 struct inet_protocol *ipprot, int force_copy)
+						 struct inet_protocol *ipprot, int force_copy)
 {
 	int ret = 0;
 
@@ -207,8 +207,7 @@ static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
 				skb2 = skb_clone(skb, GFP_ATOMIC);
 			if(skb2 != NULL) {
 				ret = 1;
-				ipprot->handler(skb2,
-						ntohs(iph->tot_len) - (iph->ihl * 4));
+				ipprot->handler(skb2, ntohs(iph->tot_len) - (iph->ihl * 4));
 			}
 		}
 		ipprot = (struct inet_protocol *) ipprot->next;
@@ -226,7 +225,7 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 #endif /*CONFIG_NETFILTER_DEBUG*/
 
 	/* Point into the IP datagram, just past the header. */
-	skb->h.raw = skb->nh.raw + iph->ihl*4;
+	skb->h.raw = skb->nh.raw + iph->ihl*4; // 跳过IP头部
 
 	{
 		/* Note: See raw.c and net/raw.h, RAWV4_HTABLE_SIZE==MAX_INET_PROTOS */
@@ -243,15 +242,16 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 
 		ipprot = (struct inet_protocol *) inet_protos[hash];
 		flag = 0;
+
 		if(ipprot != NULL) {
 			if(raw_sk == NULL &&
 			   ipprot->next == NULL &&
-			   ipprot->protocol == iph->protocol) {
+			   ipprot->protocol == iph->protocol)
+			{
 				int ret;
 
 				/* Fast path... */
-				ret = ipprot->handler(skb, (ntohs(iph->tot_len) -
-							    (iph->ihl * 4)));
+				ret = ipprot->handler(skb, (ntohs(iph->tot_len) - iph->ihl*4));
 
 				return ret;
 			} else {
@@ -294,7 +294,7 @@ int ip_local_deliver(struct sk_buff *skb)
 	}
 
 	return NF_HOOK(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
-		       ip_local_deliver_finish);
+				   ip_local_deliver_finish);
 }
 
 static inline int ip_rcv_finish(struct sk_buff *skb)
@@ -365,8 +365,8 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);
 drop:
-        kfree_skb(skb);
-        return NET_RX_DROP;
+	kfree_skb(skb);
+	return NET_RX_DROP;
 }
 
 /*
@@ -379,12 +379,12 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	/* When the interface is in promisc. mode, drop all the crap
 	 * that it receives, do not try to analyse it.
 	 */
-	if (skb->pkt_type == PACKET_OTHERHOST)
+	if (skb->pkt_type == PACKET_OTHERHOST) // 如果不是给本机的数据包, 丢掉这个包
 		goto drop;
 
 	IP_INC_STATS_BH(IpInReceives);
 
-	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL)
+	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL) // 如果当前包被其他地方引用, 那么就复制一份新的
 		goto out;
 
 	/*
@@ -397,9 +397,10 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	 *	3.	Checksums correctly. [Speed optimisation for later, skip loopback checksums]
 	 *	4.	Doesn't have a bogus length
 	 */
-
+	// 包的长度不合法
 	if (skb->len < sizeof(struct iphdr) || skb->len < (iph->ihl<<2))
 		goto inhdr_error;
+	// IP头部不合法
 	if (iph->ihl < 5 || iph->version != 4 || ip_fast_csum((u8 *)iph, iph->ihl) != 0)
 		goto inhdr_error;
 

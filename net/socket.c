@@ -1612,7 +1612,7 @@ int sock_register(struct net_proto_family *ops)
 	net_family_write_lock();
 	err = -EEXIST;
 	if (net_families[ops->family] == NULL) {
-		net_families[ops->family]=ops;
+		net_families[ops->family] = ops;
 		err = 0;
 	}
 	net_family_write_unlock();
@@ -1631,7 +1631,7 @@ int sock_unregister(int family)
 		return -1;
 
 	net_family_write_lock();
-	net_families[family]=NULL;
+	net_families[family] = NULL;
 	net_family_write_unlock();
 	return 0;
 }

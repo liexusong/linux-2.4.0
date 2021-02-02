@@ -556,44 +556,32 @@ static inline void tcp_openreq_free(struct open_request *req)
  */
 
 struct tcp_func {
-	int			(*queue_xmit)		(struct sk_buff *skb);
+	int (*queue_xmit)(struct sk_buff *skb);
+	void (*send_check)(struct sock *sk, struct tcphdr *th,
+					   int len, struct sk_buff *skb);
+	int (*rebuild_header)(struct sock *sk);
+	int (*conn_request)(struct sock *sk, struct sk_buff *skb);
+	struct sock *(*syn_recv_sock)(struct sock *sk,
+								  struct sk_buff *skb,
+								  struct open_request *req,
+								  struct dst_entry *dst);
+	int (*hash_connecting)(struct sock *sk);
+	int (*remember_stamp)(struct sock *sk);
 
-	void			(*send_check)		(struct sock *sk,
-							 struct tcphdr *th,
-							 int len,
-							 struct sk_buff *skb);
+	__u16 net_header_len;
 
-	int			(*rebuild_header)	(struct sock *sk);
+	int (*setsockopt)(struct sock *sk,
+					  int level,
+					  int optname,
+					  char *optval,
+					  int optlen);
+	int (*getsockopt)(struct sock *sk,
+					  int level,
+					  int optname,
+					  char *optval,
+					  int *optlen);
 
-	int			(*conn_request)		(struct sock *sk,
-							 struct sk_buff *skb);
-
-	struct sock *		(*syn_recv_sock)	(struct sock *sk,
-							 struct sk_buff *skb,
-							 struct open_request *req,
-							 struct dst_entry *dst);
-
-	int			(*hash_connecting)	(struct sock *sk);
-
-	int			(*remember_stamp)	(struct sock *sk);
-
-	__u16			net_header_len;
-
-	int			(*setsockopt)		(struct sock *sk,
-							 int level,
-							 int optname,
-							 char *optval,
-							 int optlen);
-
-	int			(*getsockopt)		(struct sock *sk,
-							 int level,
-							 int optname,
-							 char *optval,
-							 int *optlen);
-
-
-	void			(*addr2sockaddr)	(struct sock *sk,
-							 struct sockaddr *);
+	void (*addr2sockaddr)(struct sock *sk, struct sockaddr *);
 
 	int sockaddr_len;
 };

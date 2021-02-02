@@ -556,8 +556,8 @@ work_done:
 
 static int rt_intern_hash(unsigned hash, struct rtable * rt, struct rtable ** rp)
 {
-	struct rtable	*rth, **rthp;
-	unsigned long	now = jiffies;
+	struct rtable *rth, **rthp;
+	unsigned long now = jiffies;
 	int attempts = !in_softirq();
 
 restart:
@@ -1246,19 +1246,19 @@ e_inval:
  */
 
 int ip_route_input_slow(struct sk_buff *skb, u32 daddr, u32 saddr,
-			u8 tos, struct net_device *dev)
+						u8 tos, struct net_device *dev)
 {
-	struct rt_key	key;
+	struct rt_key key;
 	struct fib_result res;
 	struct in_device *in_dev = in_dev_get(dev);
 	struct in_device *out_dev = NULL;
-	unsigned	flags = 0;
-	u32		itag = 0;
-	struct rtable * rth;
-	unsigned	hash;
-	u32		spec_dst;
-	int		err = -EINVAL;
-	int		free_res = 0;
+	unsigned flags = 0;
+	u32 itag = 0;
+	struct rtable *rth;
+	unsigned hash;
+	u32 spec_dst;
+	int err = -EINVAL;
+	int free_res = 0;
 
 	/*
 	 *	IP on this device is disabled.
@@ -1306,6 +1306,7 @@ int ip_route_input_slow(struct sk_buff *skb, u32 daddr, u32 saddr,
 			goto e_inval;
 		goto no_route;
 	}
+
 	free_res = 1;
 
 #ifdef CONFIG_IP_ROUTE_NAT
@@ -1339,7 +1340,7 @@ int ip_route_input_slow(struct sk_buff *skb, u32 daddr, u32 saddr,
 	if (res.type == RTN_LOCAL) {
 		int result;
 		result = fib_validate_source(saddr, daddr, tos, loopback_dev.ifindex,
-					     dev, &spec_dst, &itag);
+									 dev, &spec_dst, &itag);
 		if (result < 0)
 			goto martian_source;
 		if (result)
@@ -1389,15 +1390,16 @@ int ip_route_input_slow(struct sk_buff *skb, u32 daddr, u32 saddr,
 		goto e_nobufs;
 
 	atomic_set(&rth->u.dst.__refcnt, 1);
+
 	rth->u.dst.flags= DST_HOST;
 	rth->key.dst	= daddr;
-	rth->rt_dst	= daddr;
+	rth->rt_dst		= daddr;
 	rth->key.tos	= tos;
 #ifdef CONFIG_IP_ROUTE_FWMARK
 	rth->key.fwmark	= skb->nfmark;
 #endif
 	rth->key.src	= saddr;
-	rth->rt_src	= saddr;
+	rth->rt_src		= saddr;
 	rth->rt_gateway	= daddr;
 #ifdef CONFIG_IP_ROUTE_NAT
 	rth->rt_src_map	= key.src;
@@ -1466,7 +1468,7 @@ local_input:
 	atomic_set(&rth->u.dst.__refcnt, 1);
 	rth->u.dst.flags= DST_HOST;
 	rth->key.dst	= daddr;
-	rth->rt_dst	= daddr;
+	rth->rt_dst		= daddr;
 	rth->key.tos	= tos;
 #ifdef CONFIG_IP_ROUTE_FWMARK
 	rth->key.fwmark	= skb->nfmark;
@@ -1480,8 +1482,7 @@ local_input:
 #ifdef CONFIG_NET_CLS_ROUTE
 	rth->u.dst.tclassid = itag;
 #endif
-	rth->rt_iif	=
-	rth->key.iif	= dev->ifindex;
+	rth->rt_iif	= rth->key.iif = dev->ifindex;
 	rth->u.dst.dev	= &loopback_dev;
 	dev_hold(rth->u.dst.dev);
 	rth->key.oif 	= 0;
@@ -1489,12 +1490,15 @@ local_input:
 	rth->rt_spec_dst= spec_dst;
 	rth->u.dst.input= ip_local_deliver;
 	rth->rt_flags 	= flags|RTCF_LOCAL;
+
 	if (res.type == RTN_UNREACHABLE) {
 		rth->u.dst.input= ip_error;
 		rth->u.dst.error= -err;
 		rth->rt_flags 	&= ~RTCF_LOCAL;
 	}
-	rth->rt_type	= res.type;
+
+	rth->rt_type = res.type;
+
 	goto intern;
 
 no_route:
@@ -1545,7 +1549,7 @@ martian_source:
 }
 
 int ip_route_input(struct sk_buff *skb, u32 daddr, u32 saddr,
-		   u8 tos, struct net_device *dev)
+				   u8 tos, struct net_device *dev)
 {
 	struct rtable *rth;
 	unsigned hash;
@@ -1555,7 +1559,8 @@ int ip_route_input(struct sk_buff *skb, u32 daddr, u32 saddr,
 	hash = rt_hash_code(daddr, saddr^(iif<<5), tos);
 
 	read_lock(&rt_hash_table[hash].lock);
-	for (rth=rt_hash_table[hash].chain; rth; rth=rth->u.rt_next) {
+
+	for (rth = rt_hash_table[hash].chain; rth; rth = rth->u.rt_next) {
 		if (rth->key.dst == daddr &&
 		    rth->key.src == saddr &&
 		    rth->key.iif == iif &&
@@ -1573,6 +1578,7 @@ int ip_route_input(struct sk_buff *skb, u32 daddr, u32 saddr,
 			return 0;
 		}
 	}
+
 	read_unlock(&rt_hash_table[hash].lock);
 
 	/* Multicast recognition logic is moved from route cache to here.
@@ -1604,6 +1610,7 @@ int ip_route_input(struct sk_buff *skb, u32 daddr, u32 saddr,
 		read_unlock(&inetdev_lock);
 		return -EINVAL;
 	}
+
 	return ip_route_input_slow(skb, daddr, saddr, tos, dev);
 }
 

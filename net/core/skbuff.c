@@ -434,9 +434,9 @@ struct sk_buff *skb_copy(const struct sk_buff *skb, int gfp_mask)
 
 
 struct sk_buff *skb_copy_expand(const struct sk_buff *skb,
-				int newheadroom,
-				int newtailroom,
-				int gfp_mask)
+								int newheadroom,
+								int newtailroom,
+								int gfp_mask)
 {
 	struct sk_buff *n;
 
@@ -444,15 +444,14 @@ struct sk_buff *skb_copy_expand(const struct sk_buff *skb,
 	 *	Allocate the copy buffer
 	 */
 
-	n=alloc_skb(newheadroom + (skb->tail - skb->data) + newtailroom,
-		    gfp_mask);
-	if(n==NULL)
+	n = alloc_skb(newheadroom+(skb->tail-skb->data)+newtailroom, gfp_mask);
+	if (n == NULL)
 		return NULL;
 
-	skb_reserve(n,newheadroom);
+	skb_reserve(n,newheadroom); // 在 skb 头部保留空间
 
 	/* Set the tail pointer and length */
-	skb_put(n,skb->len);
+	skb_put(n,skb->len); // 在 skb 尾部保留空间
 
 	/* Copy the data only. */
 	memcpy(n->data, skb->data, skb->len);

@@ -392,7 +392,7 @@ struct net_device
 	struct module *owner;
 
 	/* bridge stuff */
-	struct net_bridge_port	*br_port;
+	struct net_bridge_port	*br_port; // 连接的网桥
 
 #ifdef CONFIG_NET_FASTROUTE
 #define NETDEV_FASTROUTE_HMASK 0xF
@@ -410,10 +410,9 @@ struct net_device
 struct packet_type
 {
 	unsigned short		type;	/* This is really htons(ether_type).	*/
-	struct net_device		*dev;	/* NULL is wildcarded here		*/
-	int			(*func) (struct sk_buff *, struct net_device *,
-					 struct packet_type *);
-	void			*data;	/* Private to the packet type		*/
+	struct net_device	*dev;	/* NULL is wildcarded here		*/
+	int					(*func)(struct sk_buff *, struct net_device *, struct packet_type *);
+	void				*data;	/* Private to the packet type		*/
 	struct packet_type	*next;
 };
 

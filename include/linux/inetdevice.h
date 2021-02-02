@@ -24,10 +24,10 @@ extern struct ipv4_devconf ipv4_devconf;
 
 struct in_device
 {
-	struct net_device		*dev;
-	atomic_t		refcnt;
-	rwlock_t		lock;
-	int			dead;
+	struct net_device	*dev;
+	atomic_t			refcnt;
+	rwlock_t			lock;
+	int					dead;
 	struct in_ifaddr	*ifa_list;	/* IP ifaddr chain		*/
 	struct ip_mc_list	*mc_list;	/* IP multicast filter chain    */
 	unsigned long		mr_v1_seen;
@@ -48,25 +48,25 @@ struct in_device
 #define IN_DEV_SEC_REDIRECTS(in_dev)	(ipv4_devconf.secure_redirects || (in_dev)->cnf.secure_redirects)
 #define IN_DEV_IDTAG(in_dev)		((in_dev)->cnf.tag)
 
-#define IN_DEV_RX_REDIRECTS(in_dev) \
-	((IN_DEV_FORWARD(in_dev) && \
-	  (ipv4_devconf.accept_redirects && (in_dev)->cnf.accept_redirects)) \
-	 || (!IN_DEV_FORWARD(in_dev) && \
-	  (ipv4_devconf.accept_redirects || (in_dev)->cnf.accept_redirects)))
+#define IN_DEV_RX_REDIRECTS(in_dev)                                        \
+	((IN_DEV_FORWARD(in_dev) &&                                            \
+	    (ipv4_devconf.accept_redirects && (in_dev)->cnf.accept_redirects)) \
+	  || (!IN_DEV_FORWARD(in_dev) &&                                       \
+	    (ipv4_devconf.accept_redirects || (in_dev)->cnf.accept_redirects)))
 
 struct in_ifaddr
 {
 	struct in_ifaddr	*ifa_next;
 	struct in_device	*ifa_dev;
-	u32			ifa_local;
-	u32			ifa_address;
-	u32			ifa_mask;
-	u32			ifa_broadcast;
-	u32			ifa_anycast;
+	u32					ifa_local;
+	u32					ifa_address;
+	u32					ifa_mask;
+	u32					ifa_broadcast;
+	u32					ifa_anycast;
 	unsigned char		ifa_scope;
 	unsigned char		ifa_flags;
 	unsigned char		ifa_prefixlen;
-	char			ifa_label[IFNAMSIZ];
+	char				ifa_label[IFNAMSIZ];
 };
 
 extern int register_inetaddr_notifier(struct notifier_block *nb);
@@ -90,7 +90,7 @@ extern __inline__ int inet_ifa_match(u32 addr, struct in_ifaddr *ifa)
 /*
  *	Check if a mask is acceptable.
  */
- 
+
 extern __inline__ int bad_mask(u32 mask, u32 addr)
 {
 	if (addr & (mask = ~mask))

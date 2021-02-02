@@ -50,15 +50,17 @@
 
 #ifdef CONFIG_IP_MULTICAST
 
-static struct inet_protocol igmp_protocol = 
-{
-	igmp_rcv,		/* IGMP handler		*/
-	NULL,			/* IGMP error control	*/
-	IPPROTO_PREVIOUS,	/* next			*/
-	IPPROTO_IGMP,		/* protocol ID		*/
-	0,			/* copy			*/
-	NULL,			/* data			*/
-	"IGMP"			/* name			*/
+/*
+ * IGMP协议
+ */
+static struct inet_protocol igmp_protocol = {
+	igmp_rcv,			/* IGMP handler */
+	NULL,				/* IGMP error control */
+	IPPROTO_PREVIOUS,	/* next */
+	IPPROTO_IGMP,		/* protocol ID */
+	0,					/* copy */
+	NULL,				/* data */
+	"IGMP"				/* name */
 };
 
 #undef  IPPROTO_PREVIOUS
@@ -66,44 +68,50 @@ static struct inet_protocol igmp_protocol =
 
 #endif
 
-static struct inet_protocol tcp_protocol = 
+/*
+ * TCP协议
+ */
+static struct inet_protocol tcp_protocol =
 {
-	tcp_v4_rcv,		/* TCP handler		*/
-	tcp_v4_err,		/* TCP error control	*/  
-	IPPROTO_PREVIOUS,
-	IPPROTO_TCP,		/* protocol ID		*/
-	0,			/* copy			*/
-	NULL,			/* data			*/
-	"TCP"			/* name			*/
+	tcp_v4_rcv,			/* TCP handler */
+	tcp_v4_err,			/* TCP error control */
+	IPPROTO_PREVIOUS,	/* next */
+	IPPROTO_TCP,		/* protocol ID */
+	0,					/* copy	*/
+	NULL,				/* data */
+	"TCP"				/* name */
 };
 
 #undef  IPPROTO_PREVIOUS
 #define IPPROTO_PREVIOUS &tcp_protocol
 
-static struct inet_protocol udp_protocol = 
-{
-	udp_rcv,		/* UDP handler		*/
-	udp_err,		/* UDP error control	*/
-	IPPROTO_PREVIOUS,	/* next			*/
+/*
+ * UDP协议
+ */
+static struct inet_protocol udp_protocol = {
+	udp_rcv,			/* UDP handler		*/
+	udp_err,			/* UDP error control*/
+	IPPROTO_PREVIOUS,	/* next				*/
 	IPPROTO_UDP,		/* protocol ID		*/
-	0,			/* copy			*/
-	NULL,			/* data			*/
-	"UDP"			/* name			*/
+	0,					/* copy				*/
+	NULL,				/* data				*/
+	"UDP"				/* name				*/
 };
 
 #undef  IPPROTO_PREVIOUS
 #define IPPROTO_PREVIOUS &udp_protocol
 
-
-static struct inet_protocol icmp_protocol = 
-{
-	icmp_rcv,		/* ICMP handler		*/
-	NULL,			/* ICMP error control	*/
-	IPPROTO_PREVIOUS,	/* next			*/
-	IPPROTO_ICMP,		/* protocol ID		*/
-	0,			/* copy			*/
-	NULL,			/* data			*/
-	"ICMP"			/* name			*/
+/*
+ * ICMP协议
+ */
+static struct inet_protocol icmp_protocol = {
+	icmp_rcv,			/* ICMP handler */
+	NULL,				/* ICMP error control */
+	IPPROTO_PREVIOUS,	/* next */
+	IPPROTO_ICMP,		/* protocol ID */
+	0,					/* copy */
+	NULL,				/* data */
+	"ICMP"				/* name */
 };
 
 #undef  IPPROTO_PREVIOUS
@@ -125,31 +133,30 @@ void inet_add_protocol(struct inet_protocol *prot)
 
 	hash = prot->protocol & (MAX_INET_PROTOS - 1);
 	br_write_lock_bh(BR_NETPROTO_LOCK);
-	prot ->next = inet_protos[hash];
+	prot->next = inet_protos[hash];
 	inet_protos[hash] = prot;
 	prot->copy = 0;
 
 	/*
-	 *	Set the copy bit if we need to. 
+	 * Set the copy bit if we need to.
 	 */
-	 
-	p2 = (struct inet_protocol *) prot->next;
-	while(p2 != NULL) 
-	{
-		if (p2->protocol == prot->protocol) 
-		{
-			prot->copy = 1;
+	p2 = (struct inet_protocol *)prot->next;
+
+	while (p2 != NULL) {
+		if (p2->protocol == prot->protocol) { // 如果相同的协议有多个处理对象
+			prot->copy = 1; // 设置需要复制skb
 			break;
 		}
-		p2 = (struct inet_protocol *) p2->next;
+		p2 = (struct inet_protocol *)p2->next;
 	}
+
 	br_write_unlock_bh(BR_NETPROTO_LOCK);
 }
 
 /*
  *	Remove a protocol from the hash tables.
  */
- 
+
 int inet_del_protocol(struct inet_protocol *prot)
 {
 	struct inet_protocol *p;
@@ -157,39 +164,41 @@ int inet_del_protocol(struct inet_protocol *prot)
 	unsigned char hash;
 
 	hash = prot->protocol & (MAX_INET_PROTOS - 1);
+
 	br_write_lock_bh(BR_NETPROTO_LOCK);
-	if (prot == inet_protos[hash]) 
-	{
+
+	if (prot == inet_protos[hash]) {
 		inet_protos[hash] = (struct inet_protocol *) inet_protos[hash]->next;
 		br_write_unlock_bh(BR_NETPROTO_LOCK);
-		return(0);
+		return (0);
 	}
 
-	p = (struct inet_protocol *) inet_protos[hash];
-	while(p != NULL) 
-	{
+	p = (struct inet_protocol *)inet_protos[hash];
+
+	while (p != NULL) {
 		/*
 		 * We have to worry if the protocol being deleted is
 		 * the last one on the list, then we may need to reset
 		 * someone's copied bit.
 		 */
-		if (p->next != NULL && p->next == prot) 
-		{
+		if (p->next != NULL && p->next == prot) {
 			/*
 			 * if we are the last one with this protocol and
 			 * there is a previous one, reset its copy bit.
 			 */
-			if (p->copy == 0 && lp != NULL) 
+			if (p->copy == 0 && lp != NULL)
 				lp->copy = 0;
 			p->next = prot->next;
 			br_write_unlock_bh(BR_NETPROTO_LOCK);
-			return(0);
+			return (0);
 		}
-		if (p->next != NULL && p->next->protocol == prot->protocol) 
+
+		if (p->next != NULL && p->next->protocol == prot->protocol)
 			lp = p;
 
 		p = (struct inet_protocol *) p->next;
 	}
+
 	br_write_unlock_bh(BR_NETPROTO_LOCK);
-	return(-1);
+	return (-1);
 }

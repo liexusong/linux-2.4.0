@@ -1,7 +1,4 @@
-NF_HOOK();
-ipt_entry_match;
-ipt_standard_target;
-ipt_standard;
-iptable_filter_init();
-net_rx_action();
-ipt_hook();
+inet_init(); // 初始化网络使用
+netif_receive_skb();
+ip_rcv_finish();    // 接收IP数据包使用
+inet_skb_parm;

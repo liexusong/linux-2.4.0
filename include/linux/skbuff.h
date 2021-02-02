@@ -68,6 +68,7 @@ struct sk_buff {
 	struct net_device	*dev;			/* Device we arrived on/are leaving by 	*/
 
 	/* Transport layer header */
+	// 传输层头部指针
 	union
 	{
 		struct tcphdr	*th;
@@ -80,6 +81,7 @@ struct sk_buff {
 	} h;
 
 	/* Network layer header */
+	// 网络层头部指针
 	union
 	{
 		struct iphdr	*iph;
@@ -90,13 +92,14 @@ struct sk_buff {
 	} nh;
 
 	/* Link layer header */
+	// 链路层头部指针
 	union
 	{
 	  	struct ethhdr	*ethernet;
 	  	unsigned char 	*raw;
 	} mac;
 
-	struct  dst_entry *dst;
+	struct dst_entry *dst;
 
 	/*
 	 * This is the control buffer. It is free to use for every
@@ -104,14 +107,14 @@ struct sk_buff {
 	 * want to keep them across layers you have to do a skb_clone()
 	 * first. This is owned by whoever has the skb queued ATM.
 	 */
-	char		cb[48];
+	char			cb[48];
 
-	unsigned int 	len;			/* Length of actual data			*/
+	unsigned int	len;			/* Length of actual data			*/
 	unsigned int	csum;			/* Checksum 					*/
-	volatile char 	used;			/* Data moved to user and not MSG_PEEK		*/
+	volatile char	used;			/* Data moved to user and not MSG_PEEK		*/
 	unsigned char	cloned, 		/* head may be cloned (check refcnt to be sure). */
-  					pkt_type,		/* Packet class					*/
-  					ip_summed;		/* Driver fed us an IP checksum			*/
+					pkt_type,		/* Packet class	(包类型, 由链路层设置) */
+					ip_summed;		/* Driver fed us an IP checksum			*/
 	__u32			priority;		/* Packet queueing priority			*/
 	atomic_t		users;			/* User count - see datagram.c,tcp.c 		*/
 	unsigned short	protocol;		/* Packet protocol from driver. 		*/
@@ -142,7 +145,7 @@ struct sk_buff {
 #endif
 
 #ifdef CONFIG_NET_SCHED
-	__u32	   tc_index;	       /* traffic control index */
+	__u32		tc_index;	       /* traffic control index */
 #endif
 };
 
@@ -164,9 +167,9 @@ extern void					kfree_skbmem(struct sk_buff *skb);
 extern struct sk_buff *		skb_clone(struct sk_buff *skb, int priority);
 extern struct sk_buff *		skb_copy(const struct sk_buff *skb, int priority);
 extern struct sk_buff *		skb_copy_expand(const struct sk_buff *skb,
-						int newheadroom,
-						int newtailroom,
-						int priority);
+											int newheadroom,
+											int newtailroom,
+											int priority);
 #define dev_kfree_skb(a)	kfree_skb(a)
 extern void	skb_over_panic(struct sk_buff *skb, int len, void *here);
 extern void	skb_under_panic(struct sk_buff *skb, int len, void *here);
@@ -920,7 +923,7 @@ static inline struct sk_buff *dev_alloc_skb(unsigned int length)
 static inline struct sk_buff *
 skb_cow(struct sk_buff *skb, unsigned int headroom)
 {
-	headroom = (headroom+15)&~15;
+	headroom = (headroom+15)&~15; // 头部长度
 
 	if ((unsigned)skb_headroom(skb) < headroom || skb_cloned(skb)) {
 		struct sk_buff *skb2 = skb_realloc_headroom(skb, headroom);
@@ -930,10 +933,10 @@ skb_cow(struct sk_buff *skb, unsigned int headroom)
 	return skb;
 }
 
-#define skb_queue_walk(queue, skb) \
-		for (skb = (queue)->next;			\
-		     (skb != (struct sk_buff *)(queue));	\
-		     skb=skb->next)
+#define skb_queue_walk(queue, skb)				\
+	for (skb = (queue)->next;					\
+		 (skb != (struct sk_buff *)(queue));	\
+		 skb=skb->next)
 
 
 extern struct sk_buff *		skb_recv_datagram(struct sock *sk,unsigned flags,int noblock, int *err);

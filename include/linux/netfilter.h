@@ -144,12 +144,9 @@ int nf_getsockopt(struct sock *sk, int pf, int optval, char *opt,
 /* Packet queuing */
 typedef int (*nf_queue_outfn_t)(struct sk_buff *skb,
                                 struct nf_info *info, void *data);
-extern int nf_register_queue_handler(int pf,
-                                     nf_queue_outfn_t outfn, void *data);
+extern int nf_register_queue_handler(int pf, nf_queue_outfn_t outfn, void *data);
 extern int nf_unregister_queue_handler(int pf);
-extern void nf_reinject(struct sk_buff *skb,
-			struct nf_info *info,
-			unsigned int verdict);
+extern void nf_reinject(struct sk_buff *skb, struct nf_info *info, unsigned int verdict);
 
 #ifdef CONFIG_NETFILTER_DEBUG
 extern void nf_dump_skb(int pf, struct sk_buff *skb);

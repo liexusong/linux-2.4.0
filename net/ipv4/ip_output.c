@@ -130,19 +130,19 @@ int ip_build_and_send_pkt(struct sk_buff *skb, struct sock *sk,
 	else
 		iph=(struct iphdr *)skb_push(skb,sizeof(struct iphdr));
 
-	iph->version  = 4;
-	iph->ihl      = 5;
-	iph->tos      = sk->protinfo.af_inet.tos;
+	iph->version = 4;
+	iph->ihl = 5;
+	iph->tos = sk->protinfo.af_inet.tos;
 	iph->frag_off = 0;
 	if (ip_dont_fragment(sk, &rt->u.dst))
 		iph->frag_off |= htons(IP_DF);
-	iph->ttl      = sk->protinfo.af_inet.ttl;
-	iph->daddr    = rt->rt_dst;
-	iph->saddr    = rt->rt_src;
+	iph->ttl = sk->protinfo.af_inet.ttl;
+	iph->daddr = rt->rt_dst;
+	iph->saddr = rt->rt_src;
 	iph->protocol = sk->protocol;
-	iph->tot_len  = htons(skb->len);
+	iph->tot_len = htons(skb->len);
 	ip_select_ident(iph, &rt->u.dst);
-	skb->nh.iph   = iph;
+	skb->nh.iph = iph;
 
 	if (opt && opt->optlen) {
 		iph->ihl += opt->optlen>>2;
@@ -186,7 +186,7 @@ __inline__ int ip_finish_output(struct sk_buff *skb)
 	skb->protocol = __constant_htons(ETH_P_IP);
 
 	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL, dev,
-		       ip_finish_output2);
+				   ip_finish_output2);
 }
 
 int ip_mc_output(struct sk_buff *skb)
@@ -239,11 +239,11 @@ int ip_mc_output(struct sk_buff *skb)
 		}
 	}
 
-	if (rt->rt_flags&RTCF_BROADCAST) {
+	if (rt->rt_flags & RTCF_BROADCAST) {
 		struct sk_buff *newskb = skb_clone(skb, GFP_ATOMIC);
 		if (newskb)
 			NF_HOOK(PF_INET, NF_IP_POST_ROUTING, newskb, NULL,
-				newskb->dev, ip_dev_loopback_xmit);
+					newskb->dev, ip_dev_loopback_xmit);
 	}
 
 	return ip_finish_output(skb);
@@ -354,8 +354,8 @@ int ip_queue_xmit(struct sk_buff *skb)
 		 * out.
 		 */
 		if (ip_route_output(&rt, daddr, sk->saddr,
-				    RT_TOS(sk->protinfo.af_inet.tos) | RTO_CONN | sk->localroute,
-				    sk->bound_dev_if))
+					RT_TOS(sk->protinfo.af_inet.tos)|RTO_CONN|sk->localroute,
+					sk->bound_dev_if))
 			goto no_route;
 		__sk_dst_set(sk, &rt->u.dst);
 	}
@@ -653,36 +653,36 @@ int ip_build_xmit(struct sock *sk,
 	 *	Fast path for unfragmented frames without options.
 	 */
 	{
-	int hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
+		int hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
 
-	skb = sock_alloc_send_skb(sk, length+hh_len+15,
-				  0, flags&MSG_DONTWAIT, &err);
-	if(skb==NULL)
-		goto error;
-	skb_reserve(skb, hh_len);
+		skb = sock_alloc_send_skb(sk, length+hh_len+15, 0, flags&MSG_DONTWAIT, &err);
+		if(skb == NULL)
+			goto error;
+
+		skb_reserve(skb, hh_len);
 	}
 
 	skb->priority = sk->priority;
 	skb->dst = dst_clone(&rt->u.dst);
 
-	skb->nh.iph = iph = (struct iphdr *)skb_put(skb, length);
+	skb->nh.iph = iph = (struct iphdr *)skb_put(skb, length); // 设置网络层协议头部指针
 
-	if(!sk->protinfo.af_inet.hdrincl) {
-		iph->version=4;
-		iph->ihl=5;
-		iph->tos=sk->protinfo.af_inet.tos;
+	if (!sk->protinfo.af_inet.hdrincl) {
+		iph->version = 4;
+		iph->ihl = 5;
+		iph->tos = sk->protinfo.af_inet.tos;
 		iph->tot_len = htons(length);
 		iph->frag_off = df;
-		iph->ttl=sk->protinfo.af_inet.mc_ttl;
+		iph->ttl = sk->protinfo.af_inet.mc_ttl;
 		ip_select_ident(iph, &rt->u.dst);
 		if (rt->rt_type != RTN_MULTICAST)
-			iph->ttl=sk->protinfo.af_inet.ttl;
-		iph->protocol=sk->protocol;
-		iph->saddr=rt->rt_src;
-		iph->daddr=rt->rt_dst;
-		iph->check=0;
+			iph->ttl = sk->protinfo.af_inet.ttl;
+		iph->protocol = sk->protocol;
+		iph->saddr = rt->rt_src;
+		iph->daddr = rt->rt_dst;
+		iph->check = 0;
 		iph->check = ip_fast_csum((unsigned char *)iph, iph->ihl);
-		err = getfrag(frag, ((char *)iph)+iph->ihl*4,0, length-iph->ihl*4);
+		err = getfrag(frag, ((char *)iph)+iph->ihl*4, 0, length-iph->ihl*4);
 	}
 	else
 		err = getfrag(frag, (void *)iph, 0, length);
@@ -973,6 +973,7 @@ static struct packet_type ip_packet_type =
 
 void __init ip_init(void)
 {
+	// 注册网络层协议处理函数
 	dev_add_pack(&ip_packet_type);
 
 	ip_rt_init();
