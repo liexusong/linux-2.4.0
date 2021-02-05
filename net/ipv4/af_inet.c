@@ -459,7 +459,7 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	int err;
 
 	/* If the socket has its own bind function then use it. (RAW) */
-	if(sk->prot->bind)
+	if (sk->prot->bind)
 		return sk->prot->bind(sk, uaddr, addr_len);
 
 	if (addr_len < sizeof(struct sockaddr_in))
@@ -474,12 +474,12 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	 * (ie. your servers still start up even if your ISDN link
 	 *  is temporarily down)
 	 */
-	if (sysctl_ip_nonlocal_bind == 0 &&
-	    sk->protinfo.af_inet.freebind == 0 &&
-	    addr->sin_addr.s_addr != INADDR_ANY &&
-	    chk_addr_ret != RTN_LOCAL &&
-	    chk_addr_ret != RTN_MULTICAST &&
-	    chk_addr_ret != RTN_BROADCAST)
+	if (sysctl_ip_nonlocal_bind == 0
+	    && sk->protinfo.af_inet.freebind == 0
+	    && addr->sin_addr.s_addr != INADDR_ANY
+	    && chk_addr_ret != RTN_LOCAL
+	    && chk_addr_ret != RTN_MULTICAST
+	    && chk_addr_ret != RTN_BROADCAST)
 		return -EADDRNOTAVAIL;
 
 	snum = ntohs(addr->sin_port);
@@ -497,8 +497,7 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 
 	/* Check these errors (active socket, double bind). */
 	err = -EINVAL;
-	if ((sk->state != TCP_CLOSE)			||
-	    (sk->num != 0))
+	if ((sk->state != TCP_CLOSE) || (sk->num != 0))
 		goto out;
 
 	sk->rcv_saddr = sk->saddr = addr->sin_addr.s_addr;
@@ -516,6 +515,7 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		sk->userlocks |= SOCK_BINDADDR_LOCK;
 	if (snum)
 		sk->userlocks |= SOCK_BINDPORT_LOCK;
+
 	sk->sport = htons(sk->num);
 	sk->daddr = 0;
 	sk->dport = 0;

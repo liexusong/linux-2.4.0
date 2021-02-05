@@ -127,15 +127,15 @@ extern struct tcp_hashinfo {
 	spinlock_t __tcp_portalloc_lock;
 } tcp_hashinfo;
 
-#define tcp_ehash	(tcp_hashinfo.__tcp_ehash)
-#define tcp_bhash	(tcp_hashinfo.__tcp_bhash)
-#define tcp_ehash_size	(tcp_hashinfo.__tcp_ehash_size)
-#define tcp_bhash_size	(tcp_hashinfo.__tcp_bhash_size)
-#define tcp_listening_hash (tcp_hashinfo.__tcp_listening_hash)
-#define tcp_lhash_lock	(tcp_hashinfo.__tcp_lhash_lock)
-#define tcp_lhash_users	(tcp_hashinfo.__tcp_lhash_users)
-#define tcp_lhash_wait	(tcp_hashinfo.__tcp_lhash_wait)
-#define tcp_portalloc_lock (tcp_hashinfo.__tcp_portalloc_lock)
+#define tcp_ehash			(tcp_hashinfo.__tcp_ehash)
+#define tcp_bhash			(tcp_hashinfo.__tcp_bhash)
+#define tcp_ehash_size		(tcp_hashinfo.__tcp_ehash_size)
+#define tcp_bhash_size		(tcp_hashinfo.__tcp_bhash_size)
+#define tcp_listening_hash	(tcp_hashinfo.__tcp_listening_hash)
+#define tcp_lhash_lock		(tcp_hashinfo.__tcp_lhash_lock)
+#define tcp_lhash_users		(tcp_hashinfo.__tcp_lhash_users)
+#define tcp_lhash_wait		(tcp_hashinfo.__tcp_lhash_wait)
+#define tcp_portalloc_lock	(tcp_hashinfo.__tcp_portalloc_lock)
 
 extern kmem_cache_t *tcp_bucket_cachep;
 extern struct tcp_bind_bucket *tcp_bucket_create(struct tcp_bind_hashbucket *head,

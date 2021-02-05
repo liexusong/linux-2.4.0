@@ -988,9 +988,8 @@ asmlinkage long sys_bind(int fd, struct sockaddr *umyaddr, int addrlen)
 	char address[MAX_SOCK_ADDR];
 	int err;
 
-	if((sock = sockfd_lookup(fd,&err))!=NULL)
-	{
-		if((err=move_addr_to_kernel(umyaddr,addrlen,address))>=0)
+	if ((sock = sockfd_lookup(fd, &err)) != NULL) {
+		if ((err = move_addr_to_kernel(umyaddr, addrlen, address)) >= 0)
 			err = sock->ops->bind(sock, (struct sockaddr *)address, addrlen);
 		sockfd_put(sock);
 	}

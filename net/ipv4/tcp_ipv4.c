@@ -396,57 +396,69 @@ void tcp_unhash(struct sock *sk)
  * connection.  So always assume those are both wildcarded
  * during the search since they can never be otherwise.
  */
-static struct sock *__tcp_v4_lookup_listener(struct sock *sk, u32 daddr, unsigned short hnum, int dif)
+static struct sock *
+__tcp_v4_lookup_listener(struct sock *sk, u32 daddr,
+						 unsigned short hnum, int dif)
 {
 	struct sock *result = NULL;
 	int score, hiscore;
 
-	hiscore=0;
-	for(; sk; sk = sk->next) {
-		if(sk->num == hnum) {
+	hiscore = 0;
+
+	for (; sk; sk = sk->next) {
+		if (sk->num == hnum) {
 			__u32 rcv_saddr = sk->rcv_saddr;
 
 			score = 1;
-			if(rcv_saddr) {
+			if (rcv_saddr) {
 				if (rcv_saddr != daddr)
 					continue;
 				score++;
 			}
+
 			if (sk->bound_dev_if) {
 				if (sk->bound_dev_if != dif)
 					continue;
 				score++;
 			}
+
 			if (score == 3)
 				return sk;
+
 			if (score > hiscore) {
 				hiscore = score;
 				result = sk;
 			}
 		}
 	}
+
 	return result;
 }
 
 /* Optimize the common listener case. */
-__inline__ struct sock *tcp_v4_lookup_listener(u32 daddr, unsigned short hnum, int dif)
+__inline__ struct sock *
+tcp_v4_lookup_listener(u32 daddr, unsigned short hnum, int dif)
 {
 	struct sock *sk;
 
 	read_lock(&tcp_lhash_lock);
+
 	sk = tcp_listening_hash[tcp_lhashfn(hnum)];
 	if (sk) {
-		if (sk->num == hnum &&
-		    sk->next == NULL &&
-		    (!sk->rcv_saddr || sk->rcv_saddr == daddr) &&
-		    !sk->bound_dev_if)
+		if (sk->num == hnum
+		    && sk->next == NULL
+		    && (!sk->rcv_saddr || sk->rcv_saddr == daddr)
+		    && !sk->bound_dev_if)
 			goto sherry_cache;
+
 		sk = __tcp_v4_lookup_listener(sk, daddr, hnum, dif);
 	}
+
 	if (sk) {
 sherry_cache:
 		sock_hold(sk);
 	}
+
 	read_unlock(&tcp_lhash_lock);
 	return sk;
 }
@@ -457,8 +469,8 @@ sherry_cache:
  * Local BH must be disabled here.
  */
 
-static inline struct sock *__tcp_v4_lookup_established(u32 saddr, u16 sport,
-						       u32 daddr, u16 hnum, int dif)
+static inline struct sock *
+__tcp_v4_lookup_established(u32 saddr, u16 sport, u32 daddr, u16 hnum, int dif)
 {
 	struct tcp_ehash_bucket *head;
 	TCP_V4_ADDR_COOKIE(acookie, saddr, daddr)
@@ -471,16 +483,19 @@ static inline struct sock *__tcp_v4_lookup_established(u32 saddr, u16 sport,
 	 */
 	hash = tcp_hashfn(daddr, hnum, saddr, sport);
 	head = &tcp_ehash[hash];
+
 	read_lock(&head->lock);
-	for(sk = head->chain; sk; sk = sk->next) {
-		if(TCP_IPV4_MATCH(sk, acookie, saddr, daddr, ports, dif))
+
+	for (sk = head->chain; sk; sk = sk->next) {
+		if (TCP_IPV4_MATCH(sk, acookie, saddr, daddr, ports, dif))
 			goto hit; /* You sunk my battleship! */
 	}
 
 	/* Must check for a TIME_WAIT'er before going to listener hash. */
-	for(sk = (head + tcp_ehash_size)->chain; sk; sk = sk->next)
-		if(TCP_IPV4_MATCH(sk, acookie, saddr, daddr, ports, dif))
+	for (sk = (head + tcp_ehash_size)->chain; sk; sk = sk->next)
+		if (TCP_IPV4_MATCH(sk, acookie, saddr, daddr, ports, dif))
 			goto hit;
+
 	read_unlock(&head->lock);
 
 	return NULL;
@@ -492,12 +507,11 @@ hit:
 }
 
 static inline struct sock *__tcp_v4_lookup(u32 saddr, u16 sport,
-					   u32 daddr, u16 hnum, int dif)
+										   u32 daddr, u16 hnum, int dif)
 {
 	struct sock *sk;
 
 	sk = __tcp_v4_lookup_established(saddr, sport, daddr, hnum, dif);
-
 	if (sk)
 		return sk;
 
@@ -1623,20 +1637,19 @@ int tcp_v4_rcv(struct sk_buff *skb, unsigned short len)
 	 * Packet length and doff are validated by header prediction,
 	 * provided case of th->doff==0 is elimineted.
 	 * So, we defer the checks. */
-	if (th->doff < sizeof(struct tcphdr)/4 ||
-		(skb->ip_summed != CHECKSUM_UNNECESSARY &&
-		 tcp_v4_checksum_init(skb) < 0))
+	if (th->doff < sizeof(struct tcphdr) / 4
+		|| (skb->ip_summed != CHECKSUM_UNNECESSARY
+			&& tcp_v4_checksum_init(skb) < 0))
 		goto bad_packet;
 
 	TCP_SKB_CB(skb)->seq = ntohl(th->seq);
 	TCP_SKB_CB(skb)->end_seq = (TCP_SKB_CB(skb)->seq
-								+ th->syn
-								+ th->fin
-								+ len - th->doff*4);
+								+ th->syn + th->fin + len - th->doff*4);
 	TCP_SKB_CB(skb)->ack_seq = ntohl(th->ack_seq);
 	TCP_SKB_CB(skb)->when = 0;
 	TCP_SKB_CB(skb)->flags = skb->nh.iph->tos;
 	TCP_SKB_CB(skb)->sacked = 0;
+
 	skb->used = 0;
 
 	sk = __tcp_v4_lookup(skb->nh.iph->saddr, th->source,
@@ -1656,11 +1669,13 @@ process:
 
 	bh_lock_sock(sk);
 	ret = 0;
+
 	if (!sk->lock.users) {
 		if (!tcp_prequeue(sk, skb))
 			ret = tcp_v4_do_rcv(sk, skb);
 	} else
 		sk_add_backlog(sk, skb);
+
 	bh_unlock_sock(sk);
 
 	sock_put(sk);
