@@ -51,13 +51,13 @@ list_inlist(struct list_head *head, const void *entry)
 
 /* Delete from list. */
 #ifdef CONFIG_NETFILTER_DEBUG
-#define LIST_DELETE(head, oldentry)					\
-do {									\
-	ASSERT_WRITE_LOCK(head);					\
-	if (!list_inlist(head, oldentry))				\
-		printk("LIST_DELETE: %s:%u `%s'(%p) not in %s.\n",	\
-		       __FILE__, __LINE__, #oldentry, oldentry, #head);	\
-        else list_del((struct list_head *)oldentry);			\
+#define LIST_DELETE(head, oldentry)								\
+do {															\
+	ASSERT_WRITE_LOCK(head);									\
+	if (!list_inlist(head, oldentry))							\
+		printk("LIST_DELETE: %s:%u `%s'(%p) not in %s.\n",		\
+			__FILE__, __LINE__, #oldentry, oldentry, #head);	\
+	else list_del((struct list_head *)oldentry);				\
 } while(0)
 #else
 #define LIST_DELETE(head, oldentry) list_del((struct list_head *)oldentry)
@@ -110,6 +110,6 @@ list_named_insert(struct list_head *head, void *new)
 
 /* Find this named element in the list. */
 #define list_named_find(head, name)			\
-LIST_FIND(head, __list_cmp_name, void *, name)
+	LIST_FIND(head, __list_cmp_name, void *, name)
 
 #endif /*_LISTHELP_H*/

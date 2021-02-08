@@ -11,14 +11,14 @@
 #define NETLINK_DNRTMSG		14	/* DECnet routing messages */
 #define NETLINK_TAPBASE		16	/* 16 to 31 are ethertap */
 
-#define MAX_LINKS 32		
+#define MAX_LINKS 32
 
 struct sockaddr_nl
 {
-	sa_family_t	nl_family;	/* AF_NETLINK	*/
-	unsigned short	nl_pad;		/* zero		*/
-	__u32		nl_pid;		/* process pid	*/
-       	__u32		nl_groups;	/* multicast groups mask */
+	sa_family_t		nl_family;	/* AF_NETLINK	*/
+	unsigned short	nl_pad;		/* zero			*/
+	__u32			nl_pid;		/* process pid	*/
+	__u32			nl_groups;	/* multicast groups mask */
 };
 
 struct nlmsghdr

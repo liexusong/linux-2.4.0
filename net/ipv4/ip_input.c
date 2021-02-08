@@ -15,7 +15,7 @@
  *		Stefan Becker, <stefanb@yello.ping.de>
  *		Jorge Cwik, <jorge@laser.satlink.net>
  *		Arnt Gulbrandsen, <agulbra@nvg.unit.no>
- *		
+ *
  *
  * Fixes:
  *		Alan Cox	:	Commented a couple of minor bits of surplus code
@@ -98,13 +98,13 @@
  *		Jos Vos		:	Do accounting *before* call_in_firewall
  *	Willy Konynenberg	:	Transparent proxying support
  *
- *  
+ *
  *
  * To Fix:
  *		IP fragmentation wants rewriting cleanly. The RFC815 algorithm is much more efficient
  *		and could be made very efficient with the addition of some virtual memory hacks to permit
  *		the allocation of a buffer that can then be 'grown' by twiddling page tables.
- *		Output fragmentation wants updating along with the buffer management to use a single 
+ *		Output fragmentation wants updating along with the buffer management to use a single
  *		interleaved copy algorithm so that fragmenting has a one copy overhead. Actual packet
  *		output should probably do its own fragmentation at the UDP/RAW layer. TCP shouldn't cause
  *		fragmentation anyway.
@@ -152,7 +152,7 @@ struct ip_mib ip_statistics[NR_CPUS*2];
 
 /*
  *	Process Router Attention IP option
- */ 
+ */
 int ip_call_ra_chain(struct sk_buff *skb)
 {
 	struct ip_ra_chain *ra;
@@ -166,8 +166,8 @@ int ip_call_ra_chain(struct sk_buff *skb)
 		/* If socket is bound to an interface, only report
 		 * the packet if it came  from that interface.
 		 */
-		if (sk && sk->num == protocol 
-		    && ((sk->bound_dev_if == 0) 
+		if (sk && sk->num == protocol
+		    && ((sk->bound_dev_if == 0)
 			|| (sk->bound_dev_if == skb->dev->ifindex))) {
 			if (skb->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
 				skb = ip_defrag(skb);
@@ -196,7 +196,7 @@ int ip_call_ra_chain(struct sk_buff *skb)
 
 /* Handle this out of line, it is rare. */
 static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
-			 struct inet_protocol *ipprot, int force_copy)
+						 struct inet_protocol *ipprot, int force_copy)
 {
 	int ret = 0;
 
@@ -207,8 +207,7 @@ static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
 				skb2 = skb_clone(skb, GFP_ATOMIC);
 			if(skb2 != NULL) {
 				ret = 1;
-				ipprot->handler(skb2,
-						ntohs(iph->tot_len) - (iph->ihl * 4));
+				ipprot->handler(skb2, ntohs(iph->tot_len) - (iph->ihl * 4));
 			}
 		}
 		ipprot = (struct inet_protocol *) ipprot->next;
@@ -225,8 +224,8 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 	nf_debug_ip_local_deliver(skb);
 #endif /*CONFIG_NETFILTER_DEBUG*/
 
-        /* Point into the IP datagram, just past the header. */
-        skb->h.raw = skb->nh.raw + iph->ihl*4;
+	/* Point into the IP datagram, just past the header. */
+	skb->h.raw = skb->nh.raw + iph->ihl*4; // 跳过IP头部
 
 	{
 		/* Note: See raw.c and net/raw.h, RAWV4_HTABLE_SIZE==MAX_INET_PROTOS */
@@ -243,15 +242,16 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 
 		ipprot = (struct inet_protocol *) inet_protos[hash];
 		flag = 0;
+
 		if(ipprot != NULL) {
 			if(raw_sk == NULL &&
 			   ipprot->next == NULL &&
-			   ipprot->protocol == iph->protocol) {
+			   ipprot->protocol == iph->protocol)
+			{
 				int ret;
-				
+
 				/* Fast path... */
-				ret = ipprot->handler(skb, (ntohs(iph->tot_len) -
-							    (iph->ihl * 4)));
+				ret = ipprot->handler(skb, (ntohs(iph->tot_len) - iph->ihl*4));
 
 				return ret;
 			} else {
@@ -268,7 +268,7 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 			raw_rcv(raw_sk, skb);
 			sock_put(raw_sk);
 		} else if (!flag) {		/* Free and report errors */
-			icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PROT_UNREACH, 0);	
+			icmp_send(skb, ICMP_DEST_UNREACH, ICMP_PROT_UNREACH, 0);
 			kfree_skb(skb);
 		}
 	}
@@ -278,7 +278,7 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 
 /*
  * 	Deliver IP Packets to the higher protocol layers.
- */ 
+ */
 int ip_local_deliver(struct sk_buff *skb)
 {
 	struct iphdr *iph = skb->nh.iph;
@@ -294,7 +294,7 @@ int ip_local_deliver(struct sk_buff *skb)
 	}
 
 	return NF_HOOK(PF_INET, NF_IP_LOCAL_IN, skb, skb->dev, NULL,
-		       ip_local_deliver_finish);
+				   ip_local_deliver_finish);
 }
 
 static inline int ip_rcv_finish(struct sk_buff *skb)
@@ -305,10 +305,10 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 	/*
 	 *	Initialise the virtual path cache for the packet. It describes
 	 *	how the packet travels inside Linux networking.
-	 */ 
+	 */
 	if (skb->dst == NULL) {
 		if (ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev))
-			goto drop; 
+			goto drop;
 	}
 
 #ifdef CONFIG_NET_CLS_ROUTE
@@ -365,13 +365,13 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);
 drop:
-        kfree_skb(skb);
-        return NET_RX_DROP;
+	kfree_skb(skb);
+	return NET_RX_DROP;
 }
 
 /*
  * 	Main IP Receive routine.
- */ 
+ */
 int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 {
 	struct iphdr *iph = skb->nh.iph;
@@ -379,12 +379,12 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	/* When the interface is in promisc. mode, drop all the crap
 	 * that it receives, do not try to analyse it.
 	 */
-	if (skb->pkt_type == PACKET_OTHERHOST)
+	if (skb->pkt_type == PACKET_OTHERHOST) // 如果不是给本机的数据包, 丢掉这个包
 		goto drop;
 
 	IP_INC_STATS_BH(IpInReceives);
 
-	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL)
+	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL) // 如果当前包被其他地方引用, 那么就复制一份新的
 		goto out;
 
 	/*
@@ -397,14 +397,15 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	 *	3.	Checksums correctly. [Speed optimisation for later, skip loopback checksums]
 	 *	4.	Doesn't have a bogus length
 	 */
-
+	// 包的长度不合法
 	if (skb->len < sizeof(struct iphdr) || skb->len < (iph->ihl<<2))
-		goto inhdr_error; 
+		goto inhdr_error;
+	// IP头部不合法
 	if (iph->ihl < 5 || iph->version != 4 || ip_fast_csum((u8 *)iph, iph->ihl) != 0)
-		goto inhdr_error; 
+		goto inhdr_error;
 
 	{
-		__u32 len = ntohs(iph->tot_len); 
+		__u32 len = ntohs(iph->tot_len);
 		if (skb->len < len || len < (iph->ihl<<2))
 			goto inhdr_error;
 
@@ -415,14 +416,17 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 		__skb_trim(skb, len);
 	}
 
-	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL,
-		       ip_rcv_finish);
+	/*
+	 * 运行 nf_hooks[PF_INET][NF_IP_PRE_ROUTING] 链上的钩子函数
+	 * 如果所有钩子函数都通过, 那么执行: ip_rcv_finish() 函数
+	 */
+	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL, ip_rcv_finish);
 
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);
 drop:
-        kfree_skb(skb);
+	kfree_skb(skb);
 out:
-        return NET_RX_DROP;
+	return NET_RX_DROP;
 }
 

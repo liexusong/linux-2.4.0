@@ -45,32 +45,32 @@ struct net_bridge_fdb_entry
 {
 	struct net_bridge_fdb_entry	*next_hash;
 	struct net_bridge_fdb_entry	**pprev_hash;
-	atomic_t			use_count;
-	mac_addr			addr;
+	atomic_t					use_count;
+	mac_addr					addr;
 	struct net_bridge_port		*dst;
-	unsigned long			ageing_timer;
-	unsigned			is_local:1;
-	unsigned			is_static:1;
+	unsigned long				ageing_timer;
+	unsigned					is_local:1;
+	unsigned					is_static:1;
 };
 
 struct net_bridge_port
 {
-	struct net_bridge_port		*next;
+	struct net_bridge_port	*next;
 	struct net_bridge		*br;
-	struct net_device		*dev;
-	int				port_no;
+	struct net_device		*dev;    // 设备
+	int						port_no; // 端口号
 
 	/* STP */
-	port_id				port_id;
-	int				state;
-	int				path_cost;
-	bridge_id			designated_root;
-	int				designated_cost;
-	bridge_id			designated_bridge;
-	port_id				designated_port;
-	unsigned			topology_change_ack:1;
-	unsigned			config_pending:1;
-	int				priority;
+	port_id					port_id;
+	int						state;
+	int						path_cost;
+	bridge_id				designated_root;
+	int						designated_cost;
+	bridge_id				designated_bridge;
+	port_id					designated_port;
+	unsigned				topology_change_ack:1;
+	unsigned				config_pending:1;
+	int						priority;
 
 	struct br_timer			forward_delay_timer;
 	struct br_timer			hold_timer;
@@ -79,37 +79,37 @@ struct net_bridge_port
 
 struct net_bridge
 {
-	struct net_bridge		*next;
-	rwlock_t			lock;
-	struct net_bridge_port		*port_list;
-	struct net_device		dev;
+	struct net_bridge			*next;
+	rwlock_t					lock;
+	struct net_bridge_port		*port_list; // 端口映射
+	struct net_device			dev;        // 网桥设备信息
 	struct net_device_stats		statistics;
-	rwlock_t			hash_lock;
-	struct net_bridge_fdb_entry	*hash[BR_HASH_SIZE];
-	struct timer_list		tick;
+	rwlock_t					hash_lock;
+	struct net_bridge_fdb_entry	*hash[BR_HASH_SIZE]; // CAM表
+	struct timer_list			tick;
 
 	/* STP */
-	bridge_id			designated_root;
-	int				root_path_cost;
-	int				root_port;
-	int				max_age;
-	int				hello_time;
-	int				forward_delay;
-	bridge_id			bridge_id;
-	int				bridge_max_age;
-	int				bridge_hello_time;
-	int				bridge_forward_delay;
-	unsigned			stp_enabled:1;
-	unsigned			topology_change:1;
-	unsigned			topology_change_detected:1;
+	bridge_id				designated_root;
+	int						root_path_cost;
+	int						root_port;
+	int						max_age;
+	int						hello_time;
+	int						forward_delay;
+	bridge_id				bridge_id;
+	int						bridge_max_age;
+	int						bridge_hello_time;
+	int						bridge_forward_delay;
+	unsigned				stp_enabled:1;
+	unsigned				topology_change:1;
+	unsigned				topology_change_detected:1;
 
 	struct br_timer			hello_timer;
 	struct br_timer			tcn_timer;
 	struct br_timer			topology_change_timer;
 	struct br_timer			gc_timer;
 
-	int				ageing_time;
-	int				gc_interval;
+	int						ageing_time;
+	int						gc_interval;
 };
 
 struct notifier_block br_device_notifier;

@@ -217,7 +217,7 @@ int br_fdb_get_entries(struct net_bridge *br,
 			struct __fdb_entry ent;
 			int err;
 			struct net_bridge_fdb_entry *g;
-			struct net_bridge_fdb_entry **pp; 
+			struct net_bridge_fdb_entry **pp;
 
 			if (has_expired(br, f)) {
 				f = f->next_hash;
@@ -267,9 +267,10 @@ int br_fdb_get_entries(struct net_bridge *br,
 	goto out;
 }
 
-static __inline__ void __fdb_possibly_replace(struct net_bridge_fdb_entry *fdb,
-					      struct net_bridge_port *source,
-					      int is_local)
+static __inline__ void
+__fdb_possibly_replace(struct net_bridge_fdb_entry *fdb,
+					   struct net_bridge_port *source,
+					   int is_local)
 {
 	if (!fdb->is_static || is_local) {
 		fdb->dst = source;
@@ -280,9 +281,9 @@ static __inline__ void __fdb_possibly_replace(struct net_bridge_fdb_entry *fdb,
 }
 
 void br_fdb_insert(struct net_bridge *br,
-		   struct net_bridge_port *source,
-		   unsigned char *addr,
-		   int is_local)
+				   struct net_bridge_port *source,
+				   unsigned char *addr,
+				   int is_local)
 {
 	struct net_bridge_fdb_entry *fdb;
 	int hash;

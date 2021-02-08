@@ -52,11 +52,11 @@ struct request {
 
 #include <linux/elevator.h>
 
-typedef int (merge_request_fn) (request_queue_t *q, 
+typedef int (merge_request_fn) (request_queue_t *q,
 				struct request  *req,
 				struct buffer_head *bh,
 				int);
-typedef int (merge_requests_fn) (request_queue_t *q, 
+typedef int (merge_requests_fn) (request_queue_t *q,
 				 struct request  *req,
 				 struct request  *req2,
 				 int);
@@ -82,7 +82,7 @@ struct request_queue
 	 * Together with queue_head for cacheline sharing
 	 */
 	struct list_head	queue_head;
-	elevator_t		elevator;
+	elevator_t			elevator;
 
 	request_fn_proc		* request_fn;
 	merge_request_fn	* back_merge_fn;
@@ -94,7 +94,7 @@ struct request_queue
 	 * The queue owner gets to use this for whatever they like.
 	 * ll_rw_blk doesn't touch it.
 	 */
-	void			* queuedata;
+	void				* queuedata;
 
 	/*
 	 * This is used to remove the plug when tq_disk runs.
@@ -104,19 +104,19 @@ struct request_queue
 	/*
 	 * Boolean that indicates whether this queue is plugged or not.
 	 */
-	char			plugged;
+	char				plugged;
 
 	/*
 	 * Boolean that indicates whether current_request is active or
 	 * not.
 	 */
-	char			head_active;
+	char				head_active;
 
 	/*
 	 * Is meant to protect the queue in the future instead of
 	 * io_request_lock
 	 */
-	spinlock_t		request_lock;
+	spinlock_t			request_lock;
 
 	/*
 	 * Tasks wait here for free request

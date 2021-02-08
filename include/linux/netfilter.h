@@ -12,10 +12,10 @@
 #endif
 
 /* Responses from hook functions. */
-#define NF_DROP 0
+#define NF_DROP   0
 #define NF_ACCEPT 1
 #define NF_STOLEN 2
-#define NF_QUEUE 3
+#define NF_QUEUE  3
 #define NF_REPEAT 4
 #define NF_MAX_VERDICT NF_REPEAT
 
@@ -43,14 +43,14 @@ typedef unsigned int nf_hookfn(unsigned int hooknum,
 
 struct nf_hook_ops
 {
-	struct list_head list;
+	struct list_head list; // 连接相同协议和类型的钩子
 
 	/* User fills in from here down. */
-	nf_hookfn *hook;
-	int pf;
-	int hooknum;
+	nf_hookfn *hook;   // 钩子函数
+	int pf;            // 协议类型, 如: PF_INET, PF_INET6
+	int hooknum;       // 钩子所在链(LOCAL_IN, FORWARD...)
 	/* Hooks are ordered in ascending priority. */
-	int priority;
+	int priority;      // 优先级(通过优先级来管理钩子的顺序)
 };
 
 struct nf_sockopt_ops
@@ -78,14 +78,14 @@ struct nf_info
 {
 	/* The ops struct which sent us to userspace. */
 	struct nf_hook_ops *elem;
-	
+
 	/* If we're sent to userspace, this keeps housekeeping info */
 	int pf;
 	unsigned int hook;
 	struct net_device *indev, *outdev;
 	int (*okfn)(struct sk_buff *);
 };
-                                                                                
+
 /* Function to register/unregister hook points. */
 int nf_register_hook(struct nf_hook_ops *reg);
 void nf_unregister_hook(struct nf_hook_ops *reg);
@@ -119,10 +119,16 @@ extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 #ifdef CONFIG_NETFILTER_DEBUG
 #define NF_HOOK nf_hook_slow
 #else
-#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)			\
-(list_empty(&nf_hooks[(pf)][(hook)])					\
- ? (okfn)(skb)								\
- : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn)))
+// pf: 协议族名
+// hook: 钩子阶段
+// skb: 要过滤的数据包
+// indev: 输入设备对象
+// outdev: 输出设备对象
+// okfn: 如果钩子函数执行成功, 那么将会调用这个函数
+#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)	\
+    (list_empty(&nf_hooks[(pf)][(hook)])			\
+        ? (okfn)(skb)								\
+        : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn)))
 #endif
 
 int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
@@ -130,20 +136,17 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
 		 int (*okfn)(struct sk_buff *));
 
 /* Call setsockopt() */
-int nf_setsockopt(struct sock *sk, int pf, int optval, char *opt, 
+int nf_setsockopt(struct sock *sk, int pf, int optval, char *opt,
 		  int len);
 int nf_getsockopt(struct sock *sk, int pf, int optval, char *opt,
 		  int *len);
 
 /* Packet queuing */
-typedef int (*nf_queue_outfn_t)(struct sk_buff *skb, 
+typedef int (*nf_queue_outfn_t)(struct sk_buff *skb,
                                 struct nf_info *info, void *data);
-extern int nf_register_queue_handler(int pf, 
-                                     nf_queue_outfn_t outfn, void *data);
+extern int nf_register_queue_handler(int pf, nf_queue_outfn_t outfn, void *data);
 extern int nf_unregister_queue_handler(int pf);
-extern void nf_reinject(struct sk_buff *skb,
-			struct nf_info *info,
-			unsigned int verdict);
+extern void nf_reinject(struct sk_buff *skb, struct nf_info *info, unsigned int verdict);
 
 #ifdef CONFIG_NETFILTER_DEBUG
 extern void nf_dump_skb(int pf, struct sk_buff *skb);

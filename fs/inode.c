@@ -77,7 +77,7 @@ static kmem_cache_t * inode_cachep;
 
 #define alloc_inode() \
 	 ((struct inode *) kmem_cache_alloc(inode_cachep, SLAB_KERNEL))
-static void destroy_inode(struct inode *inode) 
+static void destroy_inode(struct inode *inode)
 {
 	if (!list_empty(&inode->i_dirty_buffers))
 		BUG();
@@ -123,14 +123,14 @@ static void init_once(void * foo, kmem_cache_t * cachep, unsigned long flags)
  * In short, make sure you hash any inodes _before_
  * you start marking them dirty..
  */
- 
+
 /**
  *	__mark_inode_dirty -	internal function
  *	@inode: inode to mark
  *
  *	Mark an inode as dirty. Callers should use mark_inode_dirty.
  */
- 
+
 void __mark_inode_dirty(struct inode *inode, int flags)
 {
 	struct super_block * sb = inode->i_sb;
@@ -238,10 +238,10 @@ static inline void sync_list(struct list_head *head)
  *	sync_inodes
  *	@dev: device to sync the inodes from.
  *
- *	sync_inodes goes through the super block's dirty list, 
+ *	sync_inodes goes through the super block's dirty list,
  *	writes them out, and puts them back on the normal list.
  */
- 
+
 void sync_inodes(kdev_t dev)
 {
 	struct super_block * sb = sb_entry(super_blocks.next);
@@ -285,7 +285,7 @@ static void sync_all_inodes(void)
  *	This function commits an inode to disk immediately if it is
  *	dirty. This is primarily needed by knfsd.
  */
- 
+
 void write_inode_now(struct inode *inode, int sync)
 {
 	struct super_block * sb = inode->i_sb;
@@ -306,14 +306,14 @@ void write_inode_now(struct inode *inode, int sync)
  * @datasync: if set, don't bother flushing timestamps
  *
  * This can be called by file_write functions for files which have the
- * O_SYNC flag set, to flush dirty writes to disk.  
+ * O_SYNC flag set, to flush dirty writes to disk.
  */
 
 int generic_osync_inode(struct inode *inode, int datasync)
 {
 	int err;
-	
-	/* 
+
+	/*
 	 * WARNING
 	 *
 	 * Currently, the filesystem write path does not pass the
@@ -328,9 +328,9 @@ int generic_osync_inode(struct inode *inode, int datasync)
 	 * driver layer.  As it stands, if we did this we'd not write
 	 * anything to disk since our writes have not been queued by
 	 * this point: they are still on the dirty LRU.
-	 * 
+	 *
 	 * So, currently we will call fsync_inode_buffers() instead,
-	 * to flush _all_ dirty buffers for this inode to disk on 
+	 * to flush _all_ dirty buffers for this inode to disk on
 	 * every O_SYNC write, not just the synchronous I/Os.  --sct
 	 */
 
@@ -362,12 +362,12 @@ int generic_osync_inode(struct inode *inode, int datasync)
  * that the inode is no longer useful. We just
  * terminate it with extreme prejudice.
  */
- 
+
 void clear_inode(struct inode *inode)
 {
 	if (!list_empty(&inode->i_dirty_buffers))
 		invalidate_inode_buffers(inode);
-       
+
 	if (inode->i_data.nrpages)
 		BUG();
 	if (!(inode->i_state & I_FREEING))
@@ -451,7 +451,7 @@ static int invalidate_list(struct list_head *head, struct super_block * sb, stru
  * is because we don't want to sleep while messing
  * with the global lists..
  */
- 
+
 /**
  *	invalidate_inodes	- discard the inodes on a device
  *	@sb: superblock
@@ -460,7 +460,7 @@ static int invalidate_list(struct list_head *head, struct super_block * sb, stru
  *	fails because there are busy inodes then a non zero value is returned.
  *	If the discard is successful all the inodes have been discarded.
  */
- 
+
 int invalidate_inodes(struct super_block * sb)
 {
 	int busy;
@@ -481,7 +481,7 @@ int invalidate_inodes(struct super_block * sb)
  * This is called with the inode lock held. It searches
  * the in-use for freeable inodes, which are moved to a
  * temporary list and then placed on the unused list by
- * dispose_list. 
+ * dispose_list.
  *
  * We don't expect to have to call this very often.
  *
@@ -607,7 +607,7 @@ static void clean_inode(struct inode *inode)
 	inode->i_bdev = NULL;
 	inode->i_data.a_ops = &empty_aops;
 	inode->i_data.host = inode;
-	inode->i_mapping = &inode->i_data;
+	inode->i_mapping = &inode->i_data; // 初始化i_mapping字段
 }
 
 /**
@@ -622,7 +622,7 @@ static void clean_inode(struct inode *inode)
  * a %NULL pointer is returned. The returned inode is not on any superblock
  * lists.
  */
- 
+
 struct inode * get_empty_inode(void)
 {
 	static unsigned long last_ino;
@@ -662,7 +662,7 @@ static struct inode * get_new_inode(struct super_block *sb, unsigned long ino, s
 
 		spin_lock(&inode_lock);
 		/* We released the lock, so.. */
-		old = find_inode(sb, ino, head, find_actor, opaque);
+		old = find_inode(sb, ino, head, find_actor, opaque); // 如果在申请inode的时候, 其他进程也申请了
 		if (!old) {
 			inodes_stat.nr_inodes++;
 			list_add(&inode->i_list, &inode_in_use);
@@ -729,7 +729,7 @@ static inline unsigned long hash(struct super_block *sb, unsigned long i_ino)
  *	With a large number of inodes live on the file system this function
  *	currently becomes quite slow.
  */
- 
+
 ino_t iunique(struct super_block *sb, ino_t max_reserved)
 {
 	static ino_t counter = 0;
@@ -749,7 +749,7 @@ retry:
 		counter = max_reserved + 1;
 	}
 	goto retry;
-	
+
 }
 
 struct inode *igrab(struct inode *inode)
@@ -770,7 +770,7 @@ struct inode *igrab(struct inode *inode)
 	return inode;
 }
 
-
+// 通过ino获取到inode结构
 struct inode *iget4(struct super_block *sb, unsigned long ino, find_inode_t find_actor, void *opaque)
 {
 	struct list_head * head = inode_hashtable + hash(sb,ino);
@@ -800,7 +800,7 @@ struct inode *iget4(struct super_block *sb, unsigned long ino, find_inode_t find
  *	Add an inode to the inode hash for this superblock. If the inode
  *	has no superblock it is added to a separate anonymous chain.
  */
- 
+
 void insert_inode_hash(struct inode *inode)
 {
 	struct list_head *head = &anon_hash_chain;
@@ -817,7 +817,7 @@ void insert_inode_hash(struct inode *inode)
  *
  *	Remove an inode from the superblock or anonymous hash.
  */
- 
+
 void remove_inode_hash(struct inode *inode)
 {
 	spin_lock(&inode_lock);
@@ -827,13 +827,13 @@ void remove_inode_hash(struct inode *inode)
 }
 
 /**
- *	iput	- put an inode 
+ *	iput	- put an inode
  *	@inode: inode to put
  *
  *	Puts an inode, dropping its usage count. If the inode use count hits
  *	zero the inode is also then freed and may be destroyed.
  */
- 
+
 void iput(struct inode *inode)
 {
 	if (inode) {
@@ -909,10 +909,10 @@ void force_delete(struct inode *inode)
  *	Returns the block number on the device holding the inode that
  *	is the disk block number for the block of the file requested.
  *	That is, asked for block 4 of inode 1 the function will return the
- *	disk block relative to the disk start that holds that block of the 
+ *	disk block relative to the disk start that holds that block of the
  *	file.
  */
- 
+
 int bmap(struct inode * inode, int block)
 {
 	int res = 0;
@@ -924,6 +924,7 @@ int bmap(struct inode * inode, int block)
 /*
  * Initialize the hash tables.
  */
+// 初始化inode哈希表
 void __init inode_init(unsigned long mempages)
 {
 	struct list_head *head;
@@ -982,7 +983,7 @@ void __init inode_init(unsigned long mempages)
  *	This function automatically handles read only file systems and media,
  *	as well as the "noatime" flag and inode specific "noatime" markers.
  */
- 
+
 void update_atime (struct inode *inode)
 {
 	if ( IS_NOATIME (inode) ) return;
@@ -1014,7 +1015,7 @@ void remove_dquot_ref(kdev_t dev, short type)
 
 	/* We have to be protected against other CPUs */
 	spin_lock(&inode_lock);
- 
+
 	for (act_head = inode_in_use.next; act_head != &inode_in_use; act_head = act_head->next) {
 		inode = list_entry(act_head, struct inode, i_list);
 		if (inode->i_sb != sb || !IS_QUOTAINIT(inode))

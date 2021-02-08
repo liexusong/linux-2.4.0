@@ -35,12 +35,12 @@
 
 extern int misc_init(void);
 
-struct miscdevice 
+struct miscdevice
 {
 	int minor;
 	const char *name;
 	struct file_operations *fops;
-	struct miscdevice * next, * prev;
+	struct miscdevice *next, *prev;
 	devfs_handle_t devfs_handle;
 };
 

@@ -1,2 +1,2 @@
-struct vm_area_struct;
-sys_brk();
+inet_bind();
+tcp_v4_rcv();

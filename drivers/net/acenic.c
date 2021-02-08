@@ -86,7 +86,7 @@
 #endif
 
 #ifndef PCI_VENDOR_ID_ALTEON
-#define PCI_VENDOR_ID_ALTEON		0x12ae	
+#define PCI_VENDOR_ID_ALTEON		0x12ae
 #endif
 #ifndef PCI_DEVICE_ID_ALTEON_ACENIC_FIBRE
 #define PCI_DEVICE_ID_ALTEON_ACENIC_FIBRE  0x0001
@@ -222,7 +222,7 @@ static inline void netif_start_queue(struct net_device *dev)
 }
 
 #define ace_mark_net_bh()			mark_bh(NET_BH)
-#define netif_queue_stopped(dev)		dev->tbusy
+#define netif_queue_stopped(dev)	dev->tbusy
 #define netif_running(dev)			dev->start
 #define ace_if_down(dev)			{do{dev->start = 0;} while(0);}
 
@@ -480,7 +480,7 @@ static int max_rx_desc[ACE_MAX_MOD_PARMS];
 static int tx_ratio[ACE_MAX_MOD_PARMS];
 static int dis_pci_mem_inval[ACE_MAX_MOD_PARMS] = {1, 1, 1, 1, 1, 1, 1, 1};
 
-static char version[] __initdata = 
+static char version[] __initdata =
   "acenic.c: v0.49 12/13/2000  Jes Sorensen, linux-acenic@SunSITE.auc.dk\n"
   "                            http://home.cern.ch/~jes/gige/acenic.html\n";
 
@@ -517,7 +517,7 @@ int __init acenic_probe (ACE_PROBE_ARG)
 		    !((pdev->vendor == PCI_VENDOR_ID_3COM) &&
 		      (pdev->device == PCI_DEVICE_ID_3COM_3C985)) &&
 		    !((pdev->vendor == PCI_VENDOR_ID_NETGEAR) &&
-		      ((pdev->device == PCI_DEVICE_ID_NETGEAR_GA620) || 
+		      ((pdev->device == PCI_DEVICE_ID_NETGEAR_GA620) ||
 		       (pdev->device == PCI_DEVICE_ID_NETGEAR_GA620T))) &&
 		/*
 		 * Farallon used the DEC vendor ID on their cards by
@@ -577,7 +577,7 @@ int __init acenic_probe (ACE_PROBE_ARG)
 
 		pci_read_config_word(pdev, PCI_COMMAND, &ap->pci_command);
 
-		/* OpenFirmware on Mac's does not set this - DOH.. */ 
+		/* OpenFirmware on Mac's does not set this - DOH.. */
 		if (!(ap->pci_command & PCI_COMMAND_MEMORY)) {
 			printk(KERN_INFO "%s: Enabling PCI Memory Mapped "
 			       "access - was not enabled by BIOS/Firmware\n",
@@ -1124,7 +1124,7 @@ static int __init ace_init(struct net_device *dev)
 	printk(KERN_INFO "  PCI bus width: %i bits, speed: %iMHz, "
 	       "latency: %i clks\n",
 	       	(pci_state & PCI_32BIT) ? 32 : 64,
-		(pci_state & PCI_66MHZ) ? 66 : 33, 
+		(pci_state & PCI_66MHZ) ? 66 : 33,
 		ap->pci_latency);
 
 	/*
@@ -1206,7 +1206,7 @@ static int __init ace_init(struct net_device *dev)
 		pci_write_config_word(ap->pdev, PCI_COMMAND, ap->pci_command);
 	}
 #endif
-		
+
 	/*
 	 * Initialize the generic info block and the command+event rings
 	 * and the control blocks for the transmit and receive rings
@@ -2000,7 +2000,7 @@ static void ace_rx_int(struct net_device *dev, u32 rxretprd, u32 rxretcsm)
 			rip = &ap->skb->rx_mini_skbuff[skbidx];
 			mapsize = ACE_MINI_BUFSIZE - (2 + 16);
 			rxdesc = &ap->rx_mini_ring[skbidx];
-			mini_count++; 
+			mini_count++;
 			break;
 		default:
 			printk(KERN_INFO "%s: unknown frame type (0x%02x) "
@@ -2119,7 +2119,7 @@ static void ace_interrupt(int irq, void *dev_id, struct pt_regs *ptregs)
 			 * the tx queue in the interrupt handler and the
 			 * interface close,
 			 *
-			 * This is a kludge that really should be fixed 
+			 * This is a kludge that really should be fixed
 			 * by preventing the driver from generating a tx
 			 * interrupt when the packet has already been
 			 * removed from the tx queue.
@@ -2909,7 +2909,7 @@ static void __init eeprom_prep(struct ace_regs *regs, u8 magic)
 
 	for (i = 0; i < 8; i++, magic <<= 1) {
 		udelay(ACE_SHORT_DELAY);
-		if (magic & 0x80) 
+		if (magic & 0x80)
 			local |= EEPROM_DATA_OUT;
 		else
 			local &= ~EEPROM_DATA_OUT;

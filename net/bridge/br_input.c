@@ -41,19 +41,18 @@ static void __br_handle_frame(struct sk_buff *skb)
 	struct net_bridge_port *p;
 	int passedup;
 
-	dest = skb->mac.ethernet->h_dest;
+	dest = skb->mac.ethernet->h_dest; // 目标 mac 地址
 
 	p = skb->dev->br_port;
 	br = p->br;
 	passedup = 0;
 
-	if (!(br->dev.flags & IFF_UP) ||
-	    p->state == BR_STATE_DISABLED)
+	if (!(br->dev.flags & IFF_UP) || p->state == BR_STATE_DISABLED)
 		goto freeandout;
 
 	skb_push(skb, skb->data - skb->mac.raw);
 
-	if (br->dev.flags & IFF_PROMISC) {
+	if (br->dev.flags & IFF_PROMISC) { // 混杂模式?
 		struct sk_buff *skb2;
 
 		skb2 = skb_clone(skb, GFP_ATOMIC);
@@ -68,7 +67,8 @@ static void __br_handle_frame(struct sk_buff *skb)
 
 	if (!passedup &&
 	    (dest[0] & 1) &&
-	    (br->dev.flags & IFF_ALLMULTI || br->dev.mc_list != NULL)) {
+	    (br->dev.flags & IFF_ALLMULTI || br->dev.mc_list != NULL))
+	{
 		struct sk_buff *skb2;
 
 		skb2 = skb_clone(skb, GFP_ATOMIC);
@@ -78,13 +78,10 @@ static void __br_handle_frame(struct sk_buff *skb)
 		}
 	}
 
-	if (br->stp_enabled &&
-	    !memcmp(dest, bridge_ula, 5) &&
-	    !(dest[5] & 0xF0))
+	if (br->stp_enabled && !memcmp(dest, bridge_ula, 5) && !(dest[5] & 0xF0))
 		goto handle_special_frame;
 
-	if (p->state == BR_STATE_LEARNING ||
-	    p->state == BR_STATE_FORWARDING)
+	if (p->state == BR_STATE_LEARNING || p->state == BR_STATE_FORWARDING)
 		br_fdb_insert(br, p, skb->mac.ethernet->h_source, 0);
 
 	if (p->state != BR_STATE_FORWARDING)
@@ -133,7 +130,7 @@ void br_handle_frame(struct sk_buff *skb)
 {
 	struct net_bridge *br;
 
-	br = skb->dev->br_port->br;
+	br = skb->dev->br_port->br; // 设备是否连接到网桥中
 	read_lock(&br->lock);
 	__br_handle_frame(skb);
 	read_unlock(&br->lock);

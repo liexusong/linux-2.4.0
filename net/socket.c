@@ -988,9 +988,8 @@ asmlinkage long sys_bind(int fd, struct sockaddr *umyaddr, int addrlen)
 	char address[MAX_SOCK_ADDR];
 	int err;
 
-	if((sock = sockfd_lookup(fd,&err))!=NULL)
-	{
-		if((err=move_addr_to_kernel(umyaddr,addrlen,address))>=0)
+	if ((sock = sockfd_lookup(fd, &err)) != NULL) {
+		if ((err = move_addr_to_kernel(umyaddr, addrlen, address)) >= 0)
 			err = sock->ops->bind(sock, (struct sockaddr *)address, addrlen);
 		sockfd_put(sock);
 	}
@@ -1612,7 +1611,7 @@ int sock_register(struct net_proto_family *ops)
 	net_family_write_lock();
 	err = -EEXIST;
 	if (net_families[ops->family] == NULL) {
-		net_families[ops->family]=ops;
+		net_families[ops->family] = ops;
 		err = 0;
 	}
 	net_family_write_unlock();
@@ -1631,7 +1630,7 @@ int sock_unregister(int family)
 		return -1;
 
 	net_family_write_lock();
-	net_families[family]=NULL;
+	net_families[family] = NULL;
 	net_family_write_unlock();
 	return 0;
 }

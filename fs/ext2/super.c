@@ -381,6 +381,9 @@ static int ext2_check_descriptors (struct super_block * sb)
 
 #define log2(n) ffz(~(n))
 
+/*
+ * 读取ext2文件系统超级块数据
+ */
 struct super_block * ext2_read_super (struct super_block * sb, void * data,
 				      int silent)
 {
@@ -405,10 +408,9 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 	 * sectorsize that is larger than the default.
 	 */
 	blocksize = get_hardblocksize(dev);
-	if( blocksize == 0 || blocksize < BLOCK_SIZE )
-	  {
+	if( blocksize == 0 || blocksize < BLOCK_SIZE ) {
 	    blocksize = BLOCK_SIZE;
-	  }
+	}
 
 	sb->u.ext2_sb.s_mount_opt = 0;
 	if (!parse_options ((char *) data, &sb_block, &resuid, &resgid,
@@ -476,15 +478,16 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 		le32_to_cpu(EXT2_SB(sb)->s_es->s_log_block_size) + 10;
 	sb->s_blocksize = 1 << sb->s_blocksize_bits;
 	if (sb->s_blocksize != BLOCK_SIZE &&
-	    (sb->s_blocksize == 1024 || sb->s_blocksize == 2048 ||
-	     sb->s_blocksize == 4096)) {
+		(sb->s_blocksize == 1024 ||
+		 sb->s_blocksize == 2048 ||
+		 sb->s_blocksize == 4096)) {
 		/*
 		 * Make sure the blocksize for the filesystem is larger
 		 * than the hardware sectorsize for the machine.
 		 */
 		hblock = get_hardblocksize(dev);
-		if(    (hblock != 0)
-		    && (sb->s_blocksize < hblock) )
+		if((hblock != 0)
+		    && (sb->s_blocksize < hblock))
 		{
 			printk("EXT2-fs: blocksize too small for device.\n");
 			goto failed_mount;
@@ -519,22 +522,17 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 			goto failed_mount;
 		}
 	}
-	sb->u.ext2_sb.s_frag_size = EXT2_MIN_FRAG_SIZE <<
-				   le32_to_cpu(es->s_log_frag_size);
+	sb->u.ext2_sb.s_frag_size = EXT2_MIN_FRAG_SIZE << le32_to_cpu(es->s_log_frag_size);
 	if (sb->u.ext2_sb.s_frag_size)
-		sb->u.ext2_sb.s_frags_per_block = sb->s_blocksize /
-						  sb->u.ext2_sb.s_frag_size;
+		sb->u.ext2_sb.s_frags_per_block = sb->s_blocksize / sb->u.ext2_sb.s_frag_size;
 	else
 		sb->s_magic = 0;
 	sb->u.ext2_sb.s_blocks_per_group = le32_to_cpu(es->s_blocks_per_group);
 	sb->u.ext2_sb.s_frags_per_group = le32_to_cpu(es->s_frags_per_group);
 	sb->u.ext2_sb.s_inodes_per_group = le32_to_cpu(es->s_inodes_per_group);
-	sb->u.ext2_sb.s_inodes_per_block = sb->s_blocksize /
-					   EXT2_INODE_SIZE(sb);
-	sb->u.ext2_sb.s_itb_per_group = sb->u.ext2_sb.s_inodes_per_group /
-				        sb->u.ext2_sb.s_inodes_per_block;
-	sb->u.ext2_sb.s_desc_per_block = sb->s_blocksize /
-					 sizeof (struct ext2_group_desc);
+	sb->u.ext2_sb.s_inodes_per_block = sb->s_blocksize / EXT2_INODE_SIZE(sb);
+	sb->u.ext2_sb.s_itb_per_group = sb->u.ext2_sb.s_inodes_per_group / sb->u.ext2_sb.s_inodes_per_block;
+	sb->u.ext2_sb.s_desc_per_block = sb->s_blocksize / sizeof (struct ext2_group_desc);
 	sb->u.ext2_sb.s_sbh = bh;
 	if (resuid != EXT2_DEF_RESUID)
 		sb->u.ext2_sb.s_resuid = resuid;
@@ -637,7 +635,7 @@ struct super_block * ext2_read_super (struct super_block * sb, void * data,
 		printk ("EXT2-fs: get root inode failed\n");
 		return NULL;
 	}
-	ext2_setup_super (sb, es, sb->s_flags & MS_RDONLY);
+	ext2_setup_super(sb, es, sb->s_flags & MS_RDONLY);
 	return sb;
 }
 

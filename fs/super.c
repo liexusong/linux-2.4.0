@@ -108,11 +108,11 @@ static struct file_system_type **find_filesystem(const char *name)
  *	is aware of for mount and other syscalls. Returns 0 on success,
  *	or a negative errno code on an error.
  *
- *	The &struct file_system_type that is passed is linked into the kernel 
+ *	The &struct file_system_type that is passed is linked into the kernel
  *	structures and must not be freed until the file system has been
  *	unregistered.
  */
- 
+
 int register_filesystem(struct file_system_type * fs)
 {
 	int res = 0;
@@ -139,11 +139,11 @@ int register_filesystem(struct file_system_type * fs)
  *	Remove a file system that was previously successfully registered
  *	with the kernel. An error is returned if the file system is not found.
  *	Zero is returned on a success.
- *	
+ *
  *	Once this function has returned the &struct file_system_type structure
  *	may be freed or reused.
  */
- 
+
 int unregister_filesystem(struct file_system_type * fs)
 {
 	struct file_system_type ** tmp;
@@ -220,7 +220,7 @@ static int fs_maxindex(void)
 }
 
 /*
- * Whee.. Weird sysv syscall. 
+ * Whee.. Weird sysv syscall.
  */
 asmlinkage long sys_sysfs(int option, unsigned long arg1, unsigned long arg2)
 {
@@ -262,7 +262,7 @@ int get_filesystem_list(char * buf)
 struct file_system_type *get_fs_type(const char *name)
 {
 	struct file_system_type *fs;
-	
+
 	read_lock(&file_systems_lock);
 	fs = *(find_filesystem(name));
 	if (fs && !try_inc_mod_count(fs->owner))
@@ -334,8 +334,8 @@ static struct vfsmount *add_vfsmnt(struct nameidata *nd,
 	spin_lock(&dcache_lock);
 	if (nd && !IS_ROOT(nd->dentry) && d_unhashed(nd->dentry))
 		goto fail;
-	mnt->mnt_root = dget(root);                               // 挂载的根目录
-	mnt->mnt_mountpoint = nd ? dget(nd->dentry) : dget(root); // 挂载所在的目录
+	mnt->mnt_root = dget(root);                               // 新挂载的文件系统根节点dentry
+	mnt->mnt_mountpoint = nd ? dget(nd->dentry) : dget(root); // 挂载点所在的目录
 	mnt->mnt_parent = nd ? mntget(nd->mnt) : mnt;             // 父挂载点
 
 	if (nd) {
@@ -586,7 +586,7 @@ int get_filesystem_info( char *buf )
  *	Waits for a superblock to become unlocked and then returns. It does
  *	not take the lock. This is an internal function. See wait_on_super().
  */
- 
+
 void __wait_on_super(struct super_block * sb)
 {
 	DECLARE_WAITQUEUE(wait, current);
@@ -612,7 +612,7 @@ void sync_supers(kdev_t dev)
 	struct super_block * sb;
 
 	for (sb = sb_entry(super_blocks.next);
-	     sb != sb_entry(&super_blocks); 
+	     sb != sb_entry(&super_blocks);
 	     sb = sb_entry(sb->s_list.next)) {
 		if (!sb->s_dev)
 			continue;
@@ -631,11 +631,11 @@ void sync_supers(kdev_t dev)
 /**
  *	get_super	-	get the superblock of a device
  *	@dev: device to get the superblock for
- *	
+ *
  *	Scans the superblock list and finds the superblock of the file system
  *	mounted on the device given. %NULL is returned if no match is found.
  */
- 
+
 struct super_block * get_super(kdev_t dev)
 {
 	struct super_block * s;
@@ -683,18 +683,18 @@ out:
 /**
  *	get_empty_super	-	find empty superblocks
  *
- *	Find a superblock with no device assigned. A free superblock is 
+ *	Find a superblock with no device assigned. A free superblock is
  *	found and returned. If neccessary new superblocks are allocated.
  *	%NULL is returned if there are insufficient resources to complete
  *	the request.
  */
- 
+
 struct super_block *get_empty_super(void)
 {
 	struct super_block *s;
 
 	for (s  = sb_entry(super_blocks.next);
-	     s != sb_entry(&super_blocks); 
+	     s != sb_entry(&super_blocks);
 	     s  = sb_entry(s->s_list.next)) {
 		if (s->s_dev)
 			continue;
@@ -1156,9 +1156,9 @@ out:
 }
 
 /*
- *	The 2.0 compatible umount. No flags. 
+ *	The 2.0 compatible umount. No flags.
  */
- 
+
 asmlinkage long sys_oldumount(char * name)
 {
 	return sys_umount(name,0);
@@ -1210,7 +1210,7 @@ static int do_loopback(char *old_name, char *new_name)
 	err = -ENOMEM;
 	if (old_nd.mnt->mnt_sb->s_type->fs_flags & FS_SINGLE)
 		get_filesystem(old_nd.mnt->mnt_sb->s_type);
-		
+
 	down(&mount_sem);
 	/* there we go */
 	down(&new_nd.dentry->d_inode->i_zombie);
@@ -1272,7 +1272,7 @@ static int copy_mount_options (const void *data, unsigned long *where)
 	int i;
 	unsigned long page;
 	unsigned long size;
-	
+
 	*where = 0;
 	if (!data)
 		return 0;
@@ -1291,7 +1291,7 @@ static int copy_mount_options (const void *data, unsigned long *where)
 
 	i = size - copy_from_user((void *)page, data, size);
 	if (!i) {
-		free_page(page); 
+		free_page(page);
 		return -EFAULT;
 	}
 	if (i != PAGE_SIZE)
@@ -1324,7 +1324,7 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 	/* Discard magic */
 	if ((flags & MS_MGC_MSK) == MS_MGC_VAL)
 		flags &= ~MS_MGC_MSK;
- 
+
 	/* Basic sanity checks */
 
 	if (!dir_name || !*dir_name || !memchr(dir_name, 0, PAGE_SIZE))
@@ -1372,7 +1372,7 @@ long do_mount(char * dev_name, char * dir_name, char *type_page,
 		goto fs_out;
 
 	/* get superblock, locks mount_sem on success */
-	// 读取文件系统的超级块
+	// 读取设备的文件系统超级块
 	if (fstype->fs_flags & FS_NOMOUNT)
 		sb = ERR_PTR(-EINVAL);
 	else if (fstype->fs_flags & FS_REQUIRES_DEV)
@@ -1774,14 +1774,14 @@ int __init change_root(kdev_t new_root_dev,const char *put_old)
 			/* puts devfs_nd.mnt */
 			do_umount(devfs_nd.mnt, 0, 0);
 			up(&mount_sem);
-		} else 
+		} else
 			path_release(&devfs_nd);
 	}
 	ROOT_DEV = new_root_dev;
 	mount_root();
 #if 1
 	shrink_dcache();
-	printk("change_root: old root has d_count=%d\n", 
+	printk("change_root: old root has d_count=%d\n",
 	       atomic_read(&old_rootmnt->mnt_root->d_count));
 #endif
 	mount_devfs_fs ();

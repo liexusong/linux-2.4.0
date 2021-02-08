@@ -127,15 +127,15 @@ extern struct tcp_hashinfo {
 	spinlock_t __tcp_portalloc_lock;
 } tcp_hashinfo;
 
-#define tcp_ehash	(tcp_hashinfo.__tcp_ehash)
-#define tcp_bhash	(tcp_hashinfo.__tcp_bhash)
-#define tcp_ehash_size	(tcp_hashinfo.__tcp_ehash_size)
-#define tcp_bhash_size	(tcp_hashinfo.__tcp_bhash_size)
-#define tcp_listening_hash (tcp_hashinfo.__tcp_listening_hash)
-#define tcp_lhash_lock	(tcp_hashinfo.__tcp_lhash_lock)
-#define tcp_lhash_users	(tcp_hashinfo.__tcp_lhash_users)
-#define tcp_lhash_wait	(tcp_hashinfo.__tcp_lhash_wait)
-#define tcp_portalloc_lock (tcp_hashinfo.__tcp_portalloc_lock)
+#define tcp_ehash			(tcp_hashinfo.__tcp_ehash)
+#define tcp_bhash			(tcp_hashinfo.__tcp_bhash)
+#define tcp_ehash_size		(tcp_hashinfo.__tcp_ehash_size)
+#define tcp_bhash_size		(tcp_hashinfo.__tcp_bhash_size)
+#define tcp_listening_hash	(tcp_hashinfo.__tcp_listening_hash)
+#define tcp_lhash_lock		(tcp_hashinfo.__tcp_lhash_lock)
+#define tcp_lhash_users		(tcp_hashinfo.__tcp_lhash_users)
+#define tcp_lhash_wait		(tcp_hashinfo.__tcp_lhash_wait)
+#define tcp_portalloc_lock	(tcp_hashinfo.__tcp_portalloc_lock)
 
 extern kmem_cache_t *tcp_bucket_cachep;
 extern struct tcp_bind_bucket *tcp_bucket_create(struct tcp_bind_hashbucket *head,
@@ -264,11 +264,11 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
 	return tcp_lhashfn(sk->num);
 }
 
-#define MAX_TCP_HEADER	(128 + MAX_HEADER)
+#define MAX_TCP_HEADER	(128 + MAX_HEADER) // TCP头部最大为60字节(64对齐), IP头部最大60字节(64对齐), 以太网头部最大 MAX_HEADER 字节
 
-/* 
+/*
  * Never offer a window over 32767 without using window scaling. Some
- * poor stacks do signed 16bit maths! 
+ * poor stacks do signed 16bit maths!
  */
 #define MAX_TCP_WINDOW		32767
 
@@ -401,7 +401,7 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
 /*
  *	TCP option
  */
- 
+
 #define TCPOPT_NOP		1	/* Padding */
 #define TCPOPT_EOL		0	/* End of options */
 #define TCPOPT_MSS		2	/* Segment size negotiating */
@@ -503,8 +503,8 @@ struct open_request {
 	__u16			mss;
 	__u8			retrans;
 	__u8			index;
-	__u16	snd_wscale : 4, 
-		rcv_wscale : 4, 
+	__u16	snd_wscale : 4,
+		rcv_wscale : 4,
 		tstamp_ok : 1,
 		sack_ok : 1,
 		wscale_ok : 1,
@@ -556,44 +556,32 @@ static inline void tcp_openreq_free(struct open_request *req)
  */
 
 struct tcp_func {
-	int			(*queue_xmit)		(struct sk_buff *skb);
+	int (*queue_xmit)(struct sk_buff *skb);
+	void (*send_check)(struct sock *sk, struct tcphdr *th,
+					   int len, struct sk_buff *skb);
+	int (*rebuild_header)(struct sock *sk);
+	int (*conn_request)(struct sock *sk, struct sk_buff *skb);
+	struct sock *(*syn_recv_sock)(struct sock *sk,
+								  struct sk_buff *skb,
+								  struct open_request *req,
+								  struct dst_entry *dst);
+	int (*hash_connecting)(struct sock *sk);
+	int (*remember_stamp)(struct sock *sk);
 
-	void			(*send_check)		(struct sock *sk,
-							 struct tcphdr *th,
-							 int len,
-							 struct sk_buff *skb);
+	__u16 net_header_len;
 
-	int			(*rebuild_header)	(struct sock *sk);
+	int (*setsockopt)(struct sock *sk,
+					  int level,
+					  int optname,
+					  char *optval,
+					  int optlen);
+	int (*getsockopt)(struct sock *sk,
+					  int level,
+					  int optname,
+					  char *optval,
+					  int *optlen);
 
-	int			(*conn_request)		(struct sock *sk,
-							 struct sk_buff *skb);
-
-	struct sock *		(*syn_recv_sock)	(struct sock *sk,
-							 struct sk_buff *skb,
-							 struct open_request *req,
-							 struct dst_entry *dst);
-	
-	int			(*hash_connecting)	(struct sock *sk);
-
-	int			(*remember_stamp)	(struct sock *sk);
-
-	__u16			net_header_len;
-
-	int			(*setsockopt)		(struct sock *sk, 
-							 int level, 
-							 int optname, 
-							 char *optval, 
-							 int optlen);
-
-	int			(*getsockopt)		(struct sock *sk, 
-							 int level, 
-							 int optname, 
-							 char *optval, 
-							 int *optlen);
-
-
-	void			(*addr2sockaddr)	(struct sock *sk,
-							 struct sockaddr *);
+	void (*addr2sockaddr)(struct sock *sk, struct sockaddr *);
 
 	int sockaddr_len;
 };
@@ -646,18 +634,18 @@ extern int		    	tcp_v4_tw_remember_stamp(struct tcp_tw_bucket *tw);
 
 extern int			tcp_sendmsg(struct sock *sk, struct msghdr *msg, int size);
 
-extern int			tcp_ioctl(struct sock *sk, 
-					  int cmd, 
+extern int			tcp_ioctl(struct sock *sk,
+					  int cmd,
 					  unsigned long arg);
 
-extern int			tcp_rcv_state_process(struct sock *sk, 
+extern int			tcp_rcv_state_process(struct sock *sk,
 						      struct sk_buff *skb,
 						      struct tcphdr *th,
 						      unsigned len);
 
-extern int			tcp_rcv_established(struct sock *sk, 
+extern int			tcp_rcv_established(struct sock *sk,
 						    struct sk_buff *skb,
-						    struct tcphdr *th, 
+						    struct tcphdr *th,
 						    unsigned len);
 
 enum tcp_ack_state_t
@@ -721,22 +709,22 @@ extern void			tcp_enter_loss(struct sock *sk, int how);
 extern void			tcp_clear_retrans(struct tcp_opt *tp);
 extern void			tcp_update_metrics(struct sock *sk);
 
-extern void			tcp_close(struct sock *sk, 
+extern void			tcp_close(struct sock *sk,
 					  long timeout);
 extern struct sock *		tcp_accept(struct sock *sk, int flags, int *err);
 extern unsigned int		tcp_poll(struct file * file, struct socket *sock, struct poll_table_struct *wait);
-extern void			tcp_write_space(struct sock *sk); 
+extern void			tcp_write_space(struct sock *sk);
 
-extern int			tcp_getsockopt(struct sock *sk, int level, 
-					       int optname, char *optval, 
+extern int			tcp_getsockopt(struct sock *sk, int level,
+					       int optname, char *optval,
 					       int *optlen);
-extern int			tcp_setsockopt(struct sock *sk, int level, 
-					       int optname, char *optval, 
+extern int			tcp_setsockopt(struct sock *sk, int level,
+					       int optname, char *optval,
 					       int optlen);
 extern void			tcp_set_keepalive(struct sock *sk, int val);
-extern int			tcp_recvmsg(struct sock *sk, 
+extern int			tcp_recvmsg(struct sock *sk,
 					    struct msghdr *msg,
-					    int len, int nonblock, 
+					    int len, int nonblock,
 					    int flags, int *addr_len);
 
 extern int			tcp_listen_start(struct sock *sk);
@@ -751,11 +739,11 @@ extern void			tcp_parse_options(struct sk_buff *skb,
 
 extern int		       	tcp_v4_rebuild_header(struct sock *sk);
 
-extern int		       	tcp_v4_build_header(struct sock *sk, 
+extern int		       	tcp_v4_build_header(struct sock *sk,
 						    struct sk_buff *skb);
 
-extern void		       	tcp_v4_send_check(struct sock *sk, 
-						  struct tcphdr *th, int len, 
+extern void		       	tcp_v4_send_check(struct sock *sk,
+						  struct tcphdr *th, int len,
 						  struct sk_buff *skb);
 
 extern int			tcp_v4_conn_request(struct sock *sk,
@@ -792,9 +780,9 @@ extern int			tcp_v4_hash_connecting(struct sock *sk);
 
 
 /* From syncookies.c */
-extern struct sock *cookie_v4_check(struct sock *sk, struct sk_buff *skb, 
+extern struct sock *cookie_v4_check(struct sock *sk, struct sk_buff *skb,
 				    struct ip_options *opt);
-extern __u32 cookie_v4_init_sequence(struct sock *sk, struct sk_buff *skb, 
+extern __u32 cookie_v4_init_sequence(struct sock *sk, struct sk_buff *skb,
 				     __u16 *mss);
 
 /* tcp_output.c */
@@ -829,7 +817,7 @@ extern const char timer_bug_msg[];
 static inline void tcp_clear_xmit_timer(struct sock *sk, int what)
 {
 	struct tcp_opt *tp = &sk->tp_pinfo.af_tcp;
-	
+
 	switch (what) {
 	case TCP_TIME_RETRANS:
 	case TCP_TIME_PROBE0:
@@ -901,7 +889,7 @@ static __inline__ unsigned int tcp_current_mss(struct sock *sk)
 {
 	struct tcp_opt *tp = &sk->tp_pinfo.af_tcp;
 	struct dst_entry *dst = __sk_dst_get(sk);
-	int mss_now = tp->mss_cache; 
+	int mss_now = tp->mss_cache;
 
 	if (dst && dst->pmtu != tp->pmtu_cookie)
 		mss_now = tcp_sync_mss(sk, dst->pmtu);
@@ -926,7 +914,7 @@ static inline void tcp_initialize_rcv_mss(struct sock *sk)
 	int hint = min(tp->advmss, tp->mss_cache);
 
 	hint = min(hint, tp->rcv_wnd/2);
-		
+
 	tp->ack.rcv_mss = max(min(hint, TCP_MIN_RCVMSS), TCP_MIN_MSS);
 }
 
@@ -1030,13 +1018,13 @@ struct tcp_skb_cb {
 
 
 /*
- *	Compute minimal free write space needed to queue new packets. 
+ *	Compute minimal free write space needed to queue new packets.
  */
 static inline int tcp_min_write_space(struct sock *sk)
 {
 	return sk->wmem_queued/2;
 }
- 
+
 static inline int tcp_wspace(struct sock *sk)
 {
 	return sk->sndbuf - sk->wmem_queued;
@@ -1267,7 +1255,7 @@ extern void			tcp_destroy_sock(struct sock *sk);
  * Calculate(/check) TCP checksum
  */
 static __inline__ u16 tcp_v4_check(struct tcphdr *th, int len,
-				   unsigned long saddr, unsigned long daddr, 
+				   unsigned long saddr, unsigned long daddr,
 				   unsigned long base)
 {
 	return csum_tcpudp_magic(saddr,daddr,len,IPPROTO_TCP,base);
@@ -1360,7 +1348,7 @@ static __inline__ void tcp_set_state(struct sock *sk, int state)
 
 #ifdef STATE_TRACE
 	SOCK_DEBUG(sk, "TCP sk=%p, State %s -> %s\n",sk, statename[oldstate],statename[state]);
-#endif	
+#endif
 }
 
 static __inline__ void tcp_done(struct sock *sk)
@@ -1516,15 +1504,15 @@ static inline int tcp_win_from_space(int space)
 		space - (space>>sysctl_tcp_adv_win_scale);
 }
 
-/* Note: caller must be prepared to deal with negative returns */ 
+/* Note: caller must be prepared to deal with negative returns */
 static inline int tcp_space(struct sock *sk)
 {
 	return tcp_win_from_space(sk->rcvbuf - atomic_read(&sk->rmem_alloc));
-} 
+}
 
 static inline int tcp_full_space( struct sock *sk)
 {
-	return tcp_win_from_space(sk->rcvbuf); 
+	return tcp_win_from_space(sk->rcvbuf);
 }
 
 static inline void tcp_acceptq_removed(struct sock *sk)

@@ -3,7 +3,7 @@
  *
  * This file contains generic proc-fs routines for handling
  * directories and files.
- * 
+ *
  * Copyright (C) 1991, 1992 Linus Torvalds.
  * Copyright (C) 1997 Theodore Ts'o
  */
@@ -98,7 +98,7 @@ proc_file_read(struct file * file, char * buf, size_t nbytes, loff_t *ppos)
 				retval = n;
 			break;
 		}
-		
+
 		/* This is a hack to allow mangling of file pos independent
  		 * of actual bytes read.  Simply place the data at page,
  		 * return the bytes, and set `start' to the desired offset
@@ -126,7 +126,7 @@ proc_file_write(struct file * file, const char * buffer,
 {
 	struct inode *inode = file->f_dentry->d_inode;
 	struct proc_dir_entry * dp;
-	
+
 	dp = (struct proc_dir_entry *) inode->u.generic_ip;
 
 	if (!dp->write_proc)
@@ -143,12 +143,12 @@ proc_file_lseek(struct file * file, loff_t offset, int orig)
     switch (orig) {
     case 0:
 	if (offset < 0)
-	    return -EINVAL;    
+	    return -EINVAL;
 	file->f_pos = offset;
 	return(file->f_pos);
     case 1:
 	if (offset + file->f_pos < 0)
-	    return -EINVAL;    
+	    return -EINVAL;
 	file->f_pos += offset;
 	return(file->f_pos);
     case 2:
@@ -195,7 +195,7 @@ static unsigned char proc_alloc_map[PROC_NDYNAMIC / 8];
 static int make_inode_number(void)
 {
 	int i = find_first_zero_bit((void *) proc_alloc_map, PROC_NDYNAMIC);
-	if (i<0 || i>=PROC_NDYNAMIC) 
+	if (i<0 || i>=PROC_NDYNAMIC)
 		return -1;
 	set_bit(i, (void *) proc_alloc_map);
 	return PROC_DYNAMIC_FIRST + i;
@@ -219,9 +219,9 @@ static struct inode_operations proc_link_inode_operations = {
 };
 
 /*
- * As some entries in /proc are volatile, we want to 
- * get rid of unused dentries.  This could be made 
- * smarter: we could keep a "volatile" flag in the 
+ * As some entries in /proc are volatile, we want to
+ * get rid of unused dentries.  This could be made
+ * smarter: we could keep a "volatile" flag in the
  * inode to indicate which ones to keep.
  */
 static int proc_delete_dentry(struct dentry * dentry)
@@ -350,7 +350,7 @@ static struct inode_operations proc_dir_inode_operations = {
 static int proc_register(struct proc_dir_entry * dir, struct proc_dir_entry * dp)
 {
 	int	i;
-	
+
 	i = make_inode_number();
 	if (i < 0)
 		return -EAGAIN;
@@ -433,7 +433,7 @@ struct proc_dir_entry *proc_symlink(const char *name,
 	strcpy((char*)ent->data,dest);
 
 	proc_register(parent, ent);
-	
+
 out:
 	return ent;
 }
@@ -461,7 +461,7 @@ struct proc_dir_entry *proc_mknod(const char *name, mode_t mode,
 	ent->rdev = rdev;
 
 	proc_register(parent, ent);
-	
+
 out:
 	return ent;
 }
@@ -489,13 +489,14 @@ struct proc_dir_entry *proc_mkdir(const char *name, struct proc_dir_entry *paren
 	ent->mode = S_IFDIR | S_IRUGO | S_IXUGO;
 
 	proc_register(parent, ent);
-	
+
 out:
 	return ent;
 }
 
-struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
-					 struct proc_dir_entry *parent)
+struct proc_dir_entry *
+create_proc_entry(const char *name, mode_t mode,
+				  struct proc_dir_entry *parent)
 {
 	struct proc_dir_entry *ent = NULL;
 	const char *fn = name;
@@ -529,7 +530,7 @@ struct proc_dir_entry *create_proc_entry(const char *name, mode_t mode,
 	ent->mode = mode;
 
 	proc_register(parent, ent);
-	
+
 out:
 	return ent;
 }

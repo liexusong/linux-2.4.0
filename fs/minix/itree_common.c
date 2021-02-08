@@ -36,7 +36,7 @@ static inline Indirect *get_branch(struct inode *inode,
 
 	*err = 0;
 	/* i_data is not going away, no lock needed */
-	add_chain (chain, NULL, i_data(inode) + *offsets);
+	add_chain(chain, NULL, i_data(inode) + *offsets);
 	if (!p->key)
 		goto no_block;
 	while (--depth) {
@@ -148,7 +148,7 @@ static inline int get_block(struct inode * inode, long block,
 	Indirect chain[DEPTH];
 	Indirect *partial;
 	int left;
-	int depth = block_to_path(inode, block, offsets);
+	int depth = block_to_path(inode, block, offsets); // 需要读取多少层级
 
 	if (depth == 0)
 		goto out;
@@ -290,7 +290,7 @@ static void free_branches(struct inode *inode, block_t *p, block_t *q, int depth
 		free_data(inode, p, q);
 }
 
-static inline void truncate (struct inode * inode)
+static inline void truncate(struct inode * inode)
 {
 	block_t *idata = i_data(inode);
 	int offsets[DEPTH];
@@ -349,7 +349,7 @@ do_indirects:
 static int sync_block (struct inode * inode, block_t block, int wait)
 {
 	struct buffer_head * bh;
-	
+
 	if (!block)
 		return 0;
 	bh = get_hash_table(inode->i_dev, block_to_cpu(block), BLOCK_SIZE);
@@ -405,7 +405,7 @@ static inline int sync_file(struct inode * inode)
 {
 	int wait, err = 0, i;
 	block_t *idata = i_data(inode);
-	
+
 	lock_kernel();
 	err = generic_buffer_fdatasync(inode, 0, ~0UL);
 	for (wait=0; wait<=1; wait++)

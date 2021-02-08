@@ -88,7 +88,7 @@ struct in_addr {
 
 /* Request struct for multicast socket ops */
 
-struct ip_mreq 
+struct ip_mreq
 {
 	struct in_addr imr_multiaddr;	/* IP multicast address of group */
 	struct in_addr imr_interface;	/* local IP address of interface */
@@ -175,15 +175,15 @@ struct sockaddr_in {
 
 
 /* <asm/byteorder.h> contains the htonl type stuff.. */
-#include <asm/byteorder.h> 
+#include <asm/byteorder.h>
 
 #ifdef __KERNEL__
 /* Some random defines to make it easier in the kernel.. */
-#define LOOPBACK(x)	(((x) & htonl(0xff000000)) == htonl(0x7f000000))
-#define MULTICAST(x)	(((x) & htonl(0xf0000000)) == htonl(0xe0000000))
-#define BADCLASS(x)	(((x) & htonl(0xf0000000)) == htonl(0xf0000000))
-#define ZERONET(x)	(((x) & htonl(0xff000000)) == htonl(0x00000000))
-#define LOCAL_MCAST(x)	(((x) & htonl(0xFFFFFF00)) == htonl(0xE0000000))
+#define LOOPBACK(x)    (((x) & htonl(0xff000000)) == htonl(0x7f000000))
+#define MULTICAST(x)   (((x) & htonl(0xf0000000)) == htonl(0xe0000000))
+#define BADCLASS(x)    (((x) & htonl(0xf0000000)) == htonl(0xf0000000))
+#define ZERONET(x)     (((x) & htonl(0xff000000)) == htonl(0x00000000))
+#define LOCAL_MCAST(x) (((x) & htonl(0xFFFFFF00)) == htonl(0xE0000000))
 
 #endif
 

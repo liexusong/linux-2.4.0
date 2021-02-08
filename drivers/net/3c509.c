@@ -27,7 +27,7 @@
 	FIXES:
 		Alan Cox:       Removed the 'Unexpected interrupt' bug.
 		Michael Meskes:	Upgraded to Donald Becker's version 1.07.
-		Alan Cox:	Increased the eeprom delay. Regardless of 
+		Alan Cox:	Increased the eeprom delay. Regardless of
 				what the docs say some people definitely
 				get problems with lower (but in card spec)
 				delays
@@ -283,7 +283,7 @@ int el3_probe(struct net_device *dev)
 				for (i = 0; i < 3; i++) {
 					phys_addr[i] = htons(read_eeprom(ioaddr, i));
 				}
-				
+
 				mca_slot = slot;
 
 				goto found;
@@ -466,7 +466,7 @@ no_pnp:
 	if (dev->priv == NULL)
 		return -ENOMEM;
 	memset(dev->priv, 0, sizeof(struct el3_private));
-	
+
 	lp = dev->priv;
 	lp->mca_slot = mca_slot;
 	lp->next_dev = el3_root_dev;
@@ -512,7 +512,7 @@ static ushort id_read_eeprom(int index)
 
 	/* Pause for at least 162 us. for the read to take place. */
 	udelay (500);
-	
+
 	for (bit = 15; bit >= 0; bit--)
 		word = (word << 1) + (inb(id_port) & 0x01);
 
@@ -623,10 +623,10 @@ el3_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	int ioaddr = dev->base_addr;
 	unsigned long flags;
 
-	netif_stop_queue (dev);
+	netif_stop_queue(dev);
 
 	lp->stats.tx_bytes += skb->len;
-	
+
 	if (el3_debug > 4) {
 		printk("%s: el3_start_xmit(length = %u) called, status %4.4x.\n",
 			   dev->name, skb->len, inw(ioaddr + EL3_STATUS));
@@ -662,7 +662,7 @@ el3_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	 */
 
     	spin_lock_irqsave(&lp->lock, flags);
-	    
+
 	/* Put out the doubleword header... */
 	outw(skb->len, ioaddr + TX_FIFO);
 	outw(0x00, ioaddr + TX_FIFO);
@@ -682,7 +682,7 @@ el3_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	spin_unlock_irqrestore(&lp->lock, flags);
 
-	dev_kfree_skb (skb);
+	dev_kfree_skb(skb);
 
 	/* Clear the Tx status stack. */
 	{
@@ -799,7 +799,7 @@ el3_get_stats(struct net_device *dev)
 	 *	This is fast enough not to bother with disable IRQ
 	 *	stuff.
 	 */
-	 
+
 	spin_lock_irqsave(&lp->lock, flags);
 	update_stats(dev);
 	spin_unlock_irqrestore(&lp->lock, flags);
@@ -1015,10 +1015,10 @@ cleanup_module(void)
 	/* No need to check MOD_IN_USE, as sys_delete_module() checks. */
 	while (el3_root_dev) {
 		struct el3_private *lp = (struct el3_private *)el3_root_dev->priv;
-#ifdef CONFIG_MCA		
+#ifdef CONFIG_MCA
 		if(lp->mca_slot!=-1)
 			mca_mark_as_unused(lp->mca_slot);
-#endif			
+#endif
 		next_dev = lp->next_dev;
 		unregister_netdev(el3_root_dev);
 		release_region(el3_root_dev->base_addr, EL3_IO_EXTENT);

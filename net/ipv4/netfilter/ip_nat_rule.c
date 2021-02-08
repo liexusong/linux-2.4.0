@@ -54,67 +54,127 @@ static struct
 	struct ipt_standard entries[3];
 	struct ipt_error term;
 } nat_initial_table __initdata
-= { { "nat", NAT_VALID_HOOKS, 4,
-      sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
-      { [NF_IP_PRE_ROUTING] 0,
-	[NF_IP_POST_ROUTING] sizeof(struct ipt_standard),
-	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2 },
-      { [NF_IP_PRE_ROUTING] 0,
-	[NF_IP_POST_ROUTING] sizeof(struct ipt_standard),
-	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) * 2 },
-      0, NULL, { } },
-    {
-	    /* PRE_ROUTING */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+= {
+	{
+		"nat",
+		NAT_VALID_HOOKS,
+		4,
+		sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
+		{
+			[NF_IP_PRE_ROUTING]  0,
+			[NF_IP_POST_ROUTING] sizeof(struct ipt_standard),
+			[NF_IP_LOCAL_OUT]    sizeof(struct ipt_standard) * 2
+		},
+		{
+			[NF_IP_PRE_ROUTING]  0,
+			[NF_IP_POST_ROUTING] sizeof(struct ipt_standard),
+			[NF_IP_LOCAL_OUT]    sizeof(struct ipt_standard) * 2
+		},
 		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
-		-NF_ACCEPT - 1 } },
-	    /* POST_ROUTING */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
-		-NF_ACCEPT - 1 } },
-	    /* LOCAL_OUT */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } }, { } },
-		-NF_ACCEPT - 1 } }
-    },
-    /* ERROR */
-    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-	0,
-	sizeof(struct ipt_entry),
-	sizeof(struct ipt_error),
-	0, { 0, 0 }, { } },
-      { { { { IPT_ALIGN(sizeof(struct ipt_error_target)), IPT_ERROR_TARGET } },
-	  { } },
-	"ERROR"
-      }
-    }
+		NULL,
+		{},
+	},
+	{
+		/* PRE_ROUTING */
+		{
+			{
+				{ { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{ }
+			},
+			{
+				{
+					{ { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } },
+					{}
+				},
+				-NF_ACCEPT - 1,
+			}
+		},
+
+		/* POST_ROUTING */
+		{
+			{
+				{ { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{ },
+			},
+			{
+				{
+					{ { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } },
+					{ },
+				},
+				-NF_ACCEPT - 1
+			}
+		},
+
+		/* LOCAL_OUT */
+		{
+			{
+				{ { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{ },
+			},
+			{
+				{
+					{ { IPT_ALIGN(sizeof(struct ipt_standard_target)), "" } },
+					{ },
+				},
+				-NF_ACCEPT - 1,
+			}
+		}
+	},
+
+	/* ERROR */
+	{
+		{
+			{ { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+			0,
+			sizeof(struct ipt_entry),
+			sizeof(struct ipt_error),
+			0,
+			{ 0, 0 },
+			{ },
+		},
+		{
+			{
+				{ { IPT_ALIGN(sizeof(struct ipt_error_target)), IPT_ERROR_TARGET } },
+				{}
+			},
+			"ERROR",
+		}
+	}
 };
 
-static struct ipt_table nat_table
-= { { NULL, NULL }, "nat", &nat_initial_table.repl,
-    NAT_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL };
+static struct ipt_table nat_table = {
+	{ NULL, NULL },
+	"nat",
+	&nat_initial_table.repl,
+	NAT_VALID_HOOKS,
+	RW_LOCK_UNLOCKED,
+	NULL,
+};
 
 LIST_HEAD(nat_expect_list);
 
 /* Source NAT */
 static unsigned int ipt_snat_target(struct sk_buff **pskb,
-				    unsigned int hooknum,
-				    const struct net_device *in,
-				    const struct net_device *out,
-				    const void *targinfo,
-				    void *userinfo)
+									unsigned int hooknum,
+									const struct net_device *in,
+									const struct net_device *out,
+									const void *targinfo,
+									void *userinfo)
 {
 	struct ip_conntrack *ct;
 	enum ip_conntrack_info ctinfo;
@@ -131,17 +191,17 @@ static unsigned int ipt_snat_target(struct sk_buff **pskb,
 }
 
 static unsigned int ipt_dnat_target(struct sk_buff **pskb,
-				    unsigned int hooknum,
-				    const struct net_device *in,
-				    const struct net_device *out,
-				    const void *targinfo,
-				    void *userinfo)
+					unsigned int hooknum,
+					const struct net_device *in,
+					const struct net_device *out,
+					const void *targinfo,
+					void *userinfo)
 {
 	struct ip_conntrack *ct;
 	enum ip_conntrack_info ctinfo;
 
 	IP_NF_ASSERT(hooknum == NF_IP_PRE_ROUTING
-		     || hooknum == NF_IP_LOCAL_OUT);
+			 || hooknum == NF_IP_LOCAL_OUT);
 
 	ct = ip_conntrack_get(*pskb, &ctinfo);
 
@@ -152,10 +212,10 @@ static unsigned int ipt_dnat_target(struct sk_buff **pskb,
 }
 
 static int ipt_snat_checkentry(const char *tablename,
-			       const struct ipt_entry *e,
-			       void *targinfo,
-			       unsigned int targinfosize,
-			       unsigned int hook_mask)
+				   const struct ipt_entry *e,
+				   void *targinfo,
+				   unsigned int targinfosize,
+				   unsigned int hook_mask)
 {
 	struct ip_nat_multi_range *mr = targinfo;
 
@@ -166,10 +226,10 @@ static int ipt_snat_checkentry(const char *tablename,
 	}
 
 	if (targinfosize != IPT_ALIGN((sizeof(struct ip_nat_multi_range)
-				       + (sizeof(struct ip_nat_range)
+					   + (sizeof(struct ip_nat_range)
 					  * (mr->rangesize - 1))))) {
 		DEBUGP("SNAT: Target size %u wrong for %u ranges\n",
-		       targinfosize, mr->rangesize);
+			   targinfosize, mr->rangesize);
 		return 0;
 	}
 
@@ -181,10 +241,10 @@ static int ipt_snat_checkentry(const char *tablename,
 }
 
 static int ipt_dnat_checkentry(const char *tablename,
-			       const struct ipt_entry *e,
-			       void *targinfo,
-			       unsigned int targinfosize,
-			       unsigned int hook_mask)
+				   const struct ipt_entry *e,
+				   void *targinfo,
+				   unsigned int targinfosize,
+				   unsigned int hook_mask)
 {
 	struct ip_nat_multi_range *mr = targinfo;
 
@@ -195,10 +255,10 @@ static int ipt_dnat_checkentry(const char *tablename,
 	}
 
 	if (targinfosize != IPT_ALIGN((sizeof(struct ip_nat_multi_range)
-				       + (sizeof(struct ip_nat_range)
+					   + (sizeof(struct ip_nat_range)
 					  * (mr->rangesize - 1))))) {
 		DEBUGP("DNAT: Target size %u wrong for %u ranges\n",
-		       targinfosize, mr->rangesize);
+			   targinfosize, mr->rangesize);
 		return 0;
 	}
 
@@ -211,8 +271,8 @@ static int ipt_dnat_checkentry(const char *tablename,
 
 static inline unsigned int
 alloc_null_binding(struct ip_conntrack *conntrack,
-		   struct ip_nat_info *info,
-		   unsigned int hooknum)
+				   struct ip_nat_info *info,
+				   unsigned int hooknum)
 {
 	/* Force range to this IP; let proto decide mapping for
 	   per-proto parts (hence not IP_NAT_RANGE_PROTO_SPECIFIED).
@@ -226,29 +286,29 @@ alloc_null_binding(struct ip_conntrack *conntrack,
 		= { 1, { { IP_NAT_RANGE_MAP_IPS, ip, ip, { 0 }, { 0 } } } };
 
 	DEBUGP("Allocating NULL binding for %p (%u.%u.%u.%u)\n", conntrack,
-	       NIPQUAD(ip));
+		   NIPQUAD(ip));
 	return ip_nat_setup_info(conntrack, &mr, hooknum);
 }
 
 static inline int call_expect(const struct ip_nat_expect *i,
-			      struct sk_buff **pskb,
-			      unsigned int hooknum,
-			      struct ip_conntrack *ct,
-			      struct ip_nat_info *info,
-			      struct ip_conntrack *master,
-			      struct ip_nat_info *masterinfo,
-			      unsigned int *verdict)
+				  struct sk_buff **pskb,
+				  unsigned int hooknum,
+				  struct ip_conntrack *ct,
+				  struct ip_nat_info *info,
+				  struct ip_conntrack *master,
+				  struct ip_nat_info *masterinfo,
+				  unsigned int *verdict)
 {
 	return i->expect(pskb, hooknum, ct, info, master, masterinfo,
 			 verdict);
 }
 
 int ip_nat_rule_find(struct sk_buff **pskb,
-		     unsigned int hooknum,
-		     const struct net_device *in,
-		     const struct net_device *out,
-		     struct ip_conntrack *ct,
-		     struct ip_nat_info *info)
+					 unsigned int hooknum,
+					 const struct net_device *in,
+					 const struct net_device *out,
+					 struct ip_conntrack *ct,
+					 struct ip_nat_info *info)
 {
 	int ret;
 
@@ -258,10 +318,10 @@ int ip_nat_rule_find(struct sk_buff **pskb,
 
 		master = (struct ip_conntrack *)ct->master.master;
 		if (LIST_FIND(&nat_expect_list,
-			      call_expect,
-			      struct ip_nat_expect *,
-			      pskb, hooknum, ct, info,
-			      master, &master->nat.info, &ret))
+				  call_expect,
+				  struct ip_nat_expect *,
+				  pskb, hooknum, ct, info,
+				  master, &master->nat.info, &ret))
 			return ret;
 	}
 	ret = ipt_do_table(pskb, hooknum, in, out, &nat_table, NULL);

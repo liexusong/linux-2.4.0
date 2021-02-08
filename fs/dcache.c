@@ -34,7 +34,7 @@ spinlock_t dcache_lock = SPIN_LOCK_UNLOCKED;
 /* Right now the dcache depends on the kernel lock */
 #define check_lock()	if (!kernel_locked()) BUG()
 
-static kmem_cache_t *dentry_cache; 
+static kmem_cache_t *dentry_cache;
 
 /*
  * This is the single most critical data structure when it comes
@@ -65,9 +65,9 @@ static inline void d_free(struct dentry *dentry)
 {
 	if (dentry->d_op && dentry->d_op->d_release)
 		dentry->d_op->d_release(dentry);
-	if (dname_external(dentry)) 
+	if (dname_external(dentry))
 		kfree(dentry->d_name.name);
-	kmem_cache_free(dentry_cache, dentry); 
+	kmem_cache_free(dentry_cache, dentry);
 	dentry_stat.nr_dentry--;
 }
 
@@ -91,7 +91,7 @@ static inline void dentry_iput(struct dentry * dentry)
 		spin_unlock(&dcache_lock);
 }
 
-/* 
+/*
  * This is dput
  *
  * This is complicated by the fact that we do not want to put
@@ -110,7 +110,7 @@ static inline void dentry_iput(struct dentry * dentry)
 
 /*
  * dput - release a dentry
- * @dentry: dentry to release 
+ * @dentry: dentry to release
  *
  * Release a dentry. This will drop the usage count and if appropriate
  * call the dentry unlink method as well as removing it from the queues and
@@ -126,7 +126,7 @@ void dput(struct dentry *dentry)
 		return;
 
 repeat:
-	if (!atomic_dec_and_lock(&dentry->d_count, &dcache_lock))
+	if (!atomic_dec_and_lock(&dentry->d_count, &dcache_lock)) // 如果还有其他引用
 		return;
 
 	/* dput on a free dentry? */
@@ -140,9 +140,9 @@ repeat:
 			goto unhash_it;
 	}
 	/* Unreachable? Get rid of it */
-	if (list_empty(&dentry->d_hash))
+	if (list_empty(&dentry->d_hash)) // 如果不在dentry的hash表中
 		goto kill_it;
-	list_add(&dentry->d_lru, &dentry_unused);
+	list_add(&dentry->d_lru, &dentry_unused); // 添加到LRU链表中
 	dentry_stat.nr_unused++;
 	/*
 	 * Update the timestamp
@@ -179,7 +179,7 @@ kill_it: {
  *
  * no dcache lock.
  */
- 
+
 int d_invalidate(struct dentry * dentry)
 {
 	/*
@@ -327,7 +327,7 @@ static inline void prune_one_dentry(struct dentry * dentry)
  * This function may fail to free any resources if
  * all the dentries are in use.
  */
- 
+
 void prune_dcache(int count)
 {
 	spin_lock(&dcache_lock);
@@ -432,7 +432,7 @@ repeat:
  * We descend to the next level whenever the d_subdirs
  * list is non-empty and continue searching.
  */
- 
+
 /**
  * have_submounts - check for mounts over a dentry
  * @parent: dentry to check.
@@ -440,7 +440,7 @@ repeat:
  * Return true if the parent or its subdirectories contain
  * a mount point
  */
- 
+
 int have_submounts(struct dentry *parent)
 {
 	struct dentry *this_parent = parent;
@@ -468,7 +468,7 @@ resume:
 	 * All done at this level ... ascend and resume the search.
 	 */
 	if (this_parent != parent) {
-		next = this_parent->d_child.next; 
+		next = this_parent->d_child.next;
 		this_parent = this_parent->d_parent;
 		goto resume;
 	}
@@ -521,7 +521,7 @@ dentry->d_parent->d_name.name, dentry->d_name.name, found);
 	 * All done at this level ... ascend and resume the search.
 	 */
 	if (this_parent != parent) {
-		next = this_parent->d_child.next; 
+		next = this_parent->d_child.next;
 		this_parent = this_parent->d_parent;
 #ifdef DCACHE_DEBUG
 printk(KERN_DEBUG "select_parent: ascending to %s/%s, found=%d\n",
@@ -539,7 +539,7 @@ this_parent->d_parent->d_name.name, this_parent->d_name.name, found);
  *
  * Prune the dcache to remove unused children of the parent dentry.
  */
- 
+
 void shrink_dcache_parent(struct dentry * parent)
 {
 	int found;
@@ -595,29 +595,29 @@ void shrink_dcache_memory(int priority, unsigned int gfp_mask)
  * available. On a success the dentry is returned. The name passed in is
  * copied and the copy passed in may be reused after this call.
  */
- 
+
 struct dentry * d_alloc(struct dentry * parent, const struct qstr *name)
 {
 	char * str;
 	struct dentry *dentry;
 
-	dentry = kmem_cache_alloc(dentry_cache, GFP_KERNEL); 
+	dentry = kmem_cache_alloc(dentry_cache, GFP_KERNEL); // 从slab中申请一个dentry对象
 	if (!dentry)
 		return NULL;
 
 	if (name->len > DNAME_INLINE_LEN-1) {
 		str = kmalloc(NAME_ALLOC_LEN(name->len), GFP_KERNEL);
 		if (!str) {
-			kmem_cache_free(dentry_cache, dentry); 
+			kmem_cache_free(dentry_cache, dentry);
 			return NULL;
 		}
 	} else
-		str = dentry->d_iname; 
+		str = dentry->d_iname;
 
 	memcpy(str, name->name, name->len);
 	str[name->len] = 0;
 
-	atomic_set(&dentry->d_count, 1);
+	atomic_set(&dentry->d_count, 1); // 设置计数器为1
 	dentry->d_flags = 0;
 	dentry->d_inode = NULL;
 	dentry->d_parent = NULL;
@@ -659,13 +659,13 @@ struct dentry * d_alloc(struct dentry * parent, const struct qstr *name)
  * (or otherwise set) by the caller to indicate that it is now
  * in use by the dcache.
  */
- 
+
 void d_instantiate(struct dentry *entry, struct inode * inode)
 {
 	spin_lock(&dcache_lock);
 	if (inode)
 		list_add(&entry->d_alias, &inode->i_dentry); // 把目录dentry结构添加到inode的i_dentry列表中
-	entry->d_inode = inode;
+	entry->d_inode = inode;                          // 把目录dentry结构的inode成员指向真实的inode
 	spin_unlock(&dcache_lock);
 }
 
@@ -677,7 +677,7 @@ void d_instantiate(struct dentry *entry, struct inode * inode)
  * instantiated and returned. %NULL is returned if there is insufficient
  * memory or the inode passed is %NULL.
  */
- 
+
 struct dentry * d_alloc_root(struct inode * root_inode)
 {
 	struct dentry *res = NULL;
@@ -710,13 +710,13 @@ static inline struct list_head * d_hash(struct dentry * parent, unsigned long ha
  * is returned. The caller must use d_put to free the entry when it has
  * finished using it. %NULL is returned on failure.
  */
- 
-struct dentry * d_lookup(struct dentry * parent, struct qstr * name)
+
+struct dentry * d_lookup(struct dentry *parent, struct qstr *name)
 {
 	unsigned int len = name->len;
 	unsigned int hash = name->hash;
 	const unsigned char *str = name->name;
-	struct list_head *head = d_hash(parent,hash); // hash表的链表头
+	struct list_head *head = d_hash(parent, hash); // hash表的链表头
 	struct list_head *tmp;
 
 	spin_lock(&dcache_lock);
@@ -764,7 +764,7 @@ struct dentry * d_lookup(struct dentry * parent, struct qstr * name)
  * must not actually use them until we have found a valid
  * copy of the pointer in kernel space..
  */
- 
+
 int d_validate(struct dentry *dentry, struct dentry *dparent,
 	       unsigned int hash, unsigned int len)
 {
@@ -788,7 +788,7 @@ int d_validate(struct dentry *dentry, struct dentry *dparent,
 		 */
 		struct super_block *sb = sb_entry(super_blocks.next);
 
-		for (; sb != sb_entry(&super_blocks); 
+		for (; sb != sb_entry(&super_blocks);
 		     sb = sb_entry(sb->s_list.next)) {
 			if (!sb->s_dev)
 				continue;
@@ -816,7 +816,7 @@ out:
  * it from the hash queues and waiting for
  * it to be deleted later when it has no users
  */
- 
+
 /**
  * d_delete - delete a dentry
  * @dentry: The dentry to delete
@@ -824,7 +824,7 @@ out:
  * Turn the dentry into a negative dentry if possible, otherwise
  * remove it from the hash queues so it can be deleted later
  */
- 
+
 void d_delete(struct dentry * dentry)
 {
 	/*
@@ -850,7 +850,7 @@ void d_delete(struct dentry * dentry)
  *
  * Adds a dentry to the hash according to its name.
  */
- 
+
 void d_rehash(struct dentry * entry)
 {
 	struct list_head *list = d_hash(entry->d_parent, entry->d_name.hash);
@@ -879,7 +879,7 @@ static inline void switch_names(struct dentry * dentry, struct dentry * target)
 	const unsigned char *old_name, *new_name;
 
 	check_lock();
-	memcpy(dentry->d_iname, target->d_iname, DNAME_INLINE_LEN); 
+	memcpy(dentry->d_iname, target->d_iname, DNAME_INLINE_LEN);
 	old_name = target->d_name.name;
 	new_name = dentry->d_name.name;
 	if (old_name == target->d_iname)
@@ -905,7 +905,7 @@ static inline void switch_names(struct dentry * dentry, struct dentry * target)
  * the fact that any list-entry can be a head of the list.
  * Think about it.
  */
- 
+
 /**
  * d_move - move a dentry
  * @dentry: entry to move
@@ -914,7 +914,7 @@ static inline void switch_names(struct dentry * dentry, struct dentry * target)
  * Update the dcache to reflect the move of a file name. Negative
  * dcache entries should not be moved in this way.
  */
-  
+
 void d_move(struct dentry * dentry, struct dentry * target)
 {
 	check_lock();
@@ -1092,7 +1092,7 @@ asmlinkage long sys_getcwd(char *buf, unsigned long size)
  * Returns 1 if new_dentry is a subdirectory of the parent (at any depth).
  * Returns 0 otherwise.
  */
-  
+
 int is_subdir(struct dentry * new_dentry, struct dentry * old_dentry)
 {
 	int result;
@@ -1134,7 +1134,7 @@ resume:
 		atomic_dec(&dentry->d_count);
 	}
 	if (this_parent != root) {
-		next = this_parent->d_child.next; 
+		next = this_parent->d_child.next;
 		atomic_dec(&this_parent->d_count);
 		this_parent = this_parent->d_parent;
 		goto resume;
@@ -1155,7 +1155,7 @@ resume:
  * filesystems using synthetic inode numbers, and is necessary
  * to keep getcwd() working.
  */
- 
+
 ino_t find_inode_number(struct dentry *dir, struct qstr *name)
 {
 	struct dentry * dentry;
@@ -1191,13 +1191,13 @@ static void __init dcache_init(unsigned long mempages)
 	unsigned int nr_hash;
 	int i;
 
-	/* 
+	/*
 	 * A constructor could be added for stable state like the lists,
 	 * but it is probably not worth it because of the cache nature
-	 * of the dcache. 
+	 * of the dcache.
 	 * If fragmentation is too bad then the SLAB_HWCACHE_ALIGN
 	 * flag could be removed here, to hint to the allocator that
-	 * it should not try to get multiple page regions.  
+	 * it should not try to get multiple page regions.
 	 */
 	dentry_cache = kmem_cache_create("dentry_cache",
 					 sizeof(struct dentry),
@@ -1265,20 +1265,20 @@ void __init vfs_caches_init(unsigned long mempages)
 	if(!bh_cachep)
 		panic("Cannot create buffer head SLAB cache");
 
-	names_cachep = kmem_cache_create("names_cache", 
-			PATH_MAX + 1, 0, 
+	names_cachep = kmem_cache_create("names_cache",
+			PATH_MAX + 1, 0,
 			SLAB_HWCACHE_ALIGN, NULL, NULL);
 	if (!names_cachep)
 		panic("Cannot create names SLAB cache");
 
-	filp_cachep = kmem_cache_create("filp", 
+	filp_cachep = kmem_cache_create("filp",
 			sizeof(struct file), 0,
 			SLAB_HWCACHE_ALIGN, NULL, NULL);
 	if(!filp_cachep)
 		panic("Cannot create filp SLAB cache");
 
 #if defined (CONFIG_QUOTA)
-	dquot_cachep = kmem_cache_create("dquot", 
+	dquot_cachep = kmem_cache_create("dquot",
 			sizeof(struct dquot), sizeof(unsigned long) * 4,
 			SLAB_HWCACHE_ALIGN, NULL, NULL);
 	if (!dquot_cachep)

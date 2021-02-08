@@ -180,13 +180,13 @@ static inline void send_IPI_mask(int mask, int vector)
 	/*
 	 * Wait for idle.
 	 */
-	apic_wait_icr_idle();
+	apic_wait_icr_idle(); // 等待空闲
 
 	/*
 	 * prepare target chip field
 	 */
 	cfg = __prepare_ICR2(mask);
-	apic_write_around(APIC_ICR2, cfg);
+	apic_write_around(APIC_ICR2, cfg); // 指定哪些CPU收到中断
 
 	/*
 	 * program the ICR
@@ -196,7 +196,7 @@ static inline void send_IPI_mask(int mask, int vector)
 	/*
 	 * Send the IPI. The write to APIC_ICR fires this off.
 	 */
-	apic_write_around(APIC_ICR, cfg);
+	apic_write_around(APIC_ICR, cfg); // 触发其他CPU中断
 	__restore_flags(flags);
 }
 
@@ -273,7 +273,7 @@ static void inline leave_mm (unsigned long cpu)
  * 2) Leave the mm if we are in the lazy tlb mode.
  */
 
-asmlinkage void smp_invalidate_interrupt (void)
+asmlinkage void smp_invalidate_interrupt(void)
 {
 	unsigned long cpu = smp_processor_id();
 
@@ -335,10 +335,10 @@ static void flush_tlb_others (unsigned long cpumask, struct mm_struct *mm,
 	 * We have to send the IPI only to
 	 * CPUs affected.
 	 */
-	send_IPI_mask(cpumask, INVALIDATE_TLB_VECTOR);
+	send_IPI_mask(cpumask, INVALIDATE_TLB_VECTOR); // 发送中断
 
 	while (flush_cpumask)
-		/* nothing. lockup detection does not belong here */;
+		/* nothing. lockup detection does not belong here */; // 等待所有CPU刷新完成
 
 	flush_mm = NULL;
 	flush_va = 0;
@@ -372,17 +372,17 @@ void flush_tlb_mm (struct mm_struct * mm)
 void flush_tlb_page(struct vm_area_struct * vma, unsigned long va)
 {
 	struct mm_struct *mm = vma->vm_mm;
-	unsigned long cpu_mask = mm->cpu_vm_mask & ~(1 << smp_processor_id());
+	unsigned long cpu_mask = mm->cpu_vm_mask & ~(1 << smp_processor_id()); // 正在使用当前mm的CPU
 
-	if (current->active_mm == mm) {
+	if (current->active_mm == mm) { // 如果当前进程正在使用此mm
 		if(current->mm)
-			__flush_tlb_one(va);
+			__flush_tlb_one(va); // 重刷页目录(刷新CR3寄存器的缓存)
 		 else
 		 	leave_mm(smp_processor_id());
 	}
 
 	if (cpu_mask)
-		flush_tlb_others(cpu_mask, mm, va);
+		flush_tlb_others(cpu_mask, mm, va); // 发送刷新页目录缓存的中断
 }
 
 static inline void do_flush_tlb_all_local(void)

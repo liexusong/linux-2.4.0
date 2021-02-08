@@ -416,7 +416,7 @@ void filemap_fdatasync(struct address_space * mapping)
 
 	spin_lock(&pagecache_lock);
 
-        while (!list_empty(&mapping->dirty_pages)) {
+	while (!list_empty(&mapping->dirty_pages)) {
 		struct page *page = list_entry(mapping->dirty_pages.next, struct page, list);
 
 		list_del(&page->list);
@@ -453,7 +453,7 @@ void filemap_fdatawait(struct address_space * mapping)
 {
 	spin_lock(&pagecache_lock);
 
-        while (!list_empty(&mapping->locked_pages)) {
+	while (!list_empty(&mapping->locked_pages)) {
 		struct page *page = list_entry(mapping->locked_pages.next, struct page, list);
 
 		list_del(&page->list);
@@ -507,10 +507,10 @@ static inline void __add_to_page_cache(struct page * page,
 		BUG();
 
 	flags = page->flags & ~((1 << PG_uptodate) | (1 << PG_error) | (1 << PG_dirty) | (1 << PG_referenced) | (1 << PG_arch_1));
-	page->flags = flags | (1 << PG_locked);
+	page->flags = flags | (1 << PG_locked); // Lock page
 	page_cache_get(page);
 	page->index = offset;
-	add_page_to_inode_queue(mapping, page);
+	add_page_to_inode_queue(mapping, page); // 添加到address_space的链表中
 	add_page_to_hash_queue(page, hash);
 	lru_cache_add(page);
 }
@@ -1010,7 +1010,7 @@ static void generic_file_readahead(int reada_ok,
  * This is really ugly. But the goto's actually try to clarify some
  * of the logic when it comes to error handling etc.
  */
-void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * desc, read_actor_t actor)
+void do_generic_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
 {
 	struct inode *inode = filp->f_dentry->d_inode;
 	struct address_space *mapping = inode->i_mapping;
@@ -1021,8 +1021,8 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 	int max_readahead = get_max_readahead(inode);
 
 	cached_page = NULL;
-	index = *ppos >> PAGE_CACHE_SHIFT;
-	offset = *ppos & ~PAGE_CACHE_MASK;
+	index = *ppos >> PAGE_CACHE_SHIFT; // page索引
+	offset = *ppos & ~PAGE_CACHE_MASK; // 在page中的偏移量
 
 /*
  * If the current position is outside the previous read-ahead window,
@@ -1058,7 +1058,7 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 			filp->f_ramax = needed;
 
 		if (reada_ok && filp->f_ramax < MIN_READAHEAD)
-				filp->f_ramax = MIN_READAHEAD;
+			filp->f_ramax = MIN_READAHEAD;
 		if (filp->f_ramax > max_readahead)
 			filp->f_ramax = max_readahead;
 	}
@@ -1067,7 +1067,7 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 		struct page *page, **hash;
 		unsigned long end_index, nr;
 
-		end_index = inode->i_size >> PAGE_CACHE_SHIFT;
+		end_index = inode->i_size >> PAGE_CACHE_SHIFT; // 文件最大的页索引
 		if (index > end_index)
 			break;
 		nr = PAGE_CACHE_SIZE;
@@ -1263,12 +1263,12 @@ ssize_t generic_file_read(struct file * filp, char * buf, size_t count, loff_t *
 	return retval;
 }
 
-static int file_send_actor(read_descriptor_t * desc, struct page *page, unsigned long offset , unsigned long size)
+static int file_send_actor(read_descriptor_t *desc, struct page *page, unsigned long offset , unsigned long size)
 {
 	char *kaddr;
 	ssize_t written;
 	unsigned long count = desc->count;
-	struct file *file = (struct file *) desc->buf;
+	struct file *file = (struct file *)desc->buf;
 	mm_segment_t old_fs;
 
 	if (size > count)
@@ -1292,8 +1292,8 @@ static int file_send_actor(read_descriptor_t * desc, struct page *page, unsigned
 asmlinkage ssize_t sys_sendfile(int out_fd, int in_fd, off_t *offset, size_t count)
 {
 	ssize_t retval;
-	struct file * in_file, * out_file;
-	struct inode * in_inode, * out_inode;
+	struct file *in_file, *out_file;
+	struct inode *in_inode, *out_inode;
 
 	/*
 	 * Get input file, and verify that it is ok..
@@ -1346,7 +1346,7 @@ asmlinkage ssize_t sys_sendfile(int out_fd, int in_fd, off_t *offset, size_t cou
 
 		desc.written = 0;
 		desc.count = count;
-		desc.buf = (char *) out_file;
+		desc.buf = (char *)out_file;
 		desc.error = 0;
 		do_generic_file_read(in_file, ppos, &desc, file_send_actor);
 
@@ -1438,6 +1438,7 @@ struct page * filemap_nopage(struct vm_area_struct * area,
 	struct page *page, **hash, *old_page;
 	unsigned long size, pgoff;
 
+	// 地址所在的内存页偏移量
 	pgoff = ((address - area->vm_start) >> PAGE_CACHE_SHIFT) + area->vm_pgoff;
 
 retry_all:
@@ -1454,9 +1455,9 @@ retry_all:
 	 */
 	hash = page_hash(mapping, pgoff);
 retry_find:
-	page = __find_get_page(mapping, pgoff, hash);
+	page = __find_get_page(mapping, pgoff, hash); // 查找缓存是否已经存在
 	if (!page)
-		goto no_cached_page;
+		goto no_cached_page; // 跳去读取文件内容到内存
 
 	/*
 	 * Ok, found a page in the page cache, now we need to check
@@ -1550,7 +1551,7 @@ page_not_uptodate:
 	 * because there really aren't any performance issues here
 	 * and we need to check for errors.
 	 */
-	lock_page(page);
+	lock_page(page); // 可能会休眠
 
 	/* Somebody truncated the page on us? */
 	if (!page->mapping) {
@@ -1707,7 +1708,7 @@ static struct vm_operations_struct file_private_mmap = {
 int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
 {
 	struct vm_operations_struct * ops;
-	struct inode *inode = file->f_dentry->d_inode;
+	struct inode *inode = file->f_dentry->d_inode; // 文件所属inode
 
 	ops = &file_private_mmap;
 	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE)) {

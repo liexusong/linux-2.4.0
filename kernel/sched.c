@@ -214,9 +214,9 @@ static void reschedule_idle(struct task_struct * p)
 	 * shortcut if the woken up task's last CPU is
 	 * idle now.
 	 */
-	best_cpu = p->processor;
-	if (can_schedule(p, best_cpu)) { // 如果进程p能够在best_cpu调度
-		tsk = idle_task(best_cpu);
+	best_cpu = p->processor;             // 运行p进程的CPU
+	if (can_schedule(p, best_cpu)) {     // 如果进程p能够在best_cpu调度
+		tsk = idle_task(best_cpu);       // 获取进程p所在CPU的idle进程
 		if (cpu_curr(best_cpu) == tsk) { // 如果best_cpu正在运行idle进程
 			int need_resched;
 send_now_idle:
@@ -228,7 +228,7 @@ send_now_idle:
 			need_resched = tsk->need_resched;
 			tsk->need_resched = 1;
 			if ((best_cpu != this_cpu) && !need_resched) // 如果当前CPU不是p最合适的CPU
-				smp_send_reschedule(best_cpu); // 发送重调度信号给最合适的CPU
+				smp_send_reschedule(best_cpu);           // 发送重调度信号给最合适的CPU
 			return;
 		}
 	}
@@ -240,7 +240,7 @@ send_now_idle:
 	 * one will have the least active cache context.) Also find
 	 * the executing process which has the least priority.
 	 */
-	oldest_idle = (cycles_t) -1;
+	oldest_idle = (cycles_t) -1; // unsigned long long
 	target_tsk = NULL;
 	max_prio = 1;
 
@@ -254,7 +254,7 @@ send_now_idle:
 		 * a priority list between idle CPUs, but this is not
 		 * a problem.
 		 */
-		if (tsk == idle_task(cpu)) {
+		if (tsk == idle_task(cpu)) { // 如果CPU正在运行idle进程
 			if (last_schedule(cpu) < oldest_idle) {
 				oldest_idle = last_schedule(cpu);
 				target_tsk = tsk;
@@ -263,7 +263,7 @@ send_now_idle:
 			if (oldest_idle == -1ULL) {
 				int prio = preemption_goodness(tsk, p, cpu);
 
-				if (prio > max_prio) {
+				if (prio > max_prio) { // 如果p进程比CPU运行着的进程优先级要高, 那么就调度到p进程
 					max_prio = prio;
 					target_tsk = tsk;
 				}
@@ -478,7 +478,7 @@ needs_resched:
 		if ((prev == idle_task(smp_processor_id())) || (policy & SCHED_YIELD))
 			goto out_unlock;
 
-		spin_lock_irqsave(&runqueue_lock, flags);
+		spin_lock_irqsave(&runqueue_lock, flags); // 调用 reschedule_idle() 函数必须先锁上runqueue_lock
 		if (prev->state == TASK_RUNNING)
 			reschedule_idle(prev);
 		spin_unlock_irqrestore(&runqueue_lock, flags);
@@ -624,7 +624,7 @@ still_running_back:
 	{
 		struct mm_struct *mm = next->mm;
 		struct mm_struct *oldmm = prev->active_mm;
-		if (!mm) {
+		if (!mm) { // 如果是内核线程
 			if (next->active_mm) BUG();
 			next->active_mm = oldmm;
 			atomic_inc(&oldmm->mm_count);

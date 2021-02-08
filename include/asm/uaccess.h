@@ -158,7 +158,7 @@ extern void __put_user_bad(void);
 	if (access_ok(VERIFY_WRITE,__pu_addr,size))	\
 		__put_user_size((x),__pu_addr,(size),__pu_err);	\
 	__pu_err;					\
-})							
+})
 
 #define __put_user_size(x,ptr,size,retval)				\
 do {									\
@@ -261,31 +261,31 @@ do {									\
 } while (0)
 
 #define __copy_user_zeroing(to,from,size)				\
-do {									\
-	int __d0, __d1;							\
-	__asm__ __volatile__(						\
-		"0:	rep; movsl\n"					\
-		"	movl %3,%0\n"					\
-		"1:	rep; movsb\n"					\
-		"2:\n"							\
-		".section .fixup,\"ax\"\n"				\
-		"3:	lea 0(%3,%0,4),%0\n"				\
-		"4:	pushl %0\n"					\
-		"	pushl %%eax\n"					\
-		"	xorl %%eax,%%eax\n"				\
-		"	rep; stosb\n"					\
-		"	popl %%eax\n"					\
-		"	popl %0\n"					\
-		"	jmp 2b\n"					\
-		".previous\n"						\
-		".section __ex_table,\"a\"\n"				\
-		"	.align 4\n"					\
-		"	.long 0b,3b\n"					\
-		"	.long 1b,4b\n"					\
-		".previous"						\
+do {													\
+	int __d0, __d1;										\
+	__asm__ __volatile__(								\
+		"0:	rep; movsl\n"								\
+		"	movl %3,%0\n"								\
+		"1:	rep; movsb\n"								\
+		"2:\n"											\
+		".section .fixup,\"ax\"\n"						\
+		"3:	lea 0(%3,%0,4),%0\n"						\
+		"4:	pushl %0\n"									\
+		"	pushl %%eax\n"								\
+		"	xorl %%eax,%%eax\n"							\
+		"	rep; stosb\n"								\
+		"	popl %%eax\n"								\
+		"	popl %0\n"									\
+		"	jmp 2b\n"									\
+		".previous\n"									\
+		".section __ex_table,\"a\"\n"					\
+		"	.align 4\n"									\
+		"	.long 0b,3b\n"								\
+		"	.long 1b,4b\n"								\
+		".previous"										\
 		: "=&c"(size), "=&D" (__d0), "=&S" (__d1)		\
 		: "r"(size & 3), "0"(size / 4), "1"(to), "2"(from)	\
-		: "memory");						\
+		: "memory");									\
 } while (0)
 
 /* We let the __ versions of copy_from/to_user inline, because they're often

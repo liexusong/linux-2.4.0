@@ -15,7 +15,7 @@
 
 static void wait_for_partner(struct inode* inode, unsigned int* cnt)
 {
-	int cur = *cnt;	
+	int cur = *cnt;
 	while(cur == *cnt) {
 		pipe_wait(inode);
 		if(signal_pending(current))
@@ -61,7 +61,7 @@ static int fifo_open(struct inode *inode, struct file *filp)
 				/* suppress POLLHUP until we have
 				 * seen a writer */
 				filp->f_version = PIPE_WCOUNTER(*inode);
-			} else 
+			} else
 			{
 				wait_for_partner(inode, &PIPE_WCOUNTER(*inode));
 				if(signal_pending(current))
@@ -69,7 +69,7 @@ static int fifo_open(struct inode *inode, struct file *filp)
 			}
 		}
 		break;
-	
+
 	case 2:
 	/*
 	 *  O_WRONLY
@@ -91,7 +91,7 @@ static int fifo_open(struct inode *inode, struct file *filp)
 				goto err_wr;
 		}
 		break;
-	
+
 	case 3:
 	/*
 	 *  O_RDWR
@@ -153,5 +153,5 @@ err_nolock_nocleanup:
  * depending on the access mode of the file...
  */
 struct file_operations def_fifo_fops = {
-	open:		fifo_open,	/* will set read or write pipe_fops */
+	open: fifo_open,	/* will set read or write pipe_fops */
 };
