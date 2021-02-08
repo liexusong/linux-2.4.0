@@ -21,7 +21,7 @@
  *	Fixes:
  *		Alan Cox	:	Missing nonblock feature in ip_build_xmit.
  *		Mike Kilburn	:	htons() missing in ip_build_xmit.
- *		Bradford Johnson:	Fix faulty handling of some frames when 
+ *		Bradford Johnson:	Fix faulty handling of some frames when
  *					no route is found.
  *		Alexander Demenshin:	Missing sk/skb free in ip_queue_xmit
  *					(in case if packet not accepted by
@@ -32,9 +32,9 @@
  *					some redundant tests.
  *	Vitaly E. Lavrov	:	Transparent proxy revived after year coma.
  *		Andi Kleen	: 	Replace ip_reply with ip_send_reply.
- *		Andi Kleen	:	Split fast and slow ip_build_xmit path 
- *					for decreased register pressure on x86 
- *					and more readibility. 
+ *		Andi Kleen	:	Split fast and slow ip_build_xmit path
+ *					for decreased register pressure on x86
+ *					and more readibility.
  *		Marc Boucher	:	When call_out_firewall returns FW_QUEUE,
  *					silently drop skb instead of failing with -EPERM.
  */
@@ -115,7 +115,7 @@ output_maybe_reroute(struct sk_buff *skb)
 	return skb->dst->output(skb);
 }
 
-/* 
+/*
  *		Add an ip header to a skbuff and send it out.
  */
 int ip_build_and_send_pkt(struct sk_buff *skb, struct sock *sk,
@@ -227,7 +227,7 @@ int ip_mc_output(struct sk_buff *skb)
 			struct sk_buff *newskb = skb_clone(skb, GFP_ATOMIC);
 			if (newskb)
 				NF_HOOK(PF_INET, NF_IP_POST_ROUTING, newskb, NULL,
-					newskb->dev, 
+					newskb->dev,
 					ip_dev_loopback_xmit);
 		}
 
@@ -265,8 +265,8 @@ int ip_output(struct sk_buff *skb)
 	return ip_finish_output(skb);
 }
 
-/* Queues a packet to be sent, and starts the transmitter if necessary.  
- * This routine also needs to put in the total length and compute the 
+/* Queues a packet to be sent, and starts the transmitter if necessary.
+ * This routine also needs to put in the total length and compute the
  * checksum.  We use to do this in two stages, ip_build_header() then
  * this, but that scheme created a mess when routes disappeared etc.
  * So we do it all here, and the TCP send engine has been changed to
@@ -405,7 +405,7 @@ no_route:
  *	day.
  *
  *	The callback has five args, an arbitrary pointer (copy of frag),
- *	the source IP address (may depend on the routing table), the 
+ *	the source IP address (may depend on the routing table), the
  *	destination address (char *), the offset to copy from, and the
  *	length to be copied.
  */
@@ -413,7 +413,7 @@ no_route:
 static int ip_build_xmit_slow(struct sock *sk,
 		  int getfrag (const void *,
 			       char *,
-			       unsigned int,	
+			       unsigned int,
 			       unsigned int),
 		  const void *frag,
 		  unsigned length,
@@ -484,10 +484,11 @@ static int ip_build_xmit_slow(struct sock *sk,
 	 *	Don't fragment packets for path mtu discovery.
 	 */
 
-	if (offset > 0 && sk->protinfo.af_inet.pmtudisc==IP_PMTUDISC_DO) { 
+	if (offset > 0 && sk->protinfo.af_inet.pmtudisc==IP_PMTUDISC_DO) {
 		ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport, mtu);
  		return -EMSGSIZE;
 	}
+
 	if (flags&MSG_PROBE)
 		goto out;
 
@@ -523,7 +524,7 @@ static int ip_build_xmit_slow(struct sock *sk,
 		skb->nh.iph = (struct iphdr *)data;
 
 		/*
-		 *	Only write IP header onto non-raw packets 
+		 *	Only write IP header onto non-raw packets
 		 */
 
 		{
@@ -582,7 +583,7 @@ static int ip_build_xmit_slow(struct sock *sk,
 
 		nfrags++;
 
-		err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, 
+		err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL,
 			      skb->dst->dev, output_maybe_reroute);
 		if (err) {
 			if (err > 0)
@@ -601,16 +602,16 @@ error:
 	IP_INC_STATS(IpOutDiscards);
 	if (nfrags>1)
 		ip_statistics[smp_processor_id()*2 + !in_softirq()].IpFragCreates += nfrags;
-	return err; 
+	return err;
 }
 
 /*
  *	Fast path for unfragmented packets.
  */
-int ip_build_xmit(struct sock *sk, 
-		  int getfrag (const void *,
+int ip_build_xmit(struct sock *sk,
+		  int getfrag(const void *,
 			       char *,
-			       unsigned int,	
+			       unsigned int,
 			       unsigned int),
 		  const void *frag,
 		  unsigned length,
@@ -634,8 +635,8 @@ int ip_build_xmit(struct sock *sk,
 		/*
 		 * 	Check for slow path.
 		 */
-		if (length > rt->u.dst.pmtu || ipc->opt != NULL)  
-			return ip_build_xmit_slow(sk,getfrag,frag,length,ipc,rt,flags); 
+		if (length > rt->u.dst.pmtu || ipc->opt != NULL)
+			return ip_build_xmit_slow(sk,getfrag,frag,length,ipc,rt,flags);
 	} else {
 		if (length > rt->u.dst.dev->mtu) {
 			ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport, rt->u.dst.dev->mtu);
@@ -652,16 +653,16 @@ int ip_build_xmit(struct sock *sk,
 	if (ip_dont_fragment(sk, &rt->u.dst))
 		df = htons(IP_DF);
 
-	/* 
-	 *	Fast path for unfragmented frames without options. 
-	 */ 
+	/*
+	 *	Fast path for unfragmented frames without options.
+	 */
 	{
 	int hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
 
 	skb = sock_alloc_send_skb(sk, length+hh_len+15,
 				  0, flags&MSG_DONTWAIT, &err);
 	if(skb==NULL)
-		goto error; 
+		goto error;
 	skb_reserve(skb, hh_len);
 	}
 
@@ -707,7 +708,7 @@ error_fault:
 	kfree_skb(skb);
 error:
 	IP_INC_STATS(IpOutDiscards);
-	return err; 
+	return err;
 }
 
 /*
@@ -726,7 +727,7 @@ int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
 	unsigned char *ptr;
 	struct net_device *dev;
 	struct sk_buff *skb2;
-	unsigned int mtu, hlen, left, len; 
+	unsigned int mtu, hlen, left, len;
 	int offset;
 	int not_last_frag;
 	struct rtable *rt = (struct rtable*)skb->dst;
@@ -866,7 +867,7 @@ int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
 	return err;
 
 fail:
-	kfree_skb(skb); 
+	kfree_skb(skb);
 	IP_INC_STATS(IpFragFails);
 	return err;
 }
@@ -874,48 +875,48 @@ fail:
 /*
  *	Fetch data from kernel space and fill in checksum if needed.
  */
-static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset, 
-			      unsigned int fraglen)
+static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
+							  unsigned int fraglen)
 {
         struct ip_reply_arg *dp = (struct ip_reply_arg*)dptr;
 	u16 *pktp = (u16 *)to;
-	struct iovec *iov; 
-	int len; 
-	int hdrflag = 1; 
+	struct iovec *iov;
+	int len;
+	int hdrflag = 1;
 
-	iov = &dp->iov[0]; 
-	if (offset >= iov->iov_len) { 
+	iov = &dp->iov[0];
+	if (offset >= iov->iov_len) {
 		offset -= iov->iov_len;
-		iov++; 
-		hdrflag = 0; 
+		iov++;
+		hdrflag = 0;
 	}
 	len = iov->iov_len - offset;
-	if (fraglen > len) { /* overlapping. */ 
+	if (fraglen > len) { /* overlapping. */
 		dp->csum = csum_partial_copy_nocheck(iov->iov_base+offset, to, len,
 					     dp->csum);
 		offset = 0;
-		fraglen -= len; 
-		to += len; 
+		fraglen -= len;
+		to += len;
 		iov++;
 	}
 
-	dp->csum = csum_partial_copy_nocheck(iov->iov_base+offset, to, fraglen, 
-					     dp->csum); 
+	dp->csum = csum_partial_copy_nocheck(iov->iov_base+offset, to, fraglen,
+					     dp->csum);
 
 	if (hdrflag && dp->csumoffset)
 		*(pktp + dp->csumoffset) = csum_fold(dp->csum); /* fill in checksum */
-	return 0;	       
+	return 0;
 }
 
-/* 
+/*
  *	Generic function to send a packet as reply to another packet.
  *	Used to send TCP resets so far. ICMP should use this function too.
  *
- *	Should run single threaded per socket because it uses the sock 
+ *	Should run single threaded per socket because it uses the sock
  *     	structure to pass arguments.
  */
-void ip_send_reply(struct sock *sk, struct sk_buff *skb, struct ip_reply_arg *arg,
-		   unsigned int len)
+void ip_send_reply(struct sock *sk, struct sk_buff *skb,
+				   struct ip_reply_arg *arg, unsigned int len)
 {
 	struct {
 		struct ip_options	opt;

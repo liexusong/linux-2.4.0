@@ -17,7 +17,7 @@
 #include <asm/dma.h>
 #include <asm/system.h>
 
- 
+
 
 /* A note on resource allocation:
  *
@@ -105,7 +105,7 @@ void free_dma(unsigned int dmanr)
 	if (xchg(&dma_chan_busy[dmanr].lock, 0) == 0) {
 		printk("Trying to free free DMA%d\n", dmanr);
 		return;
-	}	
+	}
 
 } /* free_dma */
 
@@ -122,7 +122,7 @@ int free_dma(unsigned int dmanr)
 }
 
 int get_dma_list(char *buf)
-{	
+{
 	strcpy(buf, "No DMA\n");
 	return 7;
 }
