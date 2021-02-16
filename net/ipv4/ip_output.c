@@ -610,12 +610,12 @@ error:
  *	Fast path for unfragmented packets.
  */
 int ip_build_xmit(struct sock *sk,
-	int getfrag(const void *,char *,unsigned int,unsigned int),
-	const void *frag,
-	unsigned length,
-	struct ipcm_cookie *ipc,
-	struct rtable *rt,
-	int flags)
+				  int getfrag(const void *, char *, unsigned int, unsigned int),
+				  const void *frag,
+				  unsigned length,
+				  struct ipcm_cookie *ipc,
+				  struct rtable *rt,
+				  int flags)
 {
 	int err;
 	struct sk_buff *skb;
@@ -634,14 +634,16 @@ int ip_build_xmit(struct sock *sk,
 		 * 	Check for slow path.
 		 */
 		if (length > rt->u.dst.pmtu || ipc->opt != NULL)
-			return ip_build_xmit_slow(sk,getfrag,frag,length,ipc,rt,flags);
+			return ip_build_xmit_slow(sk, getfrag, frag, length, ipc, rt, flags);
 	} else {
 		if (length > rt->u.dst.dev->mtu) {
-			ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport, rt->u.dst.dev->mtu);
+			ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport,
+						   t->u.dst.dev->mtu);
 			return -EMSGSIZE;
 		}
 	}
-	if (flags&MSG_PROBE)
+
+	if (flags & MSG_PROBE)
 		goto out;
 
 	/*
@@ -693,9 +695,10 @@ int ip_build_xmit(struct sock *sk,
 		goto error_fault;
 
 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
-		      output_maybe_reroute);
+				  output_maybe_reroute);
 	if (err > 0)
 		err = sk->protinfo.af_inet.recverr ? net_xmit_errno(err) : 0;
+
 	if (err)
 		goto error;
 out:

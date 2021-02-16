@@ -585,8 +585,10 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 	if (MULTICAST(daddr)) {
 		if (!ipc.oif)
 			ipc.oif = sk->protinfo.af_inet.mc_index;
+
 		if (!ufh.saddr)
 			ufh.saddr = sk->protinfo.af_inet.mc_addr;
+
 		connected = 0;
 	}
 
@@ -601,11 +603,12 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 		err = -EACCES;
 		if (rt->rt_flags&RTCF_BROADCAST && !sk->broadcast)
 			goto out;
+
 		if (connected)
 			sk_dst_set(sk, dst_clone(&rt->u.dst));
 	}
 
-	if (msg->msg_flags&MSG_CONFIRM)
+	if (msg->msg_flags & MSG_CONFIRM)
 		goto do_confirm;
 
 back_from_confirm:
@@ -620,11 +623,10 @@ back_from_confirm:
 	/* RFC1122: OK.  Provides the checksumming facility (MUST) as per */
 	/* 4.1.3.4. It's configurable by the application via setsockopt() */
 	/* (MAY) and it defaults to on (MUST). */
-
-	err = ip_build_xmit(sk,
-						(sk->no_check == UDP_CSUM_NOXMIT
-						 					? udp_getfrag_nosum
-						 					: udp_getfrag),
+	// 构建MAC头部、IP头部和UDP头部并且下发给IP协议层
+	err = ip_build_xmit(sk, (sk->no_check == UDP_CSUM_NOXMIT
+							 					? udp_getfrag_nosum
+							 					: udp_getfrag),
 					    &ufh, ulen, &ipc, rt, msg->msg_flags);
 
 out:
