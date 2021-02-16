@@ -47,8 +47,6 @@
 #include <net/sock.h>
 #include <net/ip_fib.h>
 
-#define FRprintk(a...)
-
 struct fib_rule
 {
 	struct fib_rule *r_next;
@@ -58,27 +56,47 @@ struct fib_rule
 	unsigned char	r_action;
 	unsigned char	r_dst_len;
 	unsigned char	r_src_len;
-	u32		r_src;
-	u32		r_srcmask;
-	u32		r_dst;
-	u32		r_dstmask;
-	u32		r_srcmap;
-	u8		r_flags;
-	u8		r_tos;
+	u32				r_src;
+	u32				r_srcmask;
+	u32				r_dst;
+	u32				r_dstmask;
+	u32				r_srcmap;
+	u8				r_flags;
+	u8				r_tos;
 #ifdef CONFIG_IP_ROUTE_FWMARK
-	u32		r_fwmark;
+	u32				r_fwmark;
 #endif
-	int		r_ifindex;
+	int				r_ifindex;
 #ifdef CONFIG_NET_CLS_ROUTE
-	__u32	r_tclassid;
+	__u32			r_tclassid;
 #endif
-	char	r_ifname[IFNAMSIZ];
-	int		r_dead;
+	char			r_ifname[IFNAMSIZ];
+	int				r_dead;
 };
 
-static struct fib_rule default_rule = { NULL, ATOMIC_INIT(2), 0x7FFF, RT_TABLE_DEFAULT, RTN_UNICAST, };
-static struct fib_rule main_rule = { &default_rule, ATOMIC_INIT(2), 0x7FFE, RT_TABLE_MAIN, RTN_UNICAST, };
-static struct fib_rule local_rule = { &main_rule, ATOMIC_INIT(2), 0, RT_TABLE_LOCAL, RTN_UNICAST, };
+static struct fib_rule default_rule = {
+	NULL,
+	ATOMIC_INIT(2),
+	0x7FFF,
+	RT_TABLE_DEFAULT,
+	RTN_UNICAST,
+};
+
+static struct fib_rule main_rule = {
+	&default_rule,
+	ATOMIC_INIT(2),
+	0x7FFE,
+	RT_TABLE_MAIN,
+	RTN_UNICAST,
+};
+
+static struct fib_rule local_rule = {
+	&main_rule,
+	ATOMIC_INIT(2),
+	0,
+	RT_TABLE_LOCAL,
+	RTN_UNICAST,
+};
 
 static struct fib_rule *fib_rules = &local_rule;
 static rwlock_t fib_rules_lock = RW_LOCK_UNLOCKED;
@@ -90,7 +108,7 @@ int inet_rtm_delrule(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg)
 	struct fib_rule *r, **rp;
 	int err = -ESRCH;
 
-	for (rp=&fib_rules; (r=*rp) != NULL; rp=&r->r_next) {
+	for (rp = &fib_rules; (r = *rp) != NULL; rp = &r->r_next) {
 		if ((!rta[RTA_SRC-1] || memcmp(RTA_DATA(rta[RTA_SRC-1]), &r->r_src, 4) == 0) &&
 		    rtm->rtm_src_len == r->r_src_len &&
 		    rtm->rtm_dst_len == r->r_dst_len &&
@@ -102,7 +120,8 @@ int inet_rtm_delrule(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg)
 		    (!rtm->rtm_type || rtm->rtm_type == r->r_action) &&
 		    (!rta[RTA_PRIORITY-1] || memcmp(RTA_DATA(rta[RTA_PRIORITY-1]), &r->r_preference, 4) == 0) &&
 		    (!rta[RTA_IIF-1] || strcmp(RTA_DATA(rta[RTA_IIF-1]), r->r_ifname) == 0) &&
-		    (!rtm->rtm_table || (r && rtm->rtm_table == r->r_table))) {
+		    (!rtm->rtm_table || (r && rtm->rtm_table == r->r_table)))
+		{
 			err = -EPERM;
 			if (r == &local_rule)
 				break;
@@ -298,8 +317,6 @@ int fib_lookup(const struct rt_key *key, struct fib_result *res)
 	u32 daddr = key->dst;
 	u32 saddr = key->src;
 
-FRprintk("Lookup: %u.%u.%u.%u <- %u.%u.%u.%u ",
-	NIPQUAD(key->dst), NIPQUAD(key->src));
 	read_lock(&fib_rules_lock);
 	for (r = fib_rules; r; r=r->r_next) {
 		if (((saddr^r->r_src) & r->r_srcmask) ||
@@ -313,7 +330,6 @@ FRprintk("Lookup: %u.%u.%u.%u <- %u.%u.%u.%u ",
 		    (r->r_ifindex && r->r_ifindex != key->iif))
 			continue;
 
-FRprintk("tb %d r %d ", r->r_table, r->r_action);
 		switch (r->r_action) {
 		case RTN_UNICAST:
 		case RTN_NAT:
@@ -346,7 +362,7 @@ FRprintk("tb %d r %d ", r->r_table, r->r_action);
 			return err;
 		}
 	}
-FRprintk("FAILURE\n");
+
 	read_unlock(&fib_rules_lock);
 	return -ENETUNREACH;
 }

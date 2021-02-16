@@ -349,7 +349,7 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 				if (!IN_DEV_SOURCE_ROUTE(in_dev)) {
 					if (IN_DEV_LOG_MARTIANS(in_dev) && net_ratelimit())
 						printk(KERN_INFO "source route option %u.%u.%u.%u -> %u.%u.%u.%u\n",
-						       NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
+							   NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
 					in_dev_put(in_dev);
 					goto drop;
 				}
@@ -429,4 +429,3 @@ drop:
 out:
 	return NET_RX_DROP;
 }
-

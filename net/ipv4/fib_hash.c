@@ -43,11 +43,6 @@
 #include <net/sock.h>
 #include <net/ip_fib.h>
 
-#define FTprint(a...)
-/*
-   printk(KERN_DEBUG a)
- */
-
 static kmem_cache_t * fn_hash_kmem;
 
 /*
@@ -70,14 +65,14 @@ struct fib_node
 	struct fib_node		*fn_next;
 	struct fib_info		*fn_info;
 #define FIB_INFO(f)	((f)->fn_info)
-	fn_key_t		fn_key;
-	u8			fn_tos;
-	u8			fn_type;
-	u8			fn_scope;
-	u8			fn_state;
+	fn_key_t			fn_key;
+	u8					fn_tos;
+	u8					fn_type;
+	u8					fn_scope;
+	u8					fn_state;
 };
 
-#define FN_S_ZOMBIE	1
+#define FN_S_ZOMBIE		1
 #define FN_S_ACCESSED	2
 
 static int fib_hash_zombies;
@@ -86,14 +81,14 @@ struct fn_zone
 {
 	struct fn_zone	*fz_next;	/* Next not empty zone	*/
 	struct fib_node	**fz_hash;	/* Hash table pointer	*/
-	int		fz_nent;	/* Number of entries	*/
+	int				fz_nent;	/* Number of entries	*/
 
-	int		fz_divisor;	/* Hash divisor		*/
-	u32		fz_hashmask;	/* (1<<fz_divisor) - 1	*/
+	int				fz_divisor;	/* Hash divisor		*/
+	u32				fz_hashmask;	/* (1<<fz_divisor) - 1	*/
 #define FZ_HASHMASK(fz)	((fz)->fz_hashmask)
 
-	int		fz_order;	/* Zone order		*/
-	u32		fz_mask;
+	int				fz_order;	/* Zone order		*/
+	u32				fz_mask;
 #define FZ_MASK(fz)	((fz)->fz_mask)
 };
 
@@ -155,8 +150,8 @@ static rwlock_t fib_hash_lock = RW_LOCK_UNLOCKED;
 
 /* The fib hash lock must be held when this is called. */
 static __inline__ void fn_rebuild_zone(struct fn_zone *fz,
-				       struct fib_node **old_ht,
-				       int old_divisor)
+									   struct fib_node **old_ht,
+									   int old_divisor)
 {
 	int i;
 	struct fib_node *f, **fp, *next;
@@ -179,7 +174,7 @@ static void fn_rehash_zone(struct fn_zone *fz)
 	struct fib_node **ht, **old_ht;
 	int old_divisor, new_divisor;
 	u32 new_hashmask;
-		
+
 	old_divisor = fz->fz_divisor;
 
 	switch (old_divisor) {
@@ -195,9 +190,6 @@ static void fn_rehash_zone(struct fn_zone *fz)
 		printk(KERN_CRIT "route.c: bad divisor %d!\n", old_divisor);
 		return;
 	}
-#if RT_CACHE_DEBUG >= 2
-	printk("fn_rehash_zone: hash for zone %d grows from %d\n", fz->fz_order, old_divisor);
-#endif
 
 	ht = kmalloc(new_divisor*sizeof(struct fib_node*), GFP_KERNEL);
 
@@ -266,7 +258,8 @@ fn_new_zone(struct fn_hash *table, int z)
 }
 
 static int
-fn_hash_lookup(struct fib_table *tb, const struct rt_key *key, struct fib_result *res)
+fn_hash_lookup(struct fib_table *tb, const struct rt_key *key,
+			   struct fib_result *res)
 {
 	int err;
 	struct fn_zone *fz;
@@ -338,7 +331,8 @@ static int fib_detect_death(struct fib_info *fi, int order,
 }
 
 static void
-fn_hash_select_default(struct fib_table *tb, const struct rt_key *key, struct fib_result *res)
+fn_hash_select_default(struct fib_table *tb, const struct rt_key *key,
+					   struct fib_result *res)
 {
 	int order, last_idx;
 	struct fib_node *f;
@@ -436,7 +430,7 @@ static void rtmsg_fib(int, struct fib_node*, int, int,
 
 static int
 fn_hash_insert(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
-		struct nlmsghdr *n, struct netlink_skb_parms *req)
+			   struct nlmsghdr *n, struct netlink_skb_parms *req)
 {
 	struct fn_hash *table = (struct fn_hash*)tb->tb_data;
 	struct fib_node *new_f, *f, **fp, **del_fp;
@@ -451,9 +445,6 @@ fn_hash_insert(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 	fn_key_t key;
 	int err;
 
-FTprint("tb(%d)_insert: %d %08x/%d %d %08x\n", tb->tb_id, r->rtm_type, rta->rta_dst ?
-*(u32*)rta->rta_dst : 0, z, rta->rta_oif ? *rta->rta_oif : -1,
-rta->rta_prefsrc ? *(u32*)rta->rta_prefsrc : 0);
 	if (z > 32)
 		return -EINVAL;
 	fz = table->fn_zones[z];
@@ -523,7 +514,7 @@ rta->rta_prefsrc ? *(u32*)rta->rta_prefsrc : 0);
 	   exists or to the node, before which we will insert new one.
 	 */
 
-	if (f && 
+	if (f &&
 #ifdef CONFIG_IP_ROUTE_TOS
 	    f->fn_tos == tos &&
 #endif
@@ -617,7 +608,7 @@ out:
 
 static int
 fn_hash_delete(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
-		struct nlmsghdr *n, struct netlink_skb_parms *req)
+			   struct nlmsghdr *n, struct netlink_skb_parms *req)
 {
 	struct fn_hash *table = (struct fn_hash*)tb->tb_data;
 	struct fib_node **fp, **del_fp, *f;
@@ -629,8 +620,6 @@ fn_hash_delete(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 	u8 tos = r->rtm_tos;
 #endif
 
-FTprint("tb(%d)_delete: %d %08x/%d %d\n", tb->tb_id, r->rtm_type, rta->rta_dst ?
-       *(u32*)rta->rta_dst : 0, z, rta->rta_oif ? *rta->rta_oif : -1);
 	if (z > 32)
 		return -EINVAL;
 	if ((fz  = table->fn_zones[z]) == NULL)
@@ -870,7 +859,7 @@ static int fn_hash_dump(struct fib_table *tb, struct sk_buff *skb, struct netlin
 }
 
 static void rtmsg_fib(int event, struct fib_node* f, int z, int tb_id,
-		      struct nlmsghdr *n, struct netlink_skb_parms *req)
+					  struct nlmsghdr *n, struct netlink_skb_parms *req)
 {
 	struct sk_buff *skb;
 	u32 pid = req ? req->pid : 0;
@@ -906,9 +895,9 @@ struct fib_table * __init fib_hash_init(int id)
 
 	if (fn_hash_kmem == NULL)
 		fn_hash_kmem = kmem_cache_create("ip_fib_hash",
-						 sizeof(struct fib_node),
-						 0, SLAB_HWCACHE_ALIGN,
-						 NULL, NULL);
+										 sizeof(struct fib_node),
+										 0, SLAB_HWCACHE_ALIGN,
+										 NULL, NULL);
 
 	tb = kmalloc(sizeof(struct fib_table) + sizeof(struct fn_hash), GFP_KERNEL);
 	if (tb == NULL)

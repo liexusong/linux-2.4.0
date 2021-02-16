@@ -43,46 +43,60 @@
 #include <net/sock.h>
 #include <net/ip_fib.h>
 
-#define FSprintk(a...)
-
 static struct fib_info 	*fib_info_list;
 static rwlock_t fib_info_lock = RW_LOCK_UNLOCKED;
 int fib_info_cnt;
 
-#define for_fib_info() { struct fib_info *fi; \
-	for (fi = fib_info_list; fi; fi = fi->fib_next)
+#define for_fib_info()									\
+	{													\
+		struct fib_info *fi;							\
+		for (fi = fib_info_list; fi; fi = fi->fib_next)
 
 #define endfor_fib_info() }
 
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 
-#define for_nexthops(fi) { int nhsel; const struct fib_nh * nh; \
-for (nhsel=0, nh = (fi)->fib_nh; nhsel < (fi)->fib_nhs; nh++, nhsel++)
+#define for_nexthops(fi) 										\
+	{															\
+		int nhsel;												\
+		const struct fib_nh *nh;								\
+		for (nhsel = 0, nh = (fi)->fib_nh; nhsel < (fi)->fib_nhs; nh++, nhsel++)
 
-#define change_nexthops(fi) { int nhsel; struct fib_nh * nh; \
-for (nhsel=0, nh = (struct fib_nh*)((fi)->fib_nh); nhsel < (fi)->fib_nhs; nh++, nhsel++)
+#define change_nexthops(fi)										\
+	{															\
+		int nhsel;												\
+		struct fib_nh * nh;										\
+		for (nhsel = 0, nh = (struct fib_nh*)((fi)->fib_nh);	\
+			 nhsel < (fi)->fib_nhs;								\
+			 nh++, nhsel++)
 
 #else /* CONFIG_IP_ROUTE_MULTIPATH */
 
 /* Hope, that gcc will optimize it to get rid of dummy loop */
 
-#define for_nexthops(fi) { int nhsel=0; const struct fib_nh * nh = (fi)->fib_nh; \
-for (nhsel=0; nhsel < 1; nhsel++)
+#define for_nexthops(fi)										\
+	{															\
+		int nhsel = 0;											\
+		const struct fib_nh *nh = (fi)->fib_nh;					\
+		for (nhsel=0; nhsel < 1; nhsel++)
 
-#define change_nexthops(fi) { int nhsel=0; struct fib_nh * nh = (struct fib_nh*)((fi)->fib_nh); \
-for (nhsel=0; nhsel < 1; nhsel++)
+#define change_nexthops(fi)										\
+	{															\
+		int nhsel = 0;											\
+		struct fib_nh *nh = (struct fib_nh*)((fi)->fib_nh);		\
+		for (nhsel = 0; nhsel < 1; nhsel++)
 
 #endif /* CONFIG_IP_ROUTE_MULTIPATH */
 
 #define endfor_nexthops(fi) }
 
 
-static struct 
+static struct
 {
 	int	error;
 	u8	scope;
 } fib_props[RTA_MAX+1] = {
-        { 0, RT_SCOPE_NOWHERE},		/* RTN_UNSPEC */
+	{ 0, RT_SCOPE_NOWHERE},		/* RTN_UNSPEC */
 	{ 0, RT_SCOPE_UNIVERSE},	/* RTN_UNICAST */
 	{ 0, RT_SCOPE_HOST},		/* RTN_LOCAL */
 	{ 0, RT_SCOPE_LINK},		/* RTN_BROADCAST */
@@ -109,12 +123,15 @@ void free_fib_info(struct fib_info *fi)
 		printk("Freeing alive fib_info %p\n", fi);
 		return;
 	}
+
 	change_nexthops(fi) {
 		if (nh->nh_dev)
 			dev_put(nh->nh_dev);
 		nh->nh_dev = NULL;
 	} endfor_nexthops(fi);
+
 	fib_info_cnt--;
+
 	kfree(fi);
 }
 
@@ -247,8 +264,8 @@ fib_get_nhs(struct fib_info *fi, const struct rtattr *rta, const struct rtmsg *r
 
 #endif
 
-int fib_nh_match(struct rtmsg *r, struct nlmsghdr *nlh, struct kern_rta *rta,
-		 struct fib_info *fi)
+int fib_nh_match(struct rtmsg *r, struct nlmsghdr *nlh,
+				 struct kern_rta *rta, struct fib_info *fi)
 {
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 	struct rtnexthop *nhp;
@@ -271,7 +288,7 @@ int fib_nh_match(struct rtmsg *r, struct nlmsghdr *nlh, struct kern_rta *rta,
 		return 0;
 	nhp = RTA_DATA(rta->rta_mp);
 	nhlen = RTA_PAYLOAD(rta->rta_mp);
-	
+
 	for_nexthops(fi) {
 		int attrlen = nhlen - sizeof(struct rtnexthop);
 		u32 gw;
@@ -566,7 +583,7 @@ failure:
 	return NULL;
 }
 
-int 
+int
 fib_semantic_match(int type, struct fib_info *fi, const struct rt_key *key, struct fib_result *res)
 {
 	int err = fib_props[type].error;
@@ -704,7 +721,7 @@ rtattr_failure:
 
 int
 fib_convert_rtentry(int cmd, struct nlmsghdr *nl, struct rtmsg *rtm,
-		    struct kern_rta *rta, struct rtentry *r)
+					struct kern_rta *rta, struct rtentry *r)
 {
 	int    plen;
 	u32    *ptr;
@@ -855,7 +872,7 @@ int fib_sync_down(u32 local, struct net_device *dev, int force)
 {
 	int ret = 0;
 	int scope = RT_SCOPE_NOWHERE;
-	
+
 	if (force)
 		scope = -1;
 
@@ -972,9 +989,6 @@ void fib_select_multipath(const struct rt_key *key, struct fib_result *res)
 		}
 	} endfor_nexthops(fi);
 
-#if 1
-	printk(KERN_CRIT "impossible 888\n");
-#endif
 	return;
 }
 #endif
@@ -1005,14 +1019,14 @@ void fib_node_get_info(int type, int dead, struct fib_info *fi, u32 prefix, u32 
 
 	if (fi) {
 		len = sprintf(buffer, "%s\t%08X\t%08X\t%04X\t%d\t%u\t%d\t%08X\t%d\t%u\t%u",
-			      fi->fib_dev ? fi->fib_dev->name : "*", prefix,
-			      fi->fib_nh->nh_gw, flags, 0, 0, fi->fib_priority,
-			      mask, fi->fib_advmss+40, fi->fib_window, fi->fib_rtt>>3);
+				      fi->fib_dev ? fi->fib_dev->name : "*", prefix,
+				      fi->fib_nh->nh_gw, flags, 0, 0, fi->fib_priority,
+				      mask, fi->fib_advmss+40, fi->fib_window, fi->fib_rtt>>3);
 	} else {
 		len = sprintf(buffer, "*\t%08X\t%08X\t%04X\t%d\t%u\t%d\t%08X\t%d\t%u\t%u",
-			      prefix, 0,
-			      flags, 0, 0, 0,
-			      mask, 0, 0, 0);
+				      prefix, 0,
+				      flags, 0, 0, 0,
+				      mask, 0, 0, 0);
 	}
 	memset(buffer+len, ' ', 127-len);
 	buffer[127] = '\n';

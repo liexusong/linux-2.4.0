@@ -20,34 +20,34 @@
 
 struct kern_rta
 {
-	void		*rta_dst;
-	void		*rta_src;
-	int		*rta_iif;
-	int		*rta_oif;
-	void		*rta_gw;
-	u32		*rta_priority;
-	void		*rta_prefsrc;
-	struct rtattr	*rta_mx;
-	struct rtattr	*rta_mp;
-	unsigned char	*rta_protoinfo;
-	unsigned char	*rta_flow;
-	struct rta_cacheinfo *rta_ci;
+	void					*rta_dst;
+	void					*rta_src;
+	int						*rta_iif;
+	int						*rta_oif;
+	void					*rta_gw;
+	u32						*rta_priority;
+	void					*rta_prefsrc;
+	struct rtattr			*rta_mx;
+	struct rtattr			*rta_mp;
+	unsigned char			*rta_protoinfo;
+	unsigned char			*rta_flow;
+	struct rta_cacheinfo	*rta_ci;
 };
 
 struct fib_nh
 {
 	struct net_device		*nh_dev;
-	unsigned		nh_flags;
-	unsigned char		nh_scope;
+	unsigned				nh_flags;
+	unsigned char			nh_scope;
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	int			nh_weight;
-	int			nh_power;
+	int						nh_weight;
+	int						nh_power;
 #endif
 #ifdef CONFIG_NET_CLS_ROUTE
-	__u32			nh_tclassid;
+	__u32					nh_tclassid;
 #endif
-	int			nh_oif;
-	u32			nh_gw;
+	int						nh_oif;
+	u32						nh_gw;
 };
 
 /*
@@ -58,24 +58,24 @@ struct fib_info
 {
 	struct fib_info		*fib_next;
 	struct fib_info		*fib_prev;
-	int			fib_treeref;
-	atomic_t		fib_clntref;
-	int			fib_dead;
-	unsigned		fib_flags;
-	int			fib_protocol;
-	u32			fib_prefsrc;
-	u32			fib_priority;
-	unsigned		fib_metrics[RTAX_MAX];
-#define fib_mtu fib_metrics[RTAX_MTU-1]
-#define fib_window fib_metrics[RTAX_WINDOW-1]
-#define fib_rtt fib_metrics[RTAX_RTT-1]
-#define fib_advmss fib_metrics[RTAX_ADVMSS-1]
-	int			fib_nhs;
+	int					fib_treeref;
+	atomic_t			fib_clntref;
+	int					fib_dead;
+	unsigned			fib_flags;
+	int					fib_protocol;
+	u32					fib_prefsrc;
+	u32					fib_priority;
+	unsigned			fib_metrics[RTAX_MAX];
+#define fib_mtu			fib_metrics[RTAX_MTU-1]
+#define fib_window		fib_metrics[RTAX_WINDOW-1]
+#define fib_rtt			fib_metrics[RTAX_RTT-1]
+#define fib_advmss		fib_metrics[RTAX_ADVMSS-1]
+	int					fib_nhs;
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	int			fib_power;
+	int					fib_power;
 #endif
 	struct fib_nh		fib_nh[0];
-#define fib_dev		fib_nh[0].nh_dev
+#define fib_dev			fib_nh[0].nh_dev
 };
 
 
@@ -108,29 +108,31 @@ struct fib_result
 
 #endif /* CONFIG_IP_ROUTE_MULTIPATH */
 
-#define FIB_RES_PREFSRC(res)		((res).fi->fib_prefsrc ? : __fib_res_prefsrc(&res))
-#define FIB_RES_GW(res)			(FIB_RES_NH(res).nh_gw)
-#define FIB_RES_DEV(res)		(FIB_RES_NH(res).nh_dev)
-#define FIB_RES_OIF(res)		(FIB_RES_NH(res).nh_oif)
+#define FIB_RES_PREFSRC(res) ((res).fi->fib_prefsrc ? : __fib_res_prefsrc(&res))
+#define FIB_RES_GW(res)      (FIB_RES_NH(res).nh_gw)
+#define FIB_RES_DEV(res)     (FIB_RES_NH(res).nh_dev)
+#define FIB_RES_OIF(res)     (FIB_RES_NH(res).nh_oif)
 
 struct fib_table
 {
 	unsigned char	tb_id;
-	unsigned	tb_stamp;
-	int		(*tb_lookup)(struct fib_table *tb, const struct rt_key *key, struct fib_result *res);
+	unsigned		tb_stamp;
+	int		(*tb_lookup)(struct fib_table *tb, const struct rt_key *key,
+						 struct fib_result *res);
 	int		(*tb_insert)(struct fib_table *table, struct rtmsg *r,
-				     struct kern_rta *rta, struct nlmsghdr *n,
-				     struct netlink_skb_parms *req);
+					     struct kern_rta *rta, struct nlmsghdr *n,
+					     struct netlink_skb_parms *req);
 	int		(*tb_delete)(struct fib_table *table, struct rtmsg *r,
-				     struct kern_rta *rta, struct nlmsghdr *n,
-				     struct netlink_skb_parms *req);
+					     struct kern_rta *rta, struct nlmsghdr *n,
+					     struct netlink_skb_parms *req);
 	int		(*tb_dump)(struct fib_table *table, struct sk_buff *skb,
-				     struct netlink_callback *cb);
+				       struct netlink_callback *cb);
 	int		(*tb_flush)(struct fib_table *table);
 	int		(*tb_get_info)(struct fib_table *table, char *buf,
-				       int first, int count);
-	void		(*tb_select_default)(struct fib_table *table,
-					     const struct rt_key *key, struct fib_result *res);
+					       int first, int count);
+	void	(*tb_select_default)(struct fib_table *table,
+							     const struct rt_key *key,
+							     struct fib_result *res);
 
 	unsigned char	tb_data[0];
 };

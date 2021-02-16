@@ -365,8 +365,9 @@ int ip_queue_xmit(struct sk_buff *skb)
 		goto no_route;
 
 	/* OK, we know where to send it, allocate and build IP header. */
-	iph = (struct iphdr *) skb_push(skb, sizeof(struct iphdr) + (opt ? opt->optlen : 0));
-	*((__u16 *)iph)	= htons((4 << 12) | (5 << 8) | (sk->protinfo.af_inet.tos & 0xff));
+	iph = (struct iphdr *) skb_push(skb, sizeof(struct iphdr)+(opt?opt->optlen:0));
+
+	*((__u16 *)iph)	= htons((4<<12)|(5<<8)|(sk->protinfo.af_inet.tos & 0xff));
 	iph->tot_len = htons(skb->len);
 	iph->frag_off = 0;
 	iph->ttl      = sk->protinfo.af_inet.ttl;
@@ -382,7 +383,7 @@ int ip_queue_xmit(struct sk_buff *skb)
 	}
 
 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
-		       ip_queue_xmit2);
+				   ip_queue_xmit2);
 
 no_route:
 	IP_INC_STATS(IpOutNoRoutes);
@@ -759,7 +760,7 @@ int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
 	 *	Keep copying data until we run out.
 	 */
 
-	while(left > 0)	{
+	while (left > 0) {
 		len = left;
 		/* IF: it doesn't fit, use 'mtu' - the data space left */
 		if (len > mtu)
