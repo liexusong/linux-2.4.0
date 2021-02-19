@@ -132,11 +132,11 @@ static int udp_v4_get_port(struct sock *sk, unsigned short snum)
 {
 	write_lock_bh(&udp_hash_lock);
 
-	if (snum == 0) {
+	if (snum == 0) { // 如果没有指定端口
 		int best_size_so_far, best, result, i;
 
-		if (udp_port_rover > sysctl_local_port_range[1]
-		    || udp_port_rover < sysctl_local_port_range[0])
+		if (udp_port_rover > sysctl_local_port_range[1] ||
+		    udp_port_rover < sysctl_local_port_range[0])
 			udp_port_rover = sysctl_local_port_range[0];
 
 		best_size_so_far = 32767;
@@ -171,13 +171,15 @@ static int udp_v4_get_port(struct sock *sk, unsigned short snum)
 		for (;; result += UDP_HTABLE_SIZE) {
 			if (result > sysctl_local_port_range[1])
 				result = sysctl_local_port_range[0]
-					   + ((result - sysctl_local_port_range[0])&(UDP_HTABLE_SIZE-1));
+					   + ((result - sysctl_local_port_range[0]) &
+					      (UDP_HTABLE_SIZE - 1));
 
 			if (!udp_lport_inuse(result))
 				break;
 		}
 gotit:
 		udp_port_rover = snum = result;
+
 	} else {
 		struct sock *sk2;
 
@@ -189,8 +191,8 @@ gotit:
 			    && sk2 != sk
 			    && sk2->bound_dev_if == sk->bound_dev_if
 			    && (!sk2->rcv_saddr
-			    	 || !sk->rcv_saddr
-			    	 || sk2->rcv_saddr == sk->rcv_saddr)
+			    	|| !sk->rcv_saddr
+			    	|| sk2->rcv_saddr == sk->rcv_saddr)
 			    && (!sk2->reuse || !sk->reuse))
 				goto fail;
 		}
@@ -239,8 +241,11 @@ static void udp_v4_unhash(struct sock *sk)
 /* UDP is nearly always wildcards out the wazoo, it makes no sense to try
  * harder than this. -DaveM
  */
-struct sock *udp_v4_lookup_longway(u32 saddr, u16 sport, u32 daddr,
-								   u16 dport, int dif)
+struct sock *udp_v4_lookup_longway(u32 saddr, // 源IP地址
+								   u16 sport, // 源端口
+								   u32 daddr, // 目标IP地址
+								   u16 dport, // 目标端口
+								   int dif)
 {
 	struct sock *sk, *result = NULL;
 	unsigned short hnum = ntohs(dport);
@@ -434,8 +439,11 @@ static int udp_getfrag(const void *p, char * to, unsigned int offset,
 	struct udpfakehdr *ufh = (struct udpfakehdr *)p;
 
 	if (offset == 0) {
-		if (csum_partial_copy_fromiovecend(to+sizeof(struct udphdr), ufh->iov, offset,
-						   fraglen-sizeof(struct udphdr), &ufh->wcheck))
+		if (csum_partial_copy_fromiovecend(to+sizeof(struct udphdr),
+										   ufh->iov,
+										   offset,
+										   fraglen-sizeof(struct udphdr),
+										   &ufh->wcheck))
 			return -EFAULT;
 
  		ufh->wcheck = csum_partial((char *)ufh, sizeof(struct udphdr),
@@ -473,7 +481,7 @@ static int udp_getfrag_nosum(const void *p, char * to, unsigned int offset, unsi
 	struct udpfakehdr *ufh = (struct udpfakehdr *)p;
 
 	if (offset == 0) {
-		memcpy(to, ufh, sizeof(struct udphdr));
+		memcpy(to, ufh, sizeof(struct udphdr)); // 复制UDP头部
 		return memcpy_fromiovecend(to+sizeof(struct udphdr), ufh->iov, offset,
 								   fraglen-sizeof(struct udphdr));
 	}
@@ -575,7 +583,7 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 
 	tos = RT_TOS(sk->protinfo.af_inet.tos);
 	if (sk->localroute
-		|| (msg->msg_flags&MSG_DONTROUTE)
+		|| (msg->msg_flags & MSG_DONTROUTE)
 	    || (ipc.opt && ipc.opt->is_strictroute))
 	{
 		tos |= RTO_ONLINK;
@@ -601,7 +609,7 @@ int udp_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 			goto out;
 
 		err = -EACCES;
-		if (rt->rt_flags&RTCF_BROADCAST && !sk->broadcast)
+		if (rt->rt_flags & RTCF_BROADCAST && !sk->broadcast)
 			goto out;
 
 		if (connected)
@@ -886,7 +894,7 @@ static int udp_queue_rcv_skb(struct sock * sk, struct sk_buff *skb)
 	}
 #endif
 
-	if (sock_queue_rcv_skb(sk,skb)<0) {
+	if (sock_queue_rcv_skb(sk, skb) < 0) {
 		UDP_INC_STATS_BH(UdpInErrors);
 		IP_INC_STATS_BH(IpInDiscards);
 		ip_statistics[smp_processor_id()*2].IpInDelivers--;

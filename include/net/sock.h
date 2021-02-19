@@ -1149,7 +1149,7 @@ static inline int sock_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
 	   number of warnings when compiling with -W --ANK
 	 */
 	if (atomic_read(&sk->rmem_alloc) + skb->truesize >= (unsigned)sk->rcvbuf)
-                return -ENOMEM;
+		return -ENOMEM;
 
 #ifdef CONFIG_FILTER
 	if (sk->filter) {
@@ -1173,7 +1173,7 @@ static inline int sock_queue_rcv_skb(struct sock *sk, struct sk_buff *skb)
 	skb_set_owner_r(skb, sk);
 	skb_queue_tail(&sk->receive_queue, skb);
 	if (!sk->dead)
-		sk->data_ready(sk,skb->len);
+		sk->data_ready(sk, skb->len);
 	return 0;
 }
 
