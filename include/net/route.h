@@ -41,15 +41,15 @@
 
 struct rt_key
 {
-	__u32			dst;
-	__u32			src;
-	int				iif;
-	int				oif;
+	__u32			dst;   // 目标IP地址
+	__u32			src;   // 源IP地址
+	int				iif;   // 输入设备index
+	int				oif;   // 输出设备index
 #ifdef CONFIG_IP_ROUTE_FWMARK
-	__u32			fwmark;
+	__u32			fwmark;// 防火墙掩码
 #endif
-	__u8			tos;
-	__u8			scope;
+	__u8			tos;   // 服务类型
+	__u8			scope; // 范围
 };
 
 struct inet_peer;

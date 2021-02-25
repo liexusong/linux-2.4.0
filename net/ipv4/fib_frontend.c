@@ -141,7 +141,7 @@ fib_get_procinfo(char *buffer, char **start, off_t offset, int length)
  *	Find the first device with a given source address.
  */
 
-struct net_device * ip_dev_find(u32 addr)
+struct net_device *ip_dev_find(u32 addr)
 {
 	struct rt_key key;
 	struct fib_result res;
@@ -156,8 +156,10 @@ struct net_device * ip_dev_find(u32 addr)
 	if (!local_table || local_table->tb_lookup(local_table, &key, &res)) {
 		return NULL;
 	}
+
 	if (res.type != RTN_LOCAL)
 		goto out;
+
 	dev = FIB_RES_DEV(res);
 	if (dev)
 		atomic_inc(&dev->refcnt);

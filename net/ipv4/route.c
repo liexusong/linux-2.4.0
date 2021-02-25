@@ -1631,15 +1631,17 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 	u32 tos;
 
 	tos = oldkey->tos & (IPTOS_RT_MASK|RTO_ONLINK);
+
 	key.dst = oldkey->dst;
 	key.src = oldkey->src;
-	key.tos = tos&IPTOS_RT_MASK;
+	key.tos = tos & IPTOS_RT_MASK;
 	key.iif = loopback_dev.ifindex;
 	key.oif = oldkey->oif;
 #ifdef CONFIG_IP_ROUTE_FWMARK
 	key.fwmark = oldkey->fwmark;
 #endif
-	key.scope = (tos&RTO_ONLINK) ? RT_SCOPE_LINK : RT_SCOPE_UNIVERSE;
+	key.scope = (tos & RTO_ONLINK) ? RT_SCOPE_LINK : RT_SCOPE_UNIVERSE;
+
 	res.fi = NULL;
 #ifdef CONFIG_IP_MULTIPLE_TABLES
 	res.r = NULL;
@@ -1647,12 +1649,12 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 
 	if (oldkey->src) {
 		if (MULTICAST(oldkey->src)
-		    || BADCLASS(oldkey->src)
-		    || ZERONET(oldkey->src))
+			|| BADCLASS(oldkey->src)
+			|| ZERONET(oldkey->src))
 			return -EINVAL;
 
 		/* It is equivalent to inet_addr_type(saddr) == RTN_LOCAL */
-		dev_out = ip_dev_find(oldkey->src);
+		dev_out = ip_dev_find(oldkey->src); // 根据源IP获取输出设备
 		if (dev_out == NULL)
 			return -EINVAL;
 
@@ -1665,7 +1667,8 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 		 */
 
 		if (oldkey->oif == 0
-		    && (MULTICAST(oldkey->dst) || oldkey->dst == 0xFFFFFFFF)) {
+		    && (MULTICAST(oldkey->dst) || oldkey->dst == 0xFFFFFFFF))
+		{
 			/* Special hack: user can direct multicasts
 			   and limited broadcast via necessary interface
 			   without fiddling with IP_MULTICAST_IF or IP_PKTINFO.
@@ -1684,14 +1687,18 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 			key.oif = dev_out->ifindex;
 			goto make_route;
 		}
+
 		if (dev_out)
 			dev_put(dev_out);
+
 		dev_out = NULL;
 	}
+
 	if (oldkey->oif) {
 		dev_out = dev_get_by_index(oldkey->oif);
 		if (dev_out == NULL)
 			return -ENODEV;
+
 		if (__in_dev_get(dev_out) == NULL) {
 			dev_put(dev_out);
 			return -ENODEV;	/* Wrong error code */
@@ -1702,6 +1709,7 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 				key.src = inet_select_addr(dev_out, 0, RT_SCOPE_LINK);
 			goto make_route;
 		}
+
 		if (!key.src) {
 			if (MULTICAST(oldkey->dst))
 				key.src = inet_select_addr(dev_out, 0, key.scope);
@@ -1724,7 +1732,7 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 		goto make_route;
 	}
 
-	if (fib_lookup(&key, &res)) {
+	if (fib_lookup(&key, &res)) { // 查找路由信息
 		res.fi = NULL;
 		if (oldkey->oif) {
 			/* Apparently, routing tables are wrong. Assume,
@@ -1754,6 +1762,7 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 			dev_put(dev_out);
 		return -ENETUNREACH;
 	}
+
 	free_res = 1;
 
 	if (res.type == RTN_NAT)

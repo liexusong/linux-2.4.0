@@ -101,19 +101,24 @@ int inet_rtm_delrule(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg)
 	int err = -ESRCH;
 
 	for (rp = &fib_rules; (r = *rp) != NULL; rp = &r->r_next) {
-		if ((!rta[RTA_SRC-1] || memcmp(RTA_DATA(rta[RTA_SRC-1]), &r->r_src, 4) == 0) &&
-			rtm->rtm_src_len == r->r_src_len &&
-			rtm->rtm_dst_len == r->r_dst_len &&
-			(!rta[RTA_DST-1] || memcmp(RTA_DATA(rta[RTA_DST-1]), &r->r_dst, 4) == 0) &&
-			rtm->rtm_tos == r->r_tos &&
+		if ((!rta[RTA_SRC-1]
+				|| !memcmp(RTA_DATA(rta[RTA_SRC-1]), &r->r_src, 4))
+			&& rtm->rtm_src_len == r->r_src_len
+			&& rtm->rtm_dst_len == r->r_dst_len
+			&& (!rta[RTA_DST-1]
+				|| !memcmp(RTA_DATA(rta[RTA_DST-1]), &r->r_dst, 4))
+			&& rtm->rtm_tos == r->r_tos
 #ifdef CONFIG_IP_ROUTE_FWMARK
-			(!rta[RTA_PROTOINFO-1] || memcmp(RTA_DATA(rta[RTA_PROTOINFO-1]), &r->r_fwmark, 4) == 0) &&
+			&& (!rta[RTA_PROTOINFO-1]
+				|| !memcmp(RTA_DATA(rta[RTA_PROTOINFO-1]), &r->r_fwmark, 4))
 #endif
 
-			(!rtm->rtm_type || rtm->rtm_type == r->r_action) &&
-			(!rta[RTA_PRIORITY-1] || memcmp(RTA_DATA(rta[RTA_PRIORITY-1]), &r->r_preference, 4) == 0) &&
-			(!rta[RTA_IIF-1] || strcmp(RTA_DATA(rta[RTA_IIF-1]), r->r_ifname) == 0) &&
-			(!rtm->rtm_table || (r && rtm->rtm_table == r->r_table)))
+			&& (!rtm->rtm_type || rtm->rtm_type == r->r_action)
+			&& (!rta[RTA_PRIORITY-1]
+				|| !memcmp(RTA_DATA(rta[RTA_PRIORITY-1]), &r->r_preference, 4))
+			&& (!rta[RTA_IIF-1]
+				|| strcmp(RTA_DATA(rta[RTA_IIF-1]), r->r_ifname) == 0)
+			&& (!rtm->rtm_table || (r && rtm->rtm_table == r->r_table)))
 		{
 			err = -EPERM;
 			if (r == &local_rule)
@@ -128,6 +133,7 @@ int inet_rtm_delrule(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg)
 			break;
 		}
 	}
+
 	return err;
 }
 
@@ -311,16 +317,17 @@ int fib_lookup(const struct rt_key *key, struct fib_result *res)
 	u32 saddr = key->src;
 
 	read_lock(&fib_rules_lock);
-	for (r = fib_rules; r; r=r->r_next) {
-		if (((saddr^r->r_src) & r->r_srcmask) ||
-			((daddr^r->r_dst) & r->r_dstmask) ||
+
+	for (r = fib_rules; r; r = r->r_next) {
+		if (((saddr ^ r->r_src) & r->r_srcmask)
+			|| ((daddr ^ r->r_dst) & r->r_dstmask)
 #ifdef CONFIG_IP_ROUTE_TOS
-			(r->r_tos && r->r_tos != key->tos) ||
+			|| (r->r_tos && r->r_tos != key->tos)
 #endif
 #ifdef CONFIG_IP_ROUTE_FWMARK
-			(r->r_fwmark && r->r_fwmark != key->fwmark) ||
+			|| (r->r_fwmark && r->r_fwmark != key->fwmark)
 #endif
-			(r->r_ifindex && r->r_ifindex != key->iif))
+			|| (r->r_ifindex && r->r_ifindex != key->iif))
 			continue;
 
 		switch (r->r_action) {
@@ -342,6 +349,7 @@ int fib_lookup(const struct rt_key *key, struct fib_result *res)
 
 		if ((tb = fib_get_table(r->r_table)) == NULL)
 			continue;
+
 		err = tb->tb_lookup(tb, key, res);
 		if (err == 0) {
 			res->r = policy;
@@ -350,6 +358,7 @@ int fib_lookup(const struct rt_key *key, struct fib_result *res)
 			read_unlock(&fib_rules_lock);
 			return 0;
 		}
+
 		if (err < 0 && err != -EAGAIN) {
 			read_unlock(&fib_rules_lock);
 			return err;
@@ -452,13 +461,14 @@ int inet_dump_rules(struct sk_buff *skb, struct netlink_callback *cb)
 	struct fib_rule *r;
 
 	read_lock(&fib_rules_lock);
-	for (r=fib_rules, idx=0; r; r = r->r_next, idx++) {
+	for (r = fib_rules, idx = 0; r; r = r->r_next, idx++) {
 		if (idx < s_idx)
 			continue;
 		if (inet_fill_rule(skb, r, cb) < 0)
 			break;
 	}
 	read_unlock(&fib_rules_lock);
+
 	cb->args[0] = idx;
 
 	return skb->len;
