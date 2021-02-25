@@ -1215,7 +1215,7 @@ asmlinkage long sys_send(int fd, void * buff, size_t len, unsigned flags)
  */
 
 asmlinkage long sys_recvfrom(int fd, void * ubuf, size_t size, unsigned flags,
-			     struct sockaddr *addr, int *addr_len)
+							 struct sockaddr *addr, int *addr_len)
 {
 	struct socket *sock;
 	struct iovec iov;
@@ -1235,16 +1235,17 @@ asmlinkage long sys_recvfrom(int fd, void * ubuf, size_t size, unsigned flags,
 	iov.iov_base=ubuf;
 	msg.msg_name=address;
 	msg.msg_namelen=MAX_SOCK_ADDR;
+
 	if (sock->file->f_flags & O_NONBLOCK)
 		flags |= MSG_DONTWAIT;
-	err=sock_recvmsg(sock, &msg, size, flags);
 
-	if(err >= 0 && addr != NULL && msg.msg_namelen)
-	{
-		err2=move_addr_to_user(address, msg.msg_namelen, addr, addr_len);
-		if(err2<0)
-			err=err2;
+	err = sock_recvmsg(sock, &msg, size, flags);
+	if (err >= 0 && addr != NULL && msg.msg_namelen) {
+		err2 = move_addr_to_user(address, msg.msg_namelen, addr, addr_len);
+		if (err2 < 0)
+			err = err2;
 	}
+
 	sockfd_put(sock);
 out:
 	return err;

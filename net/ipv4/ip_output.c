@@ -365,8 +365,9 @@ int ip_queue_xmit(struct sk_buff *skb)
 		goto no_route;
 
 	/* OK, we know where to send it, allocate and build IP header. */
-	iph = (struct iphdr *) skb_push(skb, sizeof(struct iphdr) + (opt ? opt->optlen : 0));
-	*((__u16 *)iph)	= htons((4 << 12) | (5 << 8) | (sk->protinfo.af_inet.tos & 0xff));
+	iph = (struct iphdr *) skb_push(skb, sizeof(struct iphdr)+(opt?opt->optlen:0));
+
+	*((__u16 *)iph)	= htons((4<<12)|(5<<8)|(sk->protinfo.af_inet.tos & 0xff));
 	iph->tot_len = htons(skb->len);
 	iph->frag_off = 0;
 	iph->ttl      = sk->protinfo.af_inet.ttl;
@@ -382,7 +383,7 @@ int ip_queue_xmit(struct sk_buff *skb)
 	}
 
 	return NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
-		       ip_queue_xmit2);
+				   ip_queue_xmit2);
 
 no_route:
 	IP_INC_STATS(IpOutNoRoutes);
@@ -488,6 +489,7 @@ static int ip_build_xmit_slow(struct sock *sk,
 		ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport, mtu);
  		return -EMSGSIZE;
 	}
+
 	if (flags&MSG_PROBE)
 		goto out;
 
@@ -608,12 +610,12 @@ error:
  *	Fast path for unfragmented packets.
  */
 int ip_build_xmit(struct sock *sk,
-	int getfrag(const void *,char *,unsigned int,unsigned int),
-	const void *frag,
-	unsigned length,
-	struct ipcm_cookie *ipc,
-	struct rtable *rt,
-	int flags)
+				  int getfrag(const void *, char *, unsigned int, unsigned int),
+				  const void *frag,
+				  unsigned length,
+				  struct ipcm_cookie *ipc,
+				  struct rtable *rt,
+				  int flags)
 {
 	int err;
 	struct sk_buff *skb;
@@ -632,14 +634,16 @@ int ip_build_xmit(struct sock *sk,
 		 * 	Check for slow path.
 		 */
 		if (length > rt->u.dst.pmtu || ipc->opt != NULL)
-			return ip_build_xmit_slow(sk,getfrag,frag,length,ipc,rt,flags);
+			return ip_build_xmit_slow(sk, getfrag, frag, length, ipc, rt, flags);
 	} else {
 		if (length > rt->u.dst.dev->mtu) {
-			ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport, rt->u.dst.dev->mtu);
+			ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport,
+						   t->u.dst.dev->mtu);
 			return -EMSGSIZE;
 		}
 	}
-	if (flags&MSG_PROBE)
+
+	if (flags & MSG_PROBE)
 		goto out;
 
 	/*
@@ -691,9 +695,10 @@ int ip_build_xmit(struct sock *sk,
 		goto error_fault;
 
 	err = NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
-		      output_maybe_reroute);
+				  output_maybe_reroute);
 	if (err > 0)
 		err = sk->protinfo.af_inet.recverr ? net_xmit_errno(err) : 0;
+
 	if (err)
 		goto error;
 out:
@@ -758,7 +763,7 @@ int ip_fragment(struct sk_buff *skb, int (*output)(struct sk_buff*))
 	 *	Keep copying data until we run out.
 	 */
 
-	while(left > 0)	{
+	while (left > 0) {
 		len = left;
 		/* IF: it doesn't fit, use 'mtu' - the data space left */
 		if (len > mtu)
@@ -872,7 +877,7 @@ fail:
  *	Fetch data from kernel space and fill in checksum if needed.
  */
 static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
-			      unsigned int fraglen)
+							  unsigned int fraglen)
 {
         struct ip_reply_arg *dp = (struct ip_reply_arg*)dptr;
 	u16 *pktp = (u16 *)to;
@@ -911,8 +916,8 @@ static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
  *	Should run single threaded per socket because it uses the sock
  *     	structure to pass arguments.
  */
-void ip_send_reply(struct sock *sk, struct sk_buff *skb, struct ip_reply_arg *arg,
-		   unsigned int len)
+void ip_send_reply(struct sock *sk, struct sk_buff *skb,
+				   struct ip_reply_arg *arg, unsigned int len)
 {
 	struct {
 		struct ip_options	opt;

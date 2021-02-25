@@ -29,8 +29,8 @@ struct sock_filter	/* Filter block */
 
 struct sock_fprog	/* Required for SO_ATTACH_FILTER. */
 {
-	unsigned short		len;	/* Number of filter blocks */
-	struct sock_filter	*filter;
+    unsigned short      len;	/* Number of filter blocks */
+    struct sock_filter  *filter;
 };
 
 #ifdef __KERNEL__
@@ -50,7 +50,7 @@ static inline unsigned int sk_filter_len(struct sk_filter *fp)
 /*
  * Instruction classes
  */
-
+// 操作符
 #define BPF_CLASS(code) ((code) & 0x07)
 #define         BPF_LD          0x00
 #define         BPF_LDX         0x01
@@ -62,10 +62,12 @@ static inline unsigned int sk_filter_len(struct sk_filter *fp)
 #define         BPF_MISC        0x07
 
 /* ld/ldx fields */
+// 操作数长度
 #define BPF_SIZE(code)  ((code) & 0x18)
 #define         BPF_W           0x00
 #define         BPF_H           0x08
 #define         BPF_B           0x10
+
 #define BPF_MODE(code)  ((code) & 0xe0)
 #define         BPF_IMM         0x00
 #define         BPF_ABS         0x20
@@ -90,6 +92,7 @@ static inline unsigned int sk_filter_len(struct sk_filter *fp)
 #define         BPF_JGT         0x20
 #define         BPF_JGE         0x30
 #define         BPF_JSET        0x40
+
 #define BPF_SRC(code)   ((code) & 0x08)
 #define         BPF_K           0x00
 #define         BPF_X           0x08

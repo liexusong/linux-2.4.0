@@ -44,9 +44,9 @@ static u8 *load_pointer(struct sk_buff *skb, int k)
 {
 	u8 *ptr = NULL;
 
-	if (k >= SKF_NET_OFF)
+	if (k >= SKF_NET_OFF)   // 网络层
 		ptr = skb->nh.raw + k - SKF_NET_OFF;
-	else if (k>=SKF_LL_OFF)
+	else if (k>=SKF_LL_OFF) // 链路层
 		ptr = skb->mac.raw + k - SKF_LL_OFF;
 
 	if (ptr >= skb->head && ptr < skb->tail)
@@ -74,8 +74,8 @@ int sk_run_filter(struct sk_buff *skb, struct sock_filter *filter, int flen)
 	 */
 	unsigned int len = skb->len;
 	struct sock_filter *fentry;	/* We walk down these */
-	u32 A = 0;	   		/* Accumulator */
-	u32 X = 0;   			/* Index Register */
+	u32 A = 0;					/* Accumulator */
+	u32 X = 0;					/* Index Register */
 	u32 mem[BPF_MEMWORDS];		/* Scratch Memory Store */
 	int k;
 	int pc;
@@ -360,11 +360,11 @@ load_b:
 int sk_chk_filter(struct sock_filter *filter, int flen)
 {
 	struct sock_filter *ftest;
-		int pc;
+	int pc;
 
-	   /*
-		* Check the filter code now.
-		*/
+	/*
+	* Check the filter code now.
+	*/
 	for (pc = 0; pc < flen; pc++) {
 		/*
 		 *	All jumps are forward as they are not signed
@@ -381,7 +381,7 @@ int sk_chk_filter(struct sock_filter *filter, int flen)
 				   loops. Compare this with conditional
 				   jumps below, where offsets are limited. --ANK (981016)
 				 */
-				if (ftest->k >= (unsigned)(flen-pc-1))
+				if (ftest->k >= (unsigned)(flen - pc - 1))
 					return (-EINVAL);
 			} else {
 				/*
@@ -440,7 +440,7 @@ int sk_attach_filter(struct sock_fprog *fprog, struct sock *sk)
 	if (fprog->filter == NULL || fprog->len > BPF_MAXINSNS)
 		return (-EINVAL);
 
-	fp = (struct sk_filter *)sock_kmalloc(sk, fsize+sizeof(*fp), GFP_KERNEL);
+	fp = (struct sk_filter *)sock_kmalloc(sk, fsize + sizeof(*fp), GFP_KERNEL);
 	if(fp == NULL)
 		return (-ENOMEM);
 
@@ -452,13 +452,16 @@ int sk_attach_filter(struct sock_fprog *fprog, struct sock *sk)
 	atomic_set(&fp->refcnt, 1);
 	fp->len = fprog->len;
 
-	if ((err = sk_chk_filter(fp->insns, fp->len))==0) {
+	if ((err = sk_chk_filter(fp->insns, fp->len)) == 0) {
 		struct sk_filter *old_fp;
 
 		spin_lock_bh(&sk->lock.slock);
+
 		old_fp = sk->filter;
 		sk->filter = fp;
+
 		spin_unlock_bh(&sk->lock.slock);
+
 		fp = old_fp;
 	}
 

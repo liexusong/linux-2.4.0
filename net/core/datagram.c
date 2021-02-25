@@ -49,7 +49,7 @@
 /*
  *	Is a socket 'connection oriented' ?
  */
- 
+
 static inline int connection_based(struct sock *sk)
 {
 	return (sk->type==SOCK_SEQPACKET || sk->type==SOCK_STREAM);
@@ -149,8 +149,7 @@ struct sk_buff *skb_recv_datagram(struct sock *sk, unsigned flags, int noblock, 
 		   Look at current nfs client by the way...
 		   However, this function was corrent in any case. 8)
 		 */
-		if (flags & MSG_PEEK)
-		{
+		if (flags & MSG_PEEK) {
 			unsigned long cpu_flags;
 
 			spin_lock_irqsave(&sk->receive_queue.lock, cpu_flags);
@@ -201,7 +200,7 @@ int skb_copy_datagram(struct sk_buff *skb, int offset, char *to, int size)
  *	Copy a datagram to an iovec.
  *	Note: the iovec is modified during the copy.
  */
- 
+
 int skb_copy_datagram_iovec(struct sk_buff *skb, int offset, struct iovec *to,
 			    int size)
 {

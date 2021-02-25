@@ -452,8 +452,8 @@ int sysctl_ip_nonlocal_bind;
 
 static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 {
-	struct sockaddr_in *addr=(struct sockaddr_in *)uaddr;
-	struct sock *sk=sock->sk;
+	struct sockaddr_in *addr = (struct sockaddr_in *)uaddr;
+	struct sock *sk = sock->sk;
 	unsigned short snum;
 	int chk_addr_ret;
 	int err;
@@ -501,6 +501,7 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		goto out;
 
 	sk->rcv_saddr = sk->saddr = addr->sin_addr.s_addr;
+
 	if (chk_addr_ret == RTN_MULTICAST || chk_addr_ret == RTN_BROADCAST)
 		sk->saddr = 0;  /* Use device */
 

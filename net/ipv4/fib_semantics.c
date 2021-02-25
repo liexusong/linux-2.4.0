@@ -125,6 +125,7 @@ void free_fib_info(struct fib_info *fi)
 	} endfor_nexthops(fi);
 
 	fib_info_cnt--;
+
 	kfree(fi);
 }
 

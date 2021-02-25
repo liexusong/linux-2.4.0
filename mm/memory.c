@@ -159,14 +159,14 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
 
 	src_pgd = pgd_offset(src, address)-1;
 	dst_pgd = pgd_offset(dst, address)-1;
-	
+
 	for (;;) {
 		pmd_t * src_pmd, * dst_pmd;
 
 		src_pgd++; dst_pgd++;
-		
+
 		/* copy_pmd_range */
-		
+
 		if (pgd_none(*src_pgd))
 			goto skip_copy_pmd_range;
 		if (pgd_bad(*src_pgd)) {
@@ -181,15 +181,15 @@ skip_copy_pmd_range:	address = (address + PGDIR_SIZE) & PGDIR_MASK;
 			if (!pmd_alloc(dst_pgd, 0))
 				goto nomem;
 		}
-		
+
 		src_pmd = pmd_offset(src_pgd, address);
 		dst_pmd = pmd_offset(dst_pgd, address);
 
 		do {
 			pte_t * src_pte, * dst_pte;
-		
+
 			/* copy_pte_range */
-		
+
 			if (pmd_none(*src_pmd))
 				goto skip_copy_pte_range;
 			if (pmd_bad(*src_pmd)) {
@@ -204,14 +204,14 @@ skip_copy_pte_range:		address = (address + PMD_SIZE) & PMD_MASK;
 				if (!pte_alloc(dst_pmd, 0))
 					goto nomem;
 			}
-			
+
 			src_pte = pte_offset(src_pmd, address);
 			dst_pte = pte_offset(dst_pmd, address);
-			
+
 			do {
 				pte_t pte = *src_pte;
 				struct page *ptepage;
-				
+
 				/* copy_one_pte */
 
 				if (pte_none(pte))
@@ -221,7 +221,7 @@ skip_copy_pte_range:		address = (address + PMD_SIZE) & PMD_MASK;
 					goto cont_copy_pte_range;
 				}
 				ptepage = pte_page(pte);
-				if ((!VALID_PAGE(ptepage)) || 
+				if ((!VALID_PAGE(ptepage)) ||
 				    PageReserved(ptepage))
 					goto cont_copy_pte_range;
 
@@ -244,7 +244,7 @@ cont_copy_pte_range_noset:	address += PAGE_SIZE;
 				src_pte++;
 				dst_pte++;
 			} while ((unsigned long)src_pte & PTE_TABLE_MASK);
-		
+
 cont_copy_pmd_range:	src_pmd++;
 			dst_pmd++;
 		} while ((unsigned long)src_pmd & PMD_TABLE_MASK);
@@ -265,9 +265,9 @@ static inline int free_pte(pte_t pte)
 		struct page *page = pte_page(pte);
 		if ((!VALID_PAGE(page)) || PageReserved(page))
 			return 0;
-		/* 
+		/*
 		 * free_page() used to be able to clear swap cache
-		 * entries.  We may now have to do it manually.  
+		 * entries.  We may now have to do it manually.
 		 */
 		if (pte_dirty(pte) && page->mapping)
 			set_page_dirty(page);
@@ -339,7 +339,7 @@ static inline int zap_pmd_range(struct mm_struct *mm, pgd_t * dir, unsigned long
 	freed = 0;
 	do {
 		freed += zap_pte_range(mm, pmd, address, end - address);
-		address = (address + PMD_SIZE) & PMD_MASK; 
+		address = (address + PMD_SIZE) & PMD_MASK;
 		pmd++;
 	} while (address < end);
 	return freed;
@@ -384,9 +384,9 @@ void zap_page_range(struct mm_struct *mm, unsigned long address, unsigned long s
 
 
 /*
- * Do a quick page-table lookup for a single page. 
+ * Do a quick page-table lookup for a single page.
  */
-static struct page * follow_page(unsigned long address) 
+static struct page * follow_page(unsigned long address)
 {
 	pgd_t *pgd;
 	pmd_t *pmd;
@@ -398,11 +398,11 @@ static struct page * follow_page(unsigned long address)
 		if (pte && pte_present(*pte))
 			return pte_page(*pte);
 	}
-	
+
 	return NULL;
 }
 
-/* 
+/*
  * Given a physical address, is there a useful struct page pointing to
  * it?  This may become more complex in the future if we start dealing
  * with IO-aperture pages in kiobufs.
@@ -417,7 +417,7 @@ static inline struct page * get_page_map(struct page *page)
 
 /*
  * Force in an entire range of pages from the current process's user VA,
- * and pin them in physical memory.  
+ * and pin them in physical memory.
  */
 
 #define dprintk(x...)
@@ -430,14 +430,14 @@ int map_user_kiobuf(int rw, struct kiobuf *iobuf, unsigned long va, size_t len)
 	struct page *		map;
 	int			i;
 	int			datain = (rw == READ);
-	
+
 	/* Make sure the iobuf is not already mapped somewhere. */
 	if (iobuf->nr_pages)
 		return -EINVAL;
 
 	mm = current->mm;
 	dprintk ("map_user_kiobuf: begin\n");
-	
+
 	ptr = va & PAGE_MASK;
 	end = (va + len + PAGE_SIZE - 1) & PAGE_MASK;
 	err = expand_kiobuf(iobuf, (end - ptr) >> PAGE_SHIFT);
@@ -450,16 +450,16 @@ int map_user_kiobuf(int rw, struct kiobuf *iobuf, unsigned long va, size_t len)
 	iobuf->locked = 0;
 	iobuf->offset = va & ~PAGE_MASK;
 	iobuf->length = len;
-	
+
 	i = 0;
-	
-	/* 
+
+	/*
 	 * First of all, try to fault in all of the necessary pages
 	 */
 	while (ptr < end) {
 		if (!vma || ptr >= vma->vm_end) {
 			vma = find_vma(current->mm, ptr);
-			if (!vma) 
+			if (!vma)
 				goto out_unlock;
 			if (vma->vm_start > ptr) {
 				if (!(vma->vm_flags & VM_GROWSDOWN))
@@ -473,7 +473,7 @@ int map_user_kiobuf(int rw, struct kiobuf *iobuf, unsigned long va, size_t len)
 				goto out_unlock;
 			}
 		}
-		if (handle_mm_fault(current->mm, vma, ptr, datain) <= 0) 
+		if (handle_mm_fault(current->mm, vma, ptr, datain) <= 0)
 			goto out_unlock;
 		spin_lock(&mm->page_table_lock);
 		map = follow_page(ptr);
@@ -491,7 +491,7 @@ int map_user_kiobuf(int rw, struct kiobuf *iobuf, unsigned long va, size_t len)
 		spin_unlock(&mm->page_table_lock);
 		iobuf->maplist[i] = map;
 		iobuf->nr_pages = ++i;
-		
+
 		ptr += PAGE_SIZE;
 	}
 
@@ -509,14 +509,14 @@ int map_user_kiobuf(int rw, struct kiobuf *iobuf, unsigned long va, size_t len)
 
 /*
  * Unmap all of the pages referenced by a kiobuf.  We release the pages,
- * and unlock them if they were locked. 
+ * and unlock them if they were locked.
  */
 
-void unmap_kiobuf (struct kiobuf *iobuf) 
+void unmap_kiobuf (struct kiobuf *iobuf)
 {
 	int i;
 	struct page *map;
-	
+
 	for (i = 0; i < iobuf->nr_pages; i++) {
 		map = iobuf->maplist[i];
 		if (map) {
@@ -525,7 +525,7 @@ void unmap_kiobuf (struct kiobuf *iobuf)
 			__free_page(map);
 		}
 	}
-	
+
 	iobuf->nr_pages = 0;
 	iobuf->locked = 0;
 }
@@ -548,9 +548,9 @@ int lock_kiovec(int nr, struct kiobuf *iovec[], int wait)
 	struct page *page, **ppage;
 	int doublepage = 0;
 	int repeat = 0;
-	
+
  repeat:
-	
+
 	for (i = 0; i < nr; i++) {
 		iobuf = iovec[i];
 
@@ -563,43 +563,43 @@ int lock_kiovec(int nr, struct kiobuf *iovec[], int wait)
 			page = *ppage;
 			if (!page)
 				continue;
-			
+
 			if (TryLockPage(page))
 				goto retry;
 		}
 	}
 
 	return 0;
-	
+
  retry:
-	
-	/* 
+
+	/*
 	 * We couldn't lock one of the pages.  Undo the locking so far,
-	 * wait on the page we got to, and try again.  
+	 * wait on the page we got to, and try again.
 	 */
-	
+
 	unlock_kiovec(nr, iovec);
 	if (!wait)
 		return -EAGAIN;
-	
-	/* 
+
+	/*
 	 * Did the release also unlock the page we got stuck on?
 	 */
 	if (!PageLocked(page)) {
-		/* 
+		/*
 		 * If so, we may well have the page mapped twice
 		 * in the IO address range.  Bad news.  Of
 		 * course, it _might_ just be a coincidence,
 		 * but if it happens more than once, chances
-		 * are we have a double-mapped page. 
+		 * are we have a double-mapped page.
 		 */
-		if (++doublepage >= 3) 
+		if (++doublepage >= 3)
 			return -EINVAL;
-		
+
 		/* Try again...  */
 		wait_on_page(page);
 	}
-	
+
 	if (++repeat < 16)
 		goto repeat;
 	return -EAGAIN;
@@ -614,14 +614,14 @@ int unlock_kiovec(int nr, struct kiobuf *iovec[])
 	struct kiobuf *iobuf;
 	int i, j;
 	struct page *page, **ppage;
-	
+
 	for (i = 0; i < nr; i++) {
 		iobuf = iovec[i];
 
 		if (!iobuf->locked)
 			continue;
 		iobuf->locked = 0;
-		
+
 		ppage = iobuf->maplist;
 		for (j = 0; j < iobuf->nr_pages; ppage++, j++) {
 			page = *ppage;
@@ -789,7 +789,7 @@ static inline void establish_pte(struct vm_area_struct * vma, unsigned long addr
 	update_mmu_cache(vma, address, entry);
 }
 
-static inline void break_cow(struct vm_area_struct * vma, struct page *	old_page, struct page * new_page, unsigned long address, 
+static inline void break_cow(struct vm_area_struct * vma, struct page *	old_page, struct page * new_page, unsigned long address,
 		pte_t *page_table)
 {
 	copy_cow_page(old_page,new_page,address);
@@ -826,7 +826,7 @@ static int do_wp_page(struct mm_struct *mm, struct vm_area_struct * vma,
 	old_page = pte_page(pte);
 	if (!VALID_PAGE(old_page))
 		goto bad_wp_page;
-	
+
 	/*
 	 * We can avoid the copy if:
 	 * - we're the only user (count == 1)
@@ -920,7 +920,7 @@ static void vmtruncate_list(struct vm_area_struct *mpnt,
 		flush_tlb_range(mm, start, end);
 	} while ((mpnt = mpnt->vm_next_share) != NULL);
 }
-			      
+
 
 /*
  * Handle all mappings that got truncated by a "truncate()"
@@ -981,11 +981,11 @@ out:
 
 
 
-/* 
+/*
  * Primitive swap readahead code. We simply read an aligned block of
  * (1 << page_cluster) entries in the swap area. This method is chosen
  * because it doesn't cost us any seek time.  We also make sure to queue
- * the 'original' request together with the readahead ones...  
+ * the 'original' request together with the readahead ones...
  */
 void swapin_readahead(swp_entry_t entry)
 {
@@ -1058,7 +1058,8 @@ static int do_swap_page(struct mm_struct * mm,
 /*
  * This only needs the MM semaphore
  */
-static int do_anonymous_page(struct mm_struct * mm, struct vm_area_struct * vma, pte_t *page_table, int write_access, unsigned long addr)
+static int do_anonymous_page(struct mm_struct * mm, struct vm_area_struct * vma,
+	pte_t *page_table, int write_access, unsigned long addr)
 {
 	struct page *page = NULL;
 	pte_t entry = pte_wrprotect(mk_pte(ZERO_PAGE(addr), vma->vm_page_prot));
@@ -1171,7 +1172,8 @@ static inline int handle_pte_fault(struct mm_struct *mm,
 		spin_unlock(&mm->page_table_lock);
 		if (pte_none(entry)) // 内存页还没申请
 			return do_no_page(mm, vma, address, write_access, pte);
-		return do_swap_page(mm, vma, address, pte, pte_to_swp_entry(entry), write_access); // 内存页被交换到磁盘中
+		// 内存页被交换到磁盘中
+		return do_swap_page(mm, vma, address, pte, pte_to_swp_entry(entry), write_access);
 	}
 
 	// 到这里表示内存页在物理内存中

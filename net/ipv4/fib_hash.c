@@ -63,8 +63,10 @@ typedef struct {
 struct fib_node
 {
 	struct fib_node		*fn_next;
+
 	struct fib_info		*fn_info;
 #define FIB_INFO(f)		((f)->fn_info)
+
 	fn_key_t			fn_key;
 	u8					fn_tos;
 	u8					fn_type;
@@ -72,7 +74,7 @@ struct fib_node
 	u8					fn_state;
 };
 
-#define FN_S_ZOMBIE	1
+#define FN_S_ZOMBIE		1
 #define FN_S_ACCESSED	2
 
 static int fib_hash_zombies;
@@ -150,6 +152,7 @@ static rwlock_t fib_hash_lock = RW_LOCK_UNLOCKED;
 #ifdef CONFIG_IP_ROUTE_LARGE_TABLES
 
 /* The fib hash lock must be held when this is called. */
+
 static __inline__ void
 fn_rebuild_zone(struct fn_zone *fz, struct fib_node **old_ht, int old_divisor)
 {
@@ -258,7 +261,8 @@ fn_new_zone(struct fn_hash *table, int z)
 }
 
 static int
-fn_hash_lookup(struct fib_table *tb, const struct rt_key *key, struct fib_result *res)
+fn_hash_lookup(struct fib_table *tb, const struct rt_key *key,
+			   struct fib_result *res)
 {
 	int err;
 	struct fn_zone *fz;

@@ -20,18 +20,18 @@
 
 struct kern_rta
 {
-	void			*rta_dst;
-	void			*rta_src;
-	int				*rta_iif;
-	int				*rta_oif;
-	void			*rta_gw;
-	u32				*rta_priority;
-	void			*rta_prefsrc;
-	struct rtattr	*rta_mx;
-	struct rtattr	*rta_mp;
-	unsigned char	*rta_protoinfo;
-	unsigned char	*rta_flow;
-	struct rta_cacheinfo *rta_ci;
+	void					*rta_dst;
+	void					*rta_src;
+	int						*rta_iif;
+	int						*rta_oif;
+	void					*rta_gw;
+	u32						*rta_priority;
+	void					*rta_prefsrc;
+	struct rtattr			*rta_mx;
+	struct rtattr			*rta_mp;
+	unsigned char			*rta_protoinfo;
+	unsigned char			*rta_flow;
+	struct rta_cacheinfo	*rta_ci;
 };
 
 struct fib_nh
