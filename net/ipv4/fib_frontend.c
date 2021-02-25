@@ -45,8 +45,6 @@
 #include <net/arp.h>
 #include <net/ip_fib.h>
 
-#define FFprint(a...) printk(KERN_DEBUG a)
-
 #ifndef CONFIG_IP_MULTIPLE_TABLES
 
 #define RT_TABLE_MIN RT_TABLE_MAIN
@@ -67,13 +65,12 @@ struct fib_table *__fib_new_table(int id)
 	tb = fib_hash_init(id);
 	if (!tb)
 		return NULL;
+
 	fib_tables[id] = tb;
 	return tb;
 }
 
-
 #endif /* CONFIG_IP_MULTIPLE_TABLES */
-
 
 void fib_flush(void)
 {
@@ -82,7 +79,7 @@ void fib_flush(void)
 	struct fib_table *tb;
 	int id;
 
-	for (id = RT_TABLE_MAX; id>0; id--) {
+	for (id = RT_TABLE_MAX; id > 0; id--) {
 		if ((tb = fib_get_table(id))==NULL)
 			continue;
 		flushed += tb->tb_flush(tb);
@@ -96,16 +93,15 @@ void fib_flush(void)
 		rt_cache_flush(-1);
 }
 
-
 #ifdef CONFIG_PROC_FS
 
-/* 
+/*
  *	Called from the PROCfs module. This outputs /proc/net/route.
  *
  *	It always works in backward compatibility mode.
  *	The format of the file is not supposed to be changed.
  */
- 
+
 static int
 fib_get_procinfo(char *buffer, char **start, off_t offset, int length)
 {
@@ -115,9 +111,12 @@ fib_get_procinfo(char *buffer, char **start, off_t offset, int length)
 	int len;
 
 	*start = buffer + offset%128;
-	
+
 	if (--first < 0) {
-		sprintf(buffer, "%-127s\n", "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT");
+		sprintf(buffer,
+				"%-127s\n",
+				"Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT");
+
 		--count;
 		ptr += 128;
 		first = 0;
@@ -184,7 +183,7 @@ unsigned inet_addr_type(u32 addr)
 #ifdef CONFIG_IP_MULTIPLE_TABLES
 	res.r = NULL;
 #endif
-	
+
 	if (local_table) {
 		ret = RTN_UNICAST;
 		if (local_table->tb_lookup(local_table, &key, &res) == 0) {
@@ -283,7 +282,7 @@ e_inval:
 /*
  *	Handle IP routing ioctl calls. These are used to manipulate the routing tables
  */
- 
+
 int ip_rt_ioctl(unsigned int cmd, void *arg)
 {
 	int err;
@@ -362,7 +361,9 @@ int inet_rtm_delroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg)
 
 	tb = fib_get_table(r->rtm_table);
 	if (tb)
-		return tb->tb_delete(tb, r, (struct kern_rta*)rta, nlh, &NETLINK_CB(skb));
+		return tb->tb_delete(tb, r, (struct kern_rta*)rta, nlh,
+							 &NETLINK_CB(skb));
+
 	return -ESRCH;
 }
 
@@ -377,7 +378,9 @@ int inet_rtm_newroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg)
 
 	tb = fib_new_table(r->rtm_table);
 	if (tb)
-		return tb->tb_insert(tb, r, (struct kern_rta*)rta, nlh, &NETLINK_CB(skb));
+		return tb->tb_insert(tb, r, (struct kern_rta*)rta, nlh,
+							 &NETLINK_CB(skb));
+
 	return -ENOBUFS;
 }
 
@@ -401,7 +404,7 @@ int inet_dump_fib(struct sk_buff *skb, struct netlink_callback *cb)
 			memset(&cb->args[1], 0, sizeof(cb->args)-sizeof(cb->args[0]));
 		if ((tb = fib_get_table(t))==NULL)
 			continue;
-		if (tb->tb_dump(tb, skb, cb) < 0) 
+		if (tb->tb_dump(tb, skb, cb) < 0)
 			break;
 	}
 
@@ -419,7 +422,8 @@ int inet_dump_fib(struct sk_buff *skb, struct netlink_callback *cb)
    only when netlink is already locked.
  */
 
-static void fib_magic(int cmd, int type, u32 dst, int dst_len, struct in_ifaddr *ifa)
+static void fib_magic(int cmd, int type, u32 dst, int dst_len,
+					  struct in_ifaddr *ifa)
 {
 	struct fib_table * tb;
 	struct {
@@ -470,10 +474,9 @@ static void fib_add_ifaddr(struct in_ifaddr *ifa)
 	u32 addr = ifa->ifa_local;
 	u32 prefix = ifa->ifa_address&mask;
 
-	if (ifa->ifa_flags&IFA_F_SECONDARY) {
+	if (ifa->ifa_flags & IFA_F_SECONDARY) {
 		prim = inet_ifa_byprefix(in_dev, prefix, mask);
 		if (prim == NULL) {
-			printk(KERN_DEBUG "fib_add_ifaddr: bug: prim == NULL\n");
 			return;
 		}
 	}
@@ -487,10 +490,11 @@ static void fib_add_ifaddr(struct in_ifaddr *ifa)
 	if (ifa->ifa_broadcast && ifa->ifa_broadcast != 0xFFFFFFFF)
 		fib_magic(RTM_NEWROUTE, RTN_BROADCAST, ifa->ifa_broadcast, 32, prim);
 
-	if (!ZERONET(prefix) && !(ifa->ifa_flags&IFA_F_SECONDARY) &&
-	    (prefix != addr || ifa->ifa_prefixlen < 32)) {
-		fib_magic(RTM_NEWROUTE, dev->flags&IFF_LOOPBACK ? RTN_LOCAL :
-			  RTN_UNICAST, prefix, ifa->ifa_prefixlen, prim);
+	if (!ZERONET(prefix) && !(ifa->ifa_flags&IFA_F_SECONDARY)
+		&& (prefix != addr || ifa->ifa_prefixlen < 32))
+	{
+		fib_magic(RTM_NEWROUTE, dev->flags&IFF_LOOPBACK ? RTN_LOCAL:RTN_UNICAST,
+				  prefix, ifa->ifa_prefixlen, prim);
 
 		/* Add network specific broadcasts, when it takes a sense */
 		if (ifa->ifa_prefixlen < 31) {
@@ -520,7 +524,6 @@ static void fib_del_ifaddr(struct in_ifaddr *ifa)
 	else {
 		prim = inet_ifa_byprefix(in_dev, any, ifa->ifa_mask);
 		if (prim == NULL) {
-			printk(KERN_DEBUG "fib_del_ifaddr: bug: prim == NULL\n");
 			return;
 		}
 	}
@@ -577,15 +580,17 @@ static void fib_disable_ip(struct net_device *dev, int force)
 	arp_ifdown(dev);
 }
 
-static int fib_inetaddr_event(struct notifier_block *this, unsigned long event, void *ptr)
+static int fib_inetaddr_event(struct notifier_block *this, unsigned long event,
+							  void *ptr)
 {
-	struct in_ifaddr *ifa = (struct in_ifaddr*)ptr;
+	struct in_ifaddr *ifa = (struct in_ifaddr *)ptr;
 
 	switch (event) {
 	case NETDEV_UP:
 		fib_add_ifaddr(ifa);
 		rt_cache_flush(-1);
 		break;
+
 	case NETDEV_DOWN:
 		if (ifa->ifa_dev && ifa->ifa_dev->ifa_list == NULL) {
 			/* Last address was deleted from this interface.
@@ -598,10 +603,12 @@ static int fib_inetaddr_event(struct notifier_block *this, unsigned long event, 
 		}
 		break;
 	}
+
 	return NOTIFY_DONE;
 }
 
-static int fib_netdev_event(struct notifier_block *this, unsigned long event, void *ptr)
+static int fib_netdev_event(struct notifier_block *this, unsigned long event,
+							void *ptr)
 {
 	struct net_device *dev = ptr;
 	struct in_device *in_dev = __in_dev_get(dev);
@@ -614,22 +621,27 @@ static int fib_netdev_event(struct notifier_block *this, unsigned long event, vo
 		for_ifa(in_dev) {
 			fib_add_ifaddr(ifa);
 		} endfor_ifa(in_dev);
+
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 		fib_sync_up(dev);
 #endif
 		rt_cache_flush(-1);
 		break;
+
 	case NETDEV_DOWN:
 		fib_disable_ip(dev, 0);
 		break;
+
 	case NETDEV_UNREGISTER:
 		fib_disable_ip(dev, 1);
 		break;
+
 	case NETDEV_CHANGEMTU:
 	case NETDEV_CHANGE:
 		rt_cache_flush(0);
 		break;
 	}
+
 	return NOTIFY_DONE;
 }
 
@@ -661,4 +673,3 @@ void __init ip_fib_init(void)
 	register_netdevice_notifier(&fib_netdev_notifier);
 	register_inetaddr_notifier(&fib_inetaddr_notifier);
 }
-

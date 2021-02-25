@@ -17,7 +17,7 @@ struct ipv4_devconf
 	int	forwarding;
 	int	mc_forwarding;
 	int	tag;
-	void	*sysctl;
+	void *sysctl;
 };
 
 extern struct ipv4_devconf ipv4_devconf;
@@ -28,8 +28,8 @@ struct in_device
 	atomic_t			refcnt;
 	rwlock_t			lock;
 	int					dead;
-	struct in_ifaddr	*ifa_list;	/* IP ifaddr chain		*/
-	struct ip_mc_list	*mc_list;	/* IP multicast filter chain    */
+	struct in_ifaddr	*ifa_list;	/* IP ifaddr chain */ // IP地址列表
+	struct ip_mc_list	*mc_list;	/* IP multicast filter chain */
 	unsigned long		mr_v1_seen;
 	struct neigh_parms	*arp_parms;
 	struct ipv4_devconf	cnf;
@@ -57,16 +57,16 @@ struct in_device
 struct in_ifaddr
 {
 	struct in_ifaddr	*ifa_next;
-	struct in_device	*ifa_dev;
-	u32					ifa_local;
-	u32					ifa_address;
-	u32					ifa_mask;
-	u32					ifa_broadcast;
+	struct in_device	*ifa_dev;       // IP设备信息
+	u32					ifa_local;      // 本地IP地址
+	u32					ifa_address;    // IP地址
+	u32					ifa_mask;       // 子掩码
+	u32					ifa_broadcast;  // 广播地址
 	u32					ifa_anycast;
-	unsigned char		ifa_scope;
-	unsigned char		ifa_flags;
-	unsigned char		ifa_prefixlen;
-	char				ifa_label[IFNAMSIZ];
+	unsigned char		ifa_scope;      // 范围
+	unsigned char		ifa_flags;      // 标志位
+	unsigned char		ifa_prefixlen;  // 子掩码长度
+	char				ifa_label[IFNAMSIZ]; // 标签
 };
 
 extern int register_inetaddr_notifier(struct notifier_block *nb);

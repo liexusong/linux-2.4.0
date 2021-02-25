@@ -20,13 +20,13 @@
 
 struct kern_rta
 {
-	void		*rta_dst;
-	void		*rta_src;
-	int		*rta_iif;
-	int		*rta_oif;
-	void		*rta_gw;
-	u32		*rta_priority;
-	void		*rta_prefsrc;
+	void			*rta_dst;
+	void			*rta_src;
+	int				*rta_iif;
+	int				*rta_oif;
+	void			*rta_gw;
+	u32				*rta_priority;
+	void			*rta_prefsrc;
 	struct rtattr	*rta_mx;
 	struct rtattr	*rta_mp;
 	unsigned char	*rta_protoinfo;
@@ -36,18 +36,18 @@ struct kern_rta
 
 struct fib_nh
 {
-	struct net_device		*nh_dev;
-	unsigned		nh_flags;
-	unsigned char		nh_scope;
+	struct net_device	*nh_dev;   // 下一跳的出口设备
+	unsigned			nh_flags;
+	unsigned char		nh_scope;  // 范围
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
-	int			nh_weight;
-	int			nh_power;
+	int					nh_weight;
+	int					nh_power;
 #endif
 #ifdef CONFIG_NET_CLS_ROUTE
-	__u32			nh_tclassid;
+	__u32				nh_tclassid;
 #endif
-	int			nh_oif;
-	u32			nh_gw;
+	int					nh_oif;
+	u32					nh_gw;    // 网关地址
 };
 
 /*
@@ -58,26 +58,27 @@ struct fib_info
 {
 	struct fib_info		*fib_next;
 	struct fib_info		*fib_prev;
-	int			fib_treeref;
-	atomic_t		fib_clntref;
-	int			fib_dead;
-	unsigned		fib_flags;
-	int			fib_protocol;
-	u32			fib_prefsrc;
-	u32			fib_priority;
-	unsigned		fib_metrics[RTAX_MAX];
-#define fib_mtu fib_metrics[RTAX_MTU-1]
-#define fib_window fib_metrics[RTAX_WINDOW-1]
-#define fib_rtt fib_metrics[RTAX_RTT-1]
-#define fib_advmss fib_metrics[RTAX_ADVMSS-1]
-	int			fib_nhs;
-#ifdef CONFIG_IP_ROUTE_MULTIPATH
-	int			fib_power;
-#endif
-	struct fib_nh		fib_nh[0];
-#define fib_dev		fib_nh[0].nh_dev
-};
+	int					fib_treeref;
+	atomic_t			fib_clntref;
+	int					fib_dead;
+	unsigned			fib_flags;
+	int					fib_protocol;
+	u32					fib_prefsrc;
+	u32					fib_priority;
 
+	unsigned			fib_metrics[RTAX_MAX];
+#define fib_mtu			fib_metrics[RTAX_MTU-1]
+#define fib_window		fib_metrics[RTAX_WINDOW-1]
+#define fib_rtt			fib_metrics[RTAX_RTT-1]
+#define fib_advmss		fib_metrics[RTAX_ADVMSS-1]
+
+	int					fib_nhs;     // 下一跳列表大小
+#ifdef CONFIG_IP_ROUTE_MULTIPATH
+	int					fib_power;
+#endif
+	struct fib_nh		fib_nh[0];   // 下一跳列表(一般只有一个)
+#define fib_dev			fib_nh[0].nh_dev
+};
 
 #ifdef CONFIG_IP_MULTIPLE_TABLES
 struct fib_rule;
@@ -108,29 +109,32 @@ struct fib_result
 
 #endif /* CONFIG_IP_ROUTE_MULTIPATH */
 
-#define FIB_RES_PREFSRC(res)		((res).fi->fib_prefsrc ? : __fib_res_prefsrc(&res))
-#define FIB_RES_GW(res)			(FIB_RES_NH(res).nh_gw)
-#define FIB_RES_DEV(res)		(FIB_RES_NH(res).nh_dev)
-#define FIB_RES_OIF(res)		(FIB_RES_NH(res).nh_oif)
+#define FIB_RES_PREFSRC(res) ((res).fi->fib_prefsrc ? : __fib_res_prefsrc(&res))
+#define FIB_RES_GW(res)      (FIB_RES_NH(res).nh_gw)
+#define FIB_RES_DEV(res)     (FIB_RES_NH(res).nh_dev)
+#define FIB_RES_OIF(res)     (FIB_RES_NH(res).nh_oif)
 
 struct fib_table
 {
 	unsigned char	tb_id;
-	unsigned	tb_stamp;
-	int		(*tb_lookup)(struct fib_table *tb, const struct rt_key *key, struct fib_result *res);
+	unsigned		tb_stamp;
+
+	int		(*tb_lookup)(struct fib_table *tb, const struct rt_key *key,
+						 struct fib_result *res);
 	int		(*tb_insert)(struct fib_table *table, struct rtmsg *r,
-				     struct kern_rta *rta, struct nlmsghdr *n,
-				     struct netlink_skb_parms *req);
+						 struct kern_rta *rta, struct nlmsghdr *n,
+						 struct netlink_skb_parms *req);
 	int		(*tb_delete)(struct fib_table *table, struct rtmsg *r,
-				     struct kern_rta *rta, struct nlmsghdr *n,
-				     struct netlink_skb_parms *req);
+						 struct kern_rta *rta, struct nlmsghdr *n,
+						 struct netlink_skb_parms *req);
 	int		(*tb_dump)(struct fib_table *table, struct sk_buff *skb,
-				     struct netlink_callback *cb);
+					   struct netlink_callback *cb);
 	int		(*tb_flush)(struct fib_table *table);
-	int		(*tb_get_info)(struct fib_table *table, char *buf,
-				       int first, int count);
-	void		(*tb_select_default)(struct fib_table *table,
-					     const struct rt_key *key, struct fib_result *res);
+	int		(*tb_get_info)(struct fib_table *table, char *buf, int first,
+						   int count);
+	void	(*tb_select_default)(struct fib_table *table,
+								 const struct rt_key *key,
+								 struct fib_result *res);
 
 	unsigned char	tb_data[0];
 };
@@ -155,12 +159,13 @@ static inline struct fib_table *fib_new_table(int id)
 static inline int fib_lookup(const struct rt_key *key, struct fib_result *res)
 {
 	if (local_table->tb_lookup(local_table, key, res) &&
-	    main_table->tb_lookup(main_table, key, res))
+		main_table->tb_lookup(main_table, key, res))
 		return -ENETUNREACH;
 	return 0;
 }
 
-static inline void fib_select_default(const struct rt_key *key, struct fib_result *res)
+static inline void
+fib_select_default(const struct rt_key *key, struct fib_result *res)
 {
 	if (FIB_RES_GW(*res) && FIB_RES_NH(*res).nh_scope == RT_SCOPE_LINK)
 		main_table->tb_select_default(main_table, key, res);
@@ -196,14 +201,15 @@ extern void fib_select_default(const struct rt_key *key, struct fib_result *res)
 #endif /* CONFIG_IP_MULTIPLE_TABLES */
 
 /* Exported by fib_frontend.c */
-extern void		ip_fib_init(void);
-extern void		fib_flush(void);
+extern void ip_fib_init(void);
+extern void fib_flush(void);
 extern int inet_rtm_delroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg);
 extern int inet_rtm_newroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg);
 extern int inet_rtm_getroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg);
 extern int inet_dump_fib(struct sk_buff *skb, struct netlink_callback *cb);
 extern int fib_validate_source(u32 src, u32 dst, u8 tos, int oif,
-			       struct net_device *dev, u32 *spec_dst, u32 *itag);
+							   struct net_device *dev, u32 *spec_dst,
+							   u32 *itag);
 extern void fib_select_multipath(const struct rt_key *key, struct fib_result *res);
 
 /* Exported by fib_semantics.c */
@@ -220,7 +226,7 @@ extern int fib_dump_info(struct sk_buff *skb, u32 pid, u32 seq, int event,
 extern int fib_sync_down(u32 local, struct net_device *dev, int force);
 extern int fib_sync_up(struct net_device *dev);
 extern int fib_convert_rtentry(int cmd, struct nlmsghdr *nl, struct rtmsg *rtm,
-			       struct kern_rta *rta, struct rtentry *r);
+				   struct kern_rta *rta, struct rtentry *r);
 extern void fib_node_get_info(int type, int dead, struct fib_info *fi, u32 prefix, u32 mask, char *buffer);
 extern u32  __fib_res_prefsrc(struct fib_result *res);
 
