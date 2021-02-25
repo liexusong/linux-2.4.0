@@ -2047,7 +2047,7 @@ rtattr_failure:
 	return -1;
 }
 
-int inet_rtm_getroute(struct sk_buff *in_skb, struct nlmsghdr* nlh, void *arg)
+int inet_rtm_getroute(struct sk_buff *in_skb, struct nlmsghdr *nlh, void *arg)
 {
 	struct rtattr **rta = arg;
 	struct rtmsg *rtm = NLMSG_DATA(nlh);
@@ -2094,6 +2094,7 @@ int inet_rtm_getroute(struct sk_buff *in_skb, struct nlmsghdr* nlh, void *arg)
 			memcpy(&oif, RTA_DATA(rta[RTA_OIF-1]), sizeof(int));
 		err = ip_route_output(&rt, dst, src, rtm->rtm_tos, oif);
 	}
+
 	if (err) {
 		kfree_skb(skb);
 		return err;
