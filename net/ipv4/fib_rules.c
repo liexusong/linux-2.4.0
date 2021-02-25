@@ -396,9 +396,9 @@ struct notifier_block fib_rules_notifier = {
 
 #ifdef CONFIG_RTNETLINK
 
-extern __inline__ int inet_fill_rule(struct sk_buff *skb,
-									 struct fib_rule *r,
-									 struct netlink_callback *cb)
+extern __inline__ int
+inet_fill_rule(struct sk_buff *skb, struct fib_rule *r,
+			   struct netlink_callback *cb)
 {
 	struct rtmsg *rtm;
 	struct nlmsghdr  *nlh;
@@ -406,6 +406,7 @@ extern __inline__ int inet_fill_rule(struct sk_buff *skb,
 
 	nlh = NLMSG_PUT(skb, NETLINK_CREDS(cb->skb)->pid, cb->nlh->nlmsg_seq,
 					RTM_NEWRULE, sizeof(*rtm));
+
 	rtm = NLMSG_DATA(nlh);
 	rtm->rtm_family = AF_INET;
 	rtm->rtm_dst_len = r->r_dst_len;
