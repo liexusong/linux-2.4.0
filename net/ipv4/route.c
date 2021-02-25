@@ -588,7 +588,7 @@ restart:
 	   route or unicast forwarding path.
 	 */
 	if (rt->rt_type == RTN_UNICAST || rt->key.iif == 0) {
-		int err = arp_bind_neighbour(&rt->u.dst);
+		int err = arp_bind_neighbour(&rt->u.dst); // 绑定邻居节点
 		if (err) {
 			write_unlock_bh(&rt_hash_table[hash].lock);
 
@@ -620,18 +620,11 @@ restart:
 	}
 
 	rt->u.rt_next = rt_hash_table[hash].chain;
-#if RT_CACHE_DEBUG >= 2
-	if (rt->u.rt_next) {
-		struct rtable * trt;
-		printk("rt_cache @%02x: %u.%u.%u.%u", hash, NIPQUAD(rt->rt_dst));
-		for (trt=rt->u.rt_next; trt; trt=trt->u.rt_next)
-			printk(" . %u.%u.%u.%u", NIPQUAD(trt->rt_dst));
-		printk("\n");
-	}
-#endif
 	rt_hash_table[hash].chain = rt;
 	write_unlock_bh(&rt_hash_table[hash].lock);
+
 	*rp = rt;
+
 	return 0;
 }
 
@@ -1123,25 +1116,31 @@ static void rt_set_nexthop(struct rtable *rt, struct fib_result *res, u32 itag)
 
 	if (fi) {
 		if (FIB_RES_GW(*res) && FIB_RES_NH(*res).nh_scope == RT_SCOPE_LINK)
-			rt->rt_gateway = FIB_RES_GW(*res);
+			rt->rt_gateway = FIB_RES_GW(*res); // 设置真正的网关地址
+
 		memcpy(&rt->u.dst.mxlock, fi->fib_metrics, sizeof(fi->fib_metrics));
+
 		if (fi->fib_mtu == 0) {
 			rt->u.dst.pmtu = rt->u.dst.dev->mtu;
-			if (rt->u.dst.mxlock&(1<<RTAX_MTU) &&
-			    rt->rt_gateway != rt->rt_dst &&
-			    rt->u.dst.pmtu > 576)
+			if (rt->u.dst.mxlock&(1<<RTAX_MTU)
+			    && rt->rt_gateway != rt->rt_dst
+			    && rt->u.dst.pmtu > 576)
 				rt->u.dst.pmtu = 576;
 		}
+
 #ifdef CONFIG_NET_CLS_ROUTE
 		rt->u.dst.tclassid = FIB_RES_NH(*res).nh_tclassid;
 #endif
 	} else {
 		rt->u.dst.pmtu	= rt->u.dst.dev->mtu;
 	}
+
 	if (rt->u.dst.pmtu > IP_MAX_MTU)
 		rt->u.dst.pmtu = IP_MAX_MTU;
+
 	if (rt->u.dst.advmss == 0)
 		rt->u.dst.advmss = max(rt->u.dst.dev->mtu-40, ip_rt_min_advmss);
+
 	if (rt->u.dst.advmss > 65535-40)
 		rt->u.dst.advmss = 65535-40;
 
@@ -1151,12 +1150,12 @@ static void rt_set_nexthop(struct rtable *rt, struct fib_result *res, u32 itag)
 #endif
 	set_class_tag(rt, itag);
 #endif
-        rt->rt_type = res->type;
+	rt->rt_type = res->type;
 }
 
 static int
 ip_route_input_mc(struct sk_buff *skb, u32 daddr, u32 saddr,
-		  u8 tos, struct net_device *dev, int our)
+				  u8 tos, struct net_device *dev, int our)
 {
 	unsigned hash;
 	struct rtable *rth;
@@ -1407,14 +1406,13 @@ int ip_route_input_slow(struct sk_buff *skb, u32 daddr, u32 saddr,
 	if (flags&RTCF_DNAT)
 		rth->rt_gateway	= key.dst;
 #endif
-	rth->rt_iif 	=
-	rth->key.iif	= dev->ifindex;
+	rth->rt_iif 	= rth->key.iif = dev->ifindex;
 	rth->u.dst.dev	= out_dev->dev;
 	dev_hold(rth->u.dst.dev);
 	rth->key.oif 	= 0;
 	rth->rt_spec_dst= spec_dst;
 
-	rth->u.dst.input = ip_forward;
+	rth->u.dst.input  = ip_forward;
 	rth->u.dst.output = ip_output;
 
 	rt_set_nexthop(rth, &res, itag);
@@ -1758,8 +1756,9 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 			res.type = RTN_UNICAST;
 			goto make_route;
 		}
-		if (dev_out)
-			dev_put(dev_out);
+
+		if (dev_out) dev_put(dev_out);
+
 		return -ENETUNREACH;
 	}
 
@@ -1788,14 +1787,14 @@ int ip_route_output_slow(struct rtable **rp, const struct rt_key *oldkey)
 		fib_select_multipath(&key, &res);
 	else
 #endif
-	if (res.prefixlen==0 && res.type == RTN_UNICAST && key.oif == 0)
+	if (res.prefixlen == 0 && res.type == RTN_UNICAST && key.oif == 0)
 		fib_select_default(&key, &res);
 
 	if (!key.src)
 		key.src = FIB_RES_PREFSRC(res);
 
-	if (dev_out)
-		dev_put(dev_out);
+	if (dev_out) dev_put(dev_out);
+
 	dev_out = FIB_RES_DEV(res);
 	dev_hold(dev_out);
 	key.oif = dev_out->ifindex;
@@ -1811,7 +1810,7 @@ make_route:
 	else if (BADCLASS(key.dst) || ZERONET(key.dst))
 		goto e_inval;
 
-	if (dev_out->flags&IFF_LOOPBACK)
+	if (dev_out->flags & IFF_LOOPBACK)
 		flags |= RTCF_LOCAL;
 
 	if (res.type == RTN_BROADCAST) {
@@ -1822,10 +1821,15 @@ make_route:
 		}
 	} else if (res.type == RTN_MULTICAST) {
 		flags |= RTCF_MULTICAST|RTCF_LOCAL;
+
 		read_lock(&inetdev_lock);
-		if (!__in_dev_get(dev_out) || !ip_check_mc(__in_dev_get(dev_out), oldkey->dst))
+
+		if (!__in_dev_get(dev_out)
+			|| !ip_check_mc(__in_dev_get(dev_out), oldkey->dst))
 			flags &= ~RTCF_LOCAL;
+
 		read_unlock(&inetdev_lock);
+
 		/* If multicast route do not exist use
 		   default one, but do not gateway in this case.
 		   Yes, it is hack.
@@ -1836,11 +1840,12 @@ make_route:
 		}
 	}
 
-	rth = dst_alloc(&ipv4_dst_ops);
+	rth = dst_alloc(&ipv4_dst_ops); // 申请一个路由缓存对象
 	if (!rth)
 		goto e_nobufs;
 
 	atomic_set(&rth->u.dst.__refcnt, 1);
+
 	rth->u.dst.flags= DST_HOST;
 	rth->key.dst	= oldkey->dst;
 	rth->key.tos	= tos;
@@ -1850,8 +1855,8 @@ make_route:
 #ifdef CONFIG_IP_ROUTE_FWMARK
 	rth->key.fwmark	= oldkey->fwmark;
 #endif
-	rth->rt_dst	= key.dst;
-	rth->rt_src	= key.src;
+	rth->rt_dst		= key.dst;
+	rth->rt_src		= key.src;
 #ifdef CONFIG_IP_ROUTE_NAT
 	rth->rt_dst_map	= key.dst;
 	rth->rt_src_map	= key.src;
@@ -1862,13 +1867,14 @@ make_route:
 	rth->rt_gateway = key.dst;
 	rth->rt_spec_dst= key.src;
 
-	rth->u.dst.output=ip_output;
+	rth->u.dst.output = ip_output;
 
-	if (flags&RTCF_LOCAL) {
+	if (flags & RTCF_LOCAL) {
 		rth->u.dst.input = ip_local_deliver;
 		rth->rt_spec_dst = key.dst;
 	}
-	if (flags&(RTCF_BROADCAST|RTCF_MULTICAST)) {
+
+	if (flags & (RTCF_BROADCAST|RTCF_MULTICAST)) {
 		rth->rt_spec_dst = key.src;
 		if (flags&RTCF_LOCAL && !(dev_out->flags&IFF_LOOPBACK))
 			rth->u.dst.output = ip_mc_output;
@@ -1941,7 +1947,8 @@ int ip_route_output_key(struct rtable **rp, const struct rt_key *key)
 
 #ifdef CONFIG_RTNETLINK
 
-static int rt_fill_info(struct sk_buff *skb, u32 pid, u32 seq, int event, int nowait)
+static int rt_fill_info(struct sk_buff *skb, u32 pid, u32 seq, int event,
+						int nowait)
 {
 	struct rtable *rt = (struct rtable*)skb->dst;
 	struct rtmsg *r;
