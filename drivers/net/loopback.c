@@ -64,31 +64,32 @@ static int loopback_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	/*
 	 *	Optimise so buffers with skb->free=1 are not copied but
-	 *	instead are lobbed from tx queue to rx queue 
+	 *	instead are lobbed from tx queue to rx queue
 	 */
+	if (atomic_read(&skb->users) != 1) {
+	  	struct sk_buff *skb2 = skb;
 
-	if(atomic_read(&skb->users) != 1)
-	{
-	  	struct sk_buff *skb2=skb;
-	  	skb=skb_clone(skb, GFP_ATOMIC);		/* Clone the buffer */
-	  	if(skb==NULL) {
+	  	skb = skb_clone(skb, GFP_ATOMIC); /* Clone the buffer */
+	  	if (skb == NULL) {
 			kfree_skb(skb2);
 			return 0;
 		}
+
 	  	kfree_skb(skb2);
 	}
 	else
 		skb_orphan(skb);
 
-	skb->protocol=eth_type_trans(skb,dev);
-	skb->dev=dev;
+	skb->protocol = eth_type_trans(skb, dev);
+	skb->dev = dev;
 #ifndef LOOPBACK_MUST_CHECKSUM
 	skb->ip_summed = CHECKSUM_UNNECESSARY;
 #endif
+
 	netif_rx(skb);
 
-	stats->rx_bytes+=skb->len;
-	stats->tx_bytes+=skb->len;
+	stats->rx_bytes += skb->len;
+	stats->tx_bytes += skb->len;
 	stats->rx_packets++;
 	stats->tx_packets++;
 
@@ -103,31 +104,33 @@ static struct net_device_stats *get_stats(struct net_device *dev)
 /* Initialize the rest of the LOOPBACK device. */
 int __init loopback_init(struct net_device *dev)
 {
-	dev->mtu		= PAGE_SIZE - LOOPBACK_OVERHEAD;
+	dev->mtu				= PAGE_SIZE - LOOPBACK_OVERHEAD;
 	dev->hard_start_xmit	= loopback_xmit;
-	dev->hard_header	= eth_header;
+	dev->hard_header		= eth_header;
 	dev->hard_header_cache	= eth_header_cache;
 	dev->header_cache_update= eth_header_cache_update;
-	dev->hard_header_len	= ETH_HLEN;		/* 14			*/
-	dev->addr_len		= ETH_ALEN;		/* 6			*/
-	dev->tx_queue_len	= 0;
-	dev->type		= ARPHRD_LOOPBACK;	/* 0x0001		*/
-	dev->rebuild_header	= eth_rebuild_header;
-	dev->flags		= IFF_LOOPBACK;
+	dev->hard_header_len	= ETH_HLEN;			/* 14		*/
+	dev->addr_len			= ETH_ALEN;			/* 6		*/
+	dev->tx_queue_len		= 0;
+	dev->type				= ARPHRD_LOOPBACK;	/* 0x0001	*/
+	dev->rebuild_header		= eth_rebuild_header;
+	dev->flags				= IFF_LOOPBACK;
+
 	dev->priv = kmalloc(sizeof(struct net_device_stats), GFP_KERNEL);
 	if (dev->priv == NULL)
-			return -ENOMEM;
+		return -ENOMEM;
+
 	memset(dev->priv, 0, sizeof(struct net_device_stats));
+
 	dev->get_stats = get_stats;
 
 	if (num_physpages >= ((128*1024*1024)>>PAGE_SHIFT))
 		dev->mtu = 4096*4 - LOOPBACK_OVERHEAD;
 
 	/*
-	 *	Fill in the generic fields of the device structure. 
+	 *	Fill in the generic fields of the device structure.
 	 */
-   
 	dev_init_buffers(dev);
-  
+
 	return(0);
 };

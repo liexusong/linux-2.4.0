@@ -130,7 +130,8 @@ void br_handle_frame(struct sk_buff *skb)
 {
 	struct net_bridge *br;
 
-	br = skb->dev->br_port->br; // 设备是否连接到网桥中
+	br = skb->dev->br_port->br; // 获取设备连接的网桥对象
+
 	read_lock(&br->lock);
 	__br_handle_frame(skb);
 	read_unlock(&br->lock);

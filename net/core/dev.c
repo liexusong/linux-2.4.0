@@ -1172,7 +1172,8 @@ drop:
 /* Deliver skb to an old protocol, which is not threaded well
    or which do not understand shared skbs.
  */
-static int deliver_to_old_ones(struct packet_type *pt, struct sk_buff *skb, int last)
+static int
+deliver_to_old_ones(struct packet_type *pt, struct sk_buff *skb, int last)
 {
 	static spinlock_t net_bh_lock = SPIN_LOCK_UNLOCKED;
 	int ret = NET_RX_DROP;
@@ -1278,10 +1279,11 @@ void net_call_rx_atomic(void (*fn)(void))
 }
 
 #if defined(CONFIG_BRIDGE) || defined(CONFIG_BRIDGE_MODULE)
-void (*br_handle_frame_hook)(struct sk_buff *skb) = NULL;
+void (*br_handle_frame_hook)(struct sk_buff *skb) = NULL; // br_handle_frame
 #endif
 
-static int __inline__ handle_bridge(struct sk_buff *skb, struct packet_type *pt_prev)
+static int
+__inline__ handle_bridge(struct sk_buff *skb, struct packet_type *pt_prev)
 {
 	int ret = NET_RX_DROP;
 
@@ -1375,7 +1377,10 @@ static void net_rx_action(struct softirq_action *h)
 			}
 #endif
 
-			for (ptype=ptype_base[ntohs(type)&15]; ptype; ptype=ptype->next) {
+			for (ptype = ptype_base[ntohs(type)&15];
+				 ptype;
+				 ptype = ptype->next)
+			{
 				if (ptype->type == type &&
 				    (!ptype->dev || ptype->dev == skb->dev)) {
 					if (pt_prev) {
