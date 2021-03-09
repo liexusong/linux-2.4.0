@@ -1098,11 +1098,16 @@ asmlinkage long sys_connect(int fd, struct sockaddr *uservaddr, int addrlen)
 	sock = sockfd_lookup(fd, &err);
 	if (!sock)
 		goto out;
+
 	err = move_addr_to_kernel(uservaddr, addrlen, address);
 	if (err < 0)
 		goto out_put;
+
+	// 调用协议栈对应connect()函数
+	// 如 inet_stream_connect() 函数
 	err = sock->ops->connect(sock, (struct sockaddr *) address, addrlen,
-				 sock->file->f_flags);
+							 sock->file->f_flags);
+
 out_put:
 	sockfd_put(sock);
 out:

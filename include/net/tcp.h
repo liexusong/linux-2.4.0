@@ -1446,16 +1446,15 @@ static inline void tcp_syn_build_options(__u32 *ptr, int mss, int ts, int sack,
  * be a multiple of mss if possible. We assume here that mss >= 1.
  * This MUST be enforced by all callers.
  */
-static inline void tcp_select_initial_window(int space, __u32 mss,
-	__u32 *rcv_wnd,
-	__u32 *window_clamp,
-	int wscale_ok,
-	__u8 *rcv_wscale)
+static inline void
+tcp_select_initial_window(int space, __u32 mss, __u32 *rcv_wnd,
+						  __u32 *window_clamp, int wscale_ok, __u8 *rcv_wscale)
 {
 	/* If no clamp set the clamp to the max possible scaled window */
 	if (*window_clamp == 0)
 		(*window_clamp) = (65535<<14);
-	space = min(*window_clamp,space);
+
+	space = min(*window_clamp, space);
 
 	/* Quantize space offering to a multiple of mss if possible. */
 	if (space > mss)
@@ -1469,14 +1468,17 @@ static inline void tcp_select_initial_window(int space, __u32 mss,
 	 */
 	(*rcv_wnd) = min(space, MAX_TCP_WINDOW);
 	(*rcv_wscale) = 0;
+
 	if (wscale_ok) {
 		/* See RFC1323 for an explanation of the limit to 14 */
 		while (space > 65535 && (*rcv_wscale) < 14) {
 			space >>= 1;
 			(*rcv_wscale)++;
 		}
-		if (*rcv_wscale && sysctl_tcp_app_win && space>=mss &&
-		    space - max((space>>sysctl_tcp_app_win), mss>>*rcv_wscale) < 65536/2)
+
+		if (*rcv_wscale &&
+			sysctl_tcp_app_win && space >= mss &&
+		    space - max((space>>sysctl_tcp_app_win),mss>>*rcv_wscale) < 65536/2)
 			(*rcv_wscale)--;
 	}
 
@@ -1484,7 +1486,7 @@ static inline void tcp_select_initial_window(int space, __u32 mss,
 	 * following RFC1414. Senders, not following this RFC,
 	 * will be satisfied with 2.
 	 */
-	if (mss > (1<<*rcv_wscale)) {
+	if (mss > (1 << *rcv_wscale)) {
 		int init_cwnd = 4;
 		if (mss > 1460*3)
 			init_cwnd = 2;
@@ -1493,6 +1495,7 @@ static inline void tcp_select_initial_window(int space, __u32 mss,
 		if (*rcv_wnd > init_cwnd*mss)
 			*rcv_wnd = init_cwnd*mss;
 	}
+
 	/* Set the clamp no higher than max representable value */
 	(*window_clamp) = min(65535<<(*rcv_wscale),*window_clamp);
 }

@@ -335,7 +335,8 @@ static __inline__ void __tcp_v4_hash(struct sock *sk)
 	struct sock **skp;
 	rwlock_t *lock;
 
-	BUG_TRAP(sk->pprev==NULL);
+	BUG_TRAP(sk->pprev == NULL);
+
 	if(sk->state == TCP_LISTEN) {
 		skp = &tcp_listening_hash[tcp_sk_listen_hashfn(sk)];
 		lock = &tcp_lhash_lock;
@@ -345,12 +346,17 @@ static __inline__ void __tcp_v4_hash(struct sock *sk)
 		lock = &tcp_ehash[sk->hashent].lock;
 		write_lock(lock);
 	}
-	if((sk->next = *skp) != NULL)
+
+	if ((sk->next = *skp) != NULL)
 		(*skp)->pprev = &sk->next;
+
 	*skp = sk;
 	sk->pprev = skp;
+
 	sock_prot_inc_use(sk->prot);
+
 	write_unlock(lock);
+
 	if (sk->state == TCP_LISTEN)
 		wake_up(&tcp_lhash_wait);
 }
@@ -667,35 +673,41 @@ int tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 		return(-EAFNOSUPPORT);
 
 	nexthop = daddr = usin->sin_addr.s_addr;
+
 	if (sk->protinfo.af_inet.opt && sk->protinfo.af_inet.opt->srr) {
 		if (daddr == 0)
 			return -EINVAL;
 		nexthop = sk->protinfo.af_inet.opt->faddr;
 	}
 
+	// 根据目标IP地址获取路由信息
 	tmp = ip_route_connect(&rt, nexthop, sk->saddr,
-			       RT_TOS(sk->protinfo.af_inet.tos)|RTO_CONN|sk->localroute, sk->bound_dev_if);
+						   RT_TOS(sk->protinfo.af_inet.tos)
+									| RTO_CONN
+									| sk->localroute,
+						   sk->bound_dev_if);
 	if (tmp < 0)
 		return tmp;
 
-	if (rt->rt_flags&(RTCF_MULTICAST|RTCF_BROADCAST)) {
+	if (rt->rt_flags & (RTCF_MULTICAST|RTCF_BROADCAST)) {
 		ip_rt_put(rt);
 		return -ENETUNREACH;
 	}
 
-	__sk_dst_set(sk, &rt->u.dst);
+	__sk_dst_set(sk, &rt->u.dst); // 设置路由信息缓存
 
 	if (!sk->protinfo.af_inet.opt || !sk->protinfo.af_inet.opt->srr)
 		daddr = rt->rt_dst;
 
 	err = -ENOBUFS;
-	buff = alloc_skb(MAX_TCP_HEADER + 15, GFP_KERNEL);
 
+	buff = alloc_skb(MAX_TCP_HEADER + 15, GFP_KERNEL); // 申请一个skb
 	if (buff == NULL)
 		goto failure;
 
 	if (!sk->saddr)
 		sk->saddr = rt->rt_src;
+
 	sk->rcv_saddr = sk->saddr;
 
 	if (tp->ts_recent_stamp && sk->daddr != daddr) {
@@ -705,9 +717,7 @@ int tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 		tp->write_seq = 0;
 	}
 
-	if (sysctl_tcp_tw_recycle &&
-	    !tp->ts_recent_stamp &&
-	    rt->rt_dst == daddr) {
+	if (sysctl_tcp_tw_recycle && !tp->ts_recent_stamp && rt->rt_dst == daddr) {
 		struct inet_peer *peer = rt_get_peer(rt);
 
 		/* VJ's idea. We save last timestamp seen from
@@ -721,12 +731,12 @@ int tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 		}
 	}
 
-	sk->dport = usin->sin_port;
-	sk->daddr = daddr;
+	sk->dport = usin->sin_port; // 目标端口
+	sk->daddr = daddr;          // 目标IP
 
-	if (!tp->write_seq)
+	if (!tp->write_seq) // 创建一个新的序列号
 		tp->write_seq = secure_tcp_sequence_number(sk->saddr, sk->daddr,
-							   sk->sport, usin->sin_port);
+												   sk->sport, usin->sin_port);
 
 	tp->ext_header_len = 0;
 	if (sk->protinfo.af_inet.opt)

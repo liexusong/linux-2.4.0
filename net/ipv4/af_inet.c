@@ -571,9 +571,9 @@ static long inet_wait_for_connect(struct sock *sk, long timeo)
  */
 
 int inet_stream_connect(struct socket *sock, struct sockaddr * uaddr,
-			int addr_len, int flags)
+						int addr_len, int flags)
 {
-	struct sock *sk=sock->sk;
+	struct sock *sk = sock->sk;
 	int err;
 	long timeo;
 
@@ -602,12 +602,14 @@ int inet_stream_connect(struct socket *sock, struct sockaddr * uaddr,
 			goto out;
 
 		err = -EAGAIN;
-		if (sk->num == 0) {
+		if (sk->num == 0) { // 如果没有指定端口, 那么自动申请一个端口
 			if (sk->prot->get_port(sk, 0) != 0)
 				goto out;
 			sk->sport = htons(sk->num);
 		}
 
+		// 调用传输层的 connect() 函数
+		// 如 tcp_v4_connect() 函数
 		err = sk->prot->connect(sk, uaddr, addr_len);
 		if (err < 0)
 			goto out;
@@ -622,7 +624,7 @@ int inet_stream_connect(struct socket *sock, struct sockaddr * uaddr,
 		break;
 	}
 
-	timeo = sock_sndtimeo(sk, flags&O_NONBLOCK);
+	timeo = sock_sndtimeo(sk, flags & O_NONBLOCK);
 
 	if ((1<<sk->state)&(TCPF_SYN_SENT|TCPF_SYN_RECV)) {
 		/* Error code is set above */

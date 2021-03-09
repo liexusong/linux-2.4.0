@@ -68,9 +68,8 @@ static __inline__ int br_mac_hash(unsigned char *mac)
 	return x & (BR_HASH_SIZE - 1);
 }
 
-static __inline__ void __hash_link(struct net_bridge *br,
-				   struct net_bridge_fdb_entry *ent,
-				   int hash)
+static __inline__ void
+__hash_link(struct net_bridge *br, struct net_bridge_fdb_entry *ent, int hash)
 {
 	ent->next_hash = br->hash[hash];
 	if (ent->next_hash != NULL)
@@ -87,8 +86,6 @@ static __inline__ void __hash_unlink(struct net_bridge_fdb_entry *ent)
 	ent->next_hash = NULL;
 	ent->pprev_hash = NULL;
 }
-
-
 
 void br_fdb_changeaddr(struct net_bridge_port *p, unsigned char *newaddr)
 {
@@ -165,7 +162,8 @@ void br_fdb_delete_by_port(struct net_bridge *br, struct net_bridge_port *p)
 	write_unlock_bh(&br->hash_lock);
 }
 
-struct net_bridge_fdb_entry *br_fdb_get(struct net_bridge *br, unsigned char *addr)
+struct net_bridge_fdb_entry *
+br_fdb_get(struct net_bridge *br, unsigned char *addr)
 {
 	struct net_bridge_fdb_entry *fdb;
 
@@ -196,10 +194,8 @@ void br_fdb_put(struct net_bridge_fdb_entry *ent)
 		kfree(ent);
 }
 
-int br_fdb_get_entries(struct net_bridge *br,
-		       unsigned char *_buf,
-		       int maxnum,
-		       int offset)
+int br_fdb_get_entries(struct net_bridge *br, unsigned char *_buf,
+					   int maxnum, int offset)
 {
 	int i;
 	int num;
@@ -209,7 +205,7 @@ int br_fdb_get_entries(struct net_bridge *br,
 	walk = (struct __fdb_entry *)_buf;
 
 	read_lock_bh(&br->hash_lock);
-	for (i=0;i<BR_HASH_SIZE;i++) {
+	for (i = 0; i < BR_HASH_SIZE; i++) {
 		struct net_bridge_fdb_entry *f;
 
 		f = br->hash[i];
@@ -269,8 +265,7 @@ int br_fdb_get_entries(struct net_bridge *br,
 
 static __inline__ void
 __fdb_possibly_replace(struct net_bridge_fdb_entry *fdb,
-					   struct net_bridge_port *source,
-					   int is_local)
+					   struct net_bridge_port *source, int is_local)
 {
 	if (!fdb->is_static || is_local) {
 		fdb->dst = source;
@@ -280,10 +275,8 @@ __fdb_possibly_replace(struct net_bridge_fdb_entry *fdb,
 	}
 }
 
-void br_fdb_insert(struct net_bridge *br,
-				   struct net_bridge_port *source,
-				   unsigned char *addr,
-				   int is_local)
+void br_fdb_insert(struct net_bridge *br, struct net_bridge_port *source,
+				   unsigned char *addr, int is_local)
 {
 	struct net_bridge_fdb_entry *fdb;
 	int hash;

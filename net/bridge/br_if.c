@@ -135,7 +135,8 @@ static struct net_bridge *new_nb(char *name)
 }
 
 /* called under bridge lock */
-static struct net_bridge_port *new_nbp(struct net_bridge *br, struct net_device *dev)
+static struct net_bridge_port *
+new_nbp(struct net_bridge *br, struct net_device *dev)
 {
 	int i;
 	struct net_bridge_port *p;

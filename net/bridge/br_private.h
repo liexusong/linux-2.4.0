@@ -46,8 +46,8 @@ struct net_bridge_fdb_entry
 	struct net_bridge_fdb_entry	*next_hash;
 	struct net_bridge_fdb_entry	**pprev_hash;
 	atomic_t					use_count;
-	mac_addr					addr;
-	struct net_bridge_port		*dst;
+	mac_addr					addr;  // mac地址
+	struct net_bridge_port		*dst;  // 端口
 	unsigned long				ageing_timer;
 	unsigned					is_local:1;
 	unsigned					is_static:1;

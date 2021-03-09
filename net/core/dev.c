@@ -1134,7 +1134,7 @@ int netif_rx(struct sk_buff *skb)
 
 enqueue:
 			dev_hold(skb->dev);
-			__skb_queue_tail(&queue->input_pkt_queue,skb);
+			__skb_queue_tail(&queue->input_pkt_queue, skb);
 			__cpu_raise_softirq(this_cpu, NET_RX_SOFTIRQ);
 			local_irq_restore(flags);
 #ifndef OFFLINE_SAMPLE

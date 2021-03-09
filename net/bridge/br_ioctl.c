@@ -250,7 +250,8 @@ int br_ioctl_deviceless_stub(unsigned long arg)
 	return err;
 }
 
-int br_ioctl(struct net_bridge *br, unsigned int cmd, unsigned long arg0, unsigned long arg1, unsigned long arg2)
+int br_ioctl(struct net_bridge *br, unsigned int cmd, unsigned long arg0,
+			 unsigned long arg1, unsigned long arg2)
 {
 	int err;
 
