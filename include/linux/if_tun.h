@@ -35,7 +35,7 @@ struct tun_struct {
     char                    name[8];      // TUN的名字
     unsigned long           flags;        // 设备类型: TUN或者TAP
     struct fasync_struct    *fasync;
-    wait_queue_head_t       read_wait;    // 等待队列
+    wait_queue_head_t       read_wait;    // 等待此设备可读的进程队列
     struct net_device       dev;          // 设备结构
     struct sk_buff_head     txq;          // 数据队列(接收到的数据会保存到这里)
     struct net_device_stats stats;        // 设备统计数据
