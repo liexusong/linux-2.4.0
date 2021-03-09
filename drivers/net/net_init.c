@@ -276,7 +276,7 @@ void ether_setup(struct net_device *dev)
 	dev->addr_len				= ETH_ALEN;
 	dev->tx_queue_len			= 100;	/* Ethernet wants good queues */
 
-	memset(dev->broadcast,0xFF, ETH_ALEN);
+	memset(dev->broadcast, 0xFF, ETH_ALEN);
 
 	/* New-style flags. */
 	dev->flags = IFF_BROADCAST|IFF_MULTICAST;
