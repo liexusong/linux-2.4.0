@@ -73,8 +73,8 @@ static int tun_net_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
-	/* Queue frame */
-	skb_queue_tail(&tun->txq, skb); // 将发送的数据包添加到txq队列中
+	// 将发送的数据包添加到txq队列中, 可见当使用TUN设备发送数据时并不是发送出去, 而是添加到TUN设备的txq队列中
+	skb_queue_tail(&tun->txq, skb);
 
 	if (skb_queue_len(&tun->txq) >= TUN_TXQ_SIZE)
 		netif_stop_queue(dev);
