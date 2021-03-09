@@ -1122,7 +1122,7 @@ int netif_rx(struct sk_buff *skb)
 	/* The code is rearranged so that the path is the most
 	   short when CPU is congested, but is still operating.
 	 */
-	queue = &softnet_data[this_cpu];
+	queue = &softnet_data[this_cpu]; // 当前CPU对应的堆积队列
 
 	local_irq_save(flags);
 
@@ -1134,12 +1134,14 @@ int netif_rx(struct sk_buff *skb)
 
 enqueue:
 			dev_hold(skb->dev);
-			__skb_queue_tail(&queue->input_pkt_queue, skb);
-			__cpu_raise_softirq(this_cpu, NET_RX_SOFTIRQ);
+			__skb_queue_tail(&queue->input_pkt_queue, skb); // 将数据包添加到堆积队列中
+			__cpu_raise_softirq(this_cpu, NET_RX_SOFTIRQ);  // 启动网络中断下半部分处理
 			local_irq_restore(flags);
+
 #ifndef OFFLINE_SAMPLE
 			get_sample_stats(this_cpu);
 #endif
+
 			return softnet_data[this_cpu].cng_level;
 		}
 
@@ -1325,7 +1327,7 @@ static void net_rx_action(struct softirq_action *h)
 		struct net_device *rx_dev;
 
 		local_irq_disable();
-		skb = __skb_dequeue(&queue->input_pkt_queue); // 获取一个要发送的skb
+		skb = __skb_dequeue(&queue->input_pkt_queue); // 从堆积队列中获取一个要处理的skb
 		local_irq_enable();
 
 		if (skb == NULL)
@@ -1333,7 +1335,7 @@ static void net_rx_action(struct softirq_action *h)
 
 		skb_bond(skb);
 
-		rx_dev = skb->dev;
+		rx_dev = skb->dev; // 接收此数据包的设备
 
 #ifdef CONFIG_NET_FASTROUTE
 		if (skb->pkt_type == PACKET_FASTROUTE) {
@@ -1344,9 +1346,11 @@ static void net_rx_action(struct softirq_action *h)
 		}
 #endif
 		skb->h.raw = skb->nh.raw = skb->data;
+
+		// 如果注册了处理所有数据包的钩子, 那么就调用钩子处理这些数据包
 		{
 			struct packet_type *ptype, *pt_prev;
-			unsigned short type = skb->protocol;
+			unsigned short type = skb->protocol; // 网络层协议类型
 
 			pt_prev = NULL;
 			for (ptype = ptype_all; ptype; ptype = ptype->next) {
@@ -1377,12 +1381,15 @@ static void net_rx_action(struct softirq_action *h)
 			}
 #endif
 
+			// 使用网络层协议处理数据包
+			// 例如: ip_rcv() 函数
 			for (ptype = ptype_base[ntohs(type)&15];
 				 ptype;
 				 ptype = ptype->next)
 			{
-				if (ptype->type == type &&
-				    (!ptype->dev || ptype->dev == skb->dev)) {
+				if (ptype->type == type
+				    && (!ptype->dev || ptype->dev == skb->dev))
+				{
 					if (pt_prev) {
 						if (!pt_prev->data)
 							deliver_to_old_ones(pt_prev, skb, 0);

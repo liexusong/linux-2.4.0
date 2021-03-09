@@ -1546,8 +1546,11 @@ martian_source:
 	goto e_inval;
 }
 
-int ip_route_input(struct sk_buff *skb, u32 daddr, u32 saddr,
-				   u8 tos, struct net_device *dev)
+int ip_route_input(struct sk_buff *skb,
+				   u32 daddr, // 目标IP地址(本地IP地址)
+				   u32 saddr, // 源IP地址(远端IP地址)
+				   u8 tos,    // 服务类型
+				   struct net_device *dev)
 {
 	struct rtable *rth;
 	unsigned hash;
@@ -1921,6 +1924,7 @@ int ip_route_output_key(struct rtable **rp, const struct rt_key *key)
 	hash = rt_hash_code(key->dst, key->src^(key->oif<<5), key->tos);
 
 	read_lock_bh(&rt_hash_table[hash].lock);
+
 	for (rth=rt_hash_table[hash].chain; rth; rth=rth->u.rt_next) {
 		if (rth->key.dst == key->dst &&
 		    rth->key.src == key->src &&
@@ -1940,6 +1944,7 @@ int ip_route_output_key(struct rtable **rp, const struct rt_key *key)
 			return 0;
 		}
 	}
+
 	read_unlock_bh(&rt_hash_table[hash].lock);
 
 	return ip_route_output_slow(rp, key);

@@ -307,6 +307,7 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 	 *	how the packet travels inside Linux networking.
 	 */
 	if (skb->dst == NULL) {
+		// 获取数据包的输入路由信息
 		if (ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev))
 			goto drop;
 	}
@@ -360,7 +361,7 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 		}
 	}
 
-	return skb->dst->input(skb);
+	return skb->dst->input(skb); // 一般是调用: ip_local_deliver()
 
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);
@@ -400,8 +401,11 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	// 包的长度不合法
 	if (skb->len < sizeof(struct iphdr) || skb->len < (iph->ihl<<2))
 		goto inhdr_error;
+
 	// IP头部不合法
-	if (iph->ihl < 5 || iph->version != 4 || ip_fast_csum((u8 *)iph, iph->ihl) != 0)
+	if (iph->ihl < 5
+		|| iph->version != 4
+		|| ip_fast_csum((u8 *)iph, iph->ihl) != 0)
 		goto inhdr_error;
 
 	{
