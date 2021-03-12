@@ -524,7 +524,8 @@ void ip_options_undo(struct ip_options * opt)
 	}
 }
 
-int ip_options_get(struct ip_options **optp, unsigned char *data, int optlen, int user)
+int ip_options_get(struct ip_options **optp, unsigned char *data, int optlen,
+				   int user)
 {
 	struct ip_options *opt;
 
@@ -624,7 +625,10 @@ int ip_options_rcv_srr(struct sk_buff *skb)
 	if (rt->rt_type != RTN_LOCAL)
 		return -EINVAL;
 
-	for (srrptr=optptr[2], srrspace = optptr[1]; srrptr <= srrspace; srrptr += 4) {
+	for (srrptr = optptr[2], srrspace = optptr[1];
+		 srrptr <= srrspace;
+		 srrptr += 4)
+	{
 		if (srrptr + 3 > srrspace) {
 			icmp_send(skb, ICMP_PARAMETERPROB, 0, htonl((opt->srr+2)<<24));
 			return -EINVAL;

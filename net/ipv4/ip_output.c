@@ -173,7 +173,6 @@ static inline int ip_finish_output2(struct sk_buff *skb)
 	} else if (dst->neighbour)
 		return dst->neighbour->output(skb);
 
-	printk(KERN_DEBUG "khm\n");
 	kfree_skb(skb);
 	return -EINVAL;
 }
@@ -182,8 +181,8 @@ __inline__ int ip_finish_output(struct sk_buff *skb)
 {
 	struct net_device *dev = skb->dst->dev;
 
-	skb->dev = dev;
-	skb->protocol = __constant_htons(ETH_P_IP);
+	skb->dev = dev;                             // 设置出口设备
+	skb->protocol = __constant_htons(ETH_P_IP); // 设置网络层协议为IP协议
 
 	return NF_HOOK(PF_INET, NF_IP_POST_ROUTING, skb, NULL, dev,
 				   ip_finish_output2);
@@ -365,10 +364,12 @@ int ip_queue_xmit(struct sk_buff *skb)
 		goto no_route;
 
 	/* OK, we know where to send it, allocate and build IP header. */
-	iph = (struct iphdr *) skb_push(skb, sizeof(struct iphdr)+(opt?opt->optlen:0));
+	iph = (struct iphdr *)skb_push(skb,
+								   sizeof(struct iphdr) + (opt?opt->optlen:0));
 
 	*((__u16 *)iph)	= htons((4<<12)|(5<<8)|(sk->protinfo.af_inet.tos & 0xff));
-	iph->tot_len = htons(skb->len);
+
+	iph->tot_len  = htons(skb->len);
 	iph->frag_off = 0;
 	iph->ttl      = sk->protinfo.af_inet.ttl;
 	iph->protocol = sk->protocol;
@@ -876,8 +877,9 @@ fail:
 /*
  *	Fetch data from kernel space and fill in checksum if needed.
  */
-static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
-							  unsigned int fraglen)
+static int
+ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
+				   unsigned int fraglen)
 {
         struct ip_reply_arg *dp = (struct ip_reply_arg*)dptr;
 	u16 *pktp = (u16 *)to;
@@ -894,7 +896,7 @@ static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
 	len = iov->iov_len - offset;
 	if (fraglen > len) { /* overlapping. */
 		dp->csum = csum_partial_copy_nocheck(iov->iov_base+offset, to, len,
-					     dp->csum);
+											 dp->csum);
 		offset = 0;
 		fraglen -= len;
 		to += len;
@@ -902,7 +904,7 @@ static int ip_reply_glue_bits(const void *dptr, char *to, unsigned int offset,
 	}
 
 	dp->csum = csum_partial_copy_nocheck(iov->iov_base+offset, to, fraglen,
-					     dp->csum);
+										 dp->csum);
 
 	if (hdrflag && dp->csumoffset)
 		*(pktp + dp->csumoffset) = csum_fold(dp->csum); /* fill in checksum */
@@ -940,7 +942,8 @@ void ip_send_reply(struct sock *sk, struct sk_buff *skb,
 			daddr = replyopts.opt.faddr;
 	}
 
-	if (ip_route_output(&rt, daddr, rt->rt_spec_dst, RT_TOS(skb->nh.iph->tos), 0))
+	if (ip_route_output(&rt, daddr, rt->rt_spec_dst,
+						RT_TOS(skb->nh.iph->tos), 0))
 		return;
 
 	/* And let IP do all the hard work.

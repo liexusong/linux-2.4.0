@@ -111,30 +111,30 @@ extern int		ip_build_xmit(struct sock *sk,
 /*
  *	Map a multicast IP onto multicast MAC for type Token Ring.
  *      This conforms to RFC1469 Option 2 Multicasting i.e.
- *      using a functional address to transmit / receive 
+ *      using a functional address to transmit / receive
  *      multicast packets.
  */
 
 static inline void ip_tr_mc_map(u32 addr, char *buf)
 {
-	buf[0]=0xC0;
-	buf[1]=0x00;
-	buf[2]=0x00;
-	buf[3]=0x04;
-	buf[4]=0x00;
-	buf[5]=0x00;
+	buf[0] = 0xC0;
+	buf[1] = 0x00;
+	buf[2] = 0x00;
+	buf[3] = 0x04;
+	buf[4] = 0x00;
+	buf[5] = 0x00;
 }
 
 struct ip_reply_arg {
-	struct iovec iov[2];   
+	struct iovec iov[2];
 	int          n_iov;    /* redundant */
-	u32 	     csum; 
+	u32 	     csum;
 	int	     csumoffset; /* u16 offset of csum in iov[0].iov_base */
-				 /* -1 if not needed */ 
-}; 
+				 /* -1 if not needed */
+};
 
 void ip_send_reply(struct sock *sk, struct sk_buff *skb, struct ip_reply_arg *arg,
-		   unsigned int len); 
+		   unsigned int len);
 
 extern __inline__ int ip_finish_output(struct sk_buff *skb);
 
@@ -147,7 +147,7 @@ struct ipv4_config
 
 extern struct ipv4_config ipv4_config;
 extern struct ip_mib	ip_statistics[NR_CPUS*2];
-#define IP_INC_STATS(field)		SNMP_INC_STATS(ip_statistics, field)
+#define IP_INC_STATS(field)			SNMP_INC_STATS(ip_statistics, field)
 #define IP_INC_STATS_BH(field)		SNMP_INC_STATS_BH(ip_statistics, field)
 #define IP_INC_STATS_USER(field) 	SNMP_INC_STATS_USER(ip_statistics, field)
 extern struct linux_mib	net_statistics[NR_CPUS*2];
@@ -220,7 +220,7 @@ extern int	ip_call_ra_chain(struct sk_buff *skb);
 /*
  *	Functions provided by ip_fragment.o
  */
- 
+
 struct sk_buff *ip_defrag(struct sk_buff *skb);
 extern int ip_frag_nqueues;
 extern atomic_t ip_frag_mem;
@@ -228,14 +228,14 @@ extern atomic_t ip_frag_mem;
 /*
  *	Functions provided by ip_forward.c
  */
- 
+
 extern int ip_forward(struct sk_buff *skb);
 extern int ip_net_unreachable(struct sk_buff *skb);
- 
+
 /*
  *	Functions provided by ip_options.c
  */
- 
+
 extern void ip_options_build(struct sk_buff *skb, struct ip_options *opt, u32 daddr, struct rtable *rt, int is_frag);
 extern int ip_options_echo(struct ip_options *dopt, struct sk_buff *skb);
 extern void ip_options_fragment(struct sk_buff *skb);
@@ -256,7 +256,7 @@ extern int	ip_getsockopt(struct sock *sk, int level, int optname, char *optval, 
 extern int	ip_ra_control(struct sock *sk, unsigned char on, void (*destructor)(struct sock *));
 
 extern int 	ip_recv_error(struct sock *sk, struct msghdr *msg, int len);
-extern void	ip_icmp_error(struct sock *sk, struct sk_buff *skb, int err, 
+extern void	ip_icmp_error(struct sock *sk, struct sk_buff *skb, int err,
 			      u16 port, u32 info, u8 *payload);
 extern void	ip_local_error(struct sock *sk, int err, u32 daddr, u16 dport,
 			       u32 info);
