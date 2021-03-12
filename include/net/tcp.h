@@ -98,7 +98,7 @@ extern struct tcp_hashinfo {
 	 * First half of the table is for sockets not in TIME_WAIT, second half
 	 * is for TIME_WAIT sockets only.
 	 */
-	struct tcp_ehash_bucket *__tcp_ehash;
+	struct tcp_ehash_bucket *__tcp_ehash; // TCP连接哈希表
 
 	/* Ok, let's try this, I give up, we do need a local binding
 	 * TCP hash as well as the others for fast bind/connect.
@@ -112,7 +112,7 @@ extern struct tcp_hashinfo {
 	 * table where wildcard'd TCP sockets can exist.  Hash function here
 	 * is just local port number.
 	 */
-	struct sock *__tcp_listening_hash[TCP_LHTABLE_SIZE];
+	struct sock *__tcp_listening_hash[TCP_LHTABLE_SIZE]; // TCP监听socket哈希表
 
 	/* All the above members are written once at bootup and
 	 * never written again _or_ are predominantly read-access.
@@ -162,30 +162,30 @@ struct tcp_tw_bucket {
 	__u32			daddr;
 	__u32			rcv_saddr;
 	__u16			dport;
-	unsigned short		num;
-	int			bound_dev_if;
+	unsigned short	num;
+	int				bound_dev_if;
 	struct sock		*next;
 	struct sock		**pprev;
 	struct sock		*bind_next;
 	struct sock		**bind_pprev;
-	unsigned char		state,
-				substate; /* "zapped" is replaced with "substate" */
+	unsigned char	state,
+					substate; /* "zapped" is replaced with "substate" */
 	__u16			sport;
-	unsigned short		family;
-	unsigned char		reuse,
-				rcv_wscale; /* It is also TW bucket specific */
+	unsigned short	family;
+	unsigned char	reuse,
+					rcv_wscale; /* It is also TW bucket specific */
 	atomic_t		refcnt;
 
 	/* And these are ours. */
-	int			hashent;
-	int			timeout;
+	int				hashent;
+	int				timeout;
 	__u32			rcv_nxt;
 	__u32			snd_nxt;
 	__u32			rcv_wnd;
 	__u32			syn_seq;
-        __u32			ts_recent;
-        long			ts_recent_stamp;
-	unsigned long		ttd;
+        __u32		ts_recent;
+        long		ts_recent_stamp;
+	unsigned long	ttd;
 	struct tcp_bind_bucket	*tb;
 	struct tcp_tw_bucket	*next_death;
 	struct tcp_tw_bucket	**pprev_death;
@@ -273,7 +273,7 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
 #define MAX_TCP_WINDOW		32767
 
 /* Minimal accepted MSS. It is (60+60+8) - (20+20). */
-#define TCP_MIN_MSS		88
+#define TCP_MIN_MSS			88
 
 /* Minimal RCV_MSS. */
 #define TCP_MIN_RCVMSS		536
@@ -292,19 +292,19 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
 #define TCP_URG_NOTYET	0x0200
 #define TCP_URG_READ	0x0400
 
-#define TCP_RETR1	3	/*
-				 * This is how many retries it does before it
-				 * tries to figure out if the gateway is
-				 * down. Minimal RFC value is 3; it corresponds
-				 * to ~3sec-8min depending on RTO.
-				 */
+#define TCP_RETR1		3	/*
+							 * This is how many retries it does before it
+							 * tries to figure out if the gateway is
+							 * down. Minimal RFC value is 3; it corresponds
+							 * to ~3sec-8min depending on RTO.
+							 */
 
-#define TCP_RETR2	15	/*
-				 * This should take at least
-				 * 90 minutes to time out.
-				 * RFC1122 says that the limit is 100 sec.
-				 * 15 is ~13-30min depending on RTO.
-				 */
+#define TCP_RETR2		15	/*
+							 * This should take at least
+							 * 90 minutes to time out.
+							 * RFC1122 says that the limit is 100 sec.
+							 * 15 is ~13-30min depending on RTO.
+							 */
 
 #define TCP_SYN_RETRIES	 5	/* number of times to retry active opening a
 				 * connection: ~180sec is RFC minumum	*/
@@ -330,46 +330,46 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
 #define TCP_DELACK_MAX	(HZ/5)	/* maximal time to delay before sending an ACK */
 #if HZ >= 100
 #define TCP_DELACK_MIN	(HZ/25)	/* minimal time to delay before sending an ACK */
-#define TCP_ATO_MIN	(HZ/25)
+#define TCP_ATO_MIN		(HZ/25)
 #else
 #define TCP_DELACK_MIN	4
-#define TCP_ATO_MIN	4
+#define TCP_ATO_MIN		4
 #endif
-#define TCP_RTO_MAX	(120*HZ)
-#define TCP_RTO_MIN	(HZ/5)
+#define TCP_RTO_MAX		(120*HZ)
+#define TCP_RTO_MIN		(HZ/5)
 #define TCP_TIMEOUT_INIT (3*HZ)	/* RFC 1122 initial RTO value	*/
 
 #define TCP_RESOURCE_PROBE_INTERVAL (HZ/2) /* Maximal interval between probes
 					    * for local resources.
 					    */
 
-#define TCP_KEEPALIVE_TIME	(120*60*HZ)	/* two hours */
+#define TCP_KEEPALIVE_TIME		(120*60*HZ)	/* two hours */
 #define TCP_KEEPALIVE_PROBES	9		/* Max of 9 keepalive probes	*/
-#define TCP_KEEPALIVE_INTVL	(75*HZ)
+#define TCP_KEEPALIVE_INTVL		(75*HZ)
 
-#define MAX_TCP_KEEPIDLE	32767
-#define MAX_TCP_KEEPINTVL	32767
-#define MAX_TCP_KEEPCNT		127
-#define MAX_TCP_SYNCNT		127
+#define MAX_TCP_KEEPIDLE		32767
+#define MAX_TCP_KEEPINTVL		32767
+#define MAX_TCP_KEEPCNT			127
+#define MAX_TCP_SYNCNT			127
 
 /* TIME_WAIT reaping mechanism. */
-#define TCP_TWKILL_SLOTS	8	/* Please keep this a power of 2. */
-#define TCP_TWKILL_PERIOD	(TCP_TIMEWAIT_LEN/TCP_TWKILL_SLOTS)
+#define TCP_TWKILL_SLOTS		8	/* Please keep this a power of 2. */
+#define TCP_TWKILL_PERIOD		(TCP_TIMEWAIT_LEN/TCP_TWKILL_SLOTS)
 
-#define TCP_SYNQ_INTERVAL	(HZ/5)	/* Period of SYNACK timer */
-#define TCP_SYNQ_HSIZE		64	/* Size of SYNACK hash table */
+#define TCP_SYNQ_INTERVAL		(HZ/5)	/* Period of SYNACK timer */
+#define TCP_SYNQ_HSIZE			64	/* Size of SYNACK hash table */
 
-#define TCP_PAWS_24DAYS	(60 * 60 * 24 * 24)
-#define TCP_PAWS_MSL	60		/* Per-host timestamps are invalidated
-					 * after this time. It should be equal
-					 * (or greater than) TCP_TIMEWAIT_LEN
-					 * to provide reliability equal to one
-					 * provided by timewait state.
-					 */
-#define TCP_PAWS_WINDOW	1		/* Replay window for per-host
-					 * timestamps. It must be less than
-					 * minimal timewait lifetime.
-					 */
+#define TCP_PAWS_24DAYS			(60 * 60 * 24 * 24)
+#define TCP_PAWS_MSL			60	/* Per-host timestamps are invalidated
+									 * after this time. It should be equal
+									 * (or greater than) TCP_TIMEWAIT_LEN
+									 * to provide reliability equal to one
+									 * provided by timewait state.
+									 */
+#define TCP_PAWS_WINDOW			1	/* Replay window for per-host
+									 * timestamps. It must be less than
+									 * minimal timewait lifetime.
+									 */
 
 #define TCP_TW_RECYCLE_SLOTS_LOG	5
 #define TCP_TW_RECYCLE_SLOTS		(1<<TCP_TW_RECYCLE_SLOTS_LOG)
@@ -402,12 +402,12 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
  *	TCP option
  */
 
-#define TCPOPT_NOP		1	/* Padding */
-#define TCPOPT_EOL		0	/* End of options */
-#define TCPOPT_MSS		2	/* Segment size negotiating */
+#define TCPOPT_NOP			1	/* Padding */
+#define TCPOPT_EOL			0	/* End of options */
+#define TCPOPT_MSS			2	/* Segment size negotiating */
 #define TCPOPT_WINDOW		3	/* Window scaling */
-#define TCPOPT_SACK_PERM        4       /* SACK Permitted */
-#define TCPOPT_SACK             5       /* SACK Block */
+#define TCPOPT_SACK_PERM	4	/* SACK Permitted */
+#define TCPOPT_SACK			5	/* SACK Block */
 #define TCPOPT_TIMESTAMP	8	/* Better RTT estimations/PAWS */
 
 /*
@@ -423,7 +423,7 @@ static __inline__ int tcp_sk_listen_hashfn(struct sock *sk)
 #define TCPOLEN_TSTAMP_ALIGNED		12
 #define TCPOLEN_WSCALE_ALIGNED		4
 #define TCPOLEN_SACKPERM_ALIGNED	4
-#define TCPOLEN_SACK_BASE		2
+#define TCPOLEN_SACK_BASE			2
 #define TCPOLEN_SACK_BASE_ALIGNED	4
 #define TCPOLEN_SACK_PERBLOCK		8
 
@@ -503,18 +503,18 @@ struct open_request {
 	__u16			mss;
 	__u8			retrans;
 	__u8			index;
-	__u16	snd_wscale : 4,
-		rcv_wscale : 4,
-		tstamp_ok : 1,
-		sack_ok : 1,
-		wscale_ok : 1,
-		ecn_ok : 1,
-		acked : 1;
+	__u16			snd_wscale: 4,
+					rcv_wscale: 4,
+					tstamp_ok: 1,
+					sack_ok: 1,
+					wscale_ok: 1,
+					ecn_ok: 1,
+					acked: 1;
 	/* The following two fields can be easily recomputed I think -AK */
 	__u32			window_clamp;	/* window clamp at creation time */
 	__u32			rcv_wnd;	/* rcv_wnd offered first time */
 	__u32			ts_recent;
-	unsigned long		expires;
+	unsigned long	expires;
 	struct or_calltable	*class;
 	struct sock		*sk;
 	union {

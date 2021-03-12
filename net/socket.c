@@ -819,7 +819,7 @@ int sock_create(int family, int type, int protocol, struct socket **res)
 	/*
 	 *	Check protocol is in range
 	 */
-	if(family<0 || family>=NPROTO)
+	if (family < 0 || family >= NPROTO)
 		return -EAFNOSUPPORT;
 
 	/* Compatibility.
@@ -843,8 +843,7 @@ int sock_create(int family, int type, int protocol, struct socket **res)
 	 * requested real, full-featured networking support upon configuration.
 	 * Otherwise module support will break!
 	 */
-	if (net_families[family]==NULL)
-	{
+	if (net_families[family] == NULL) {
 		char module_name[30];
 		sprintf(module_name,"net-pf-%d",family);
 		request_module(module_name);
@@ -863,8 +862,7 @@ int sock_create(int family, int type, int protocol, struct socket **res)
  *	default.
  */
 
-	if (!(sock = sock_alloc()))
-	{
+	if (!(sock = sock_alloc())) {
 		printk(KERN_WARNING "socket: no more sockets\n");
 		i = -ENFILE;		/* Not exactly a match, but its the
 					   closest posix thing */

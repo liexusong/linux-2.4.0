@@ -118,29 +118,34 @@ static __inline__ fn_hash_idx_t fn_hash(fn_key_t key, struct fn_zone *fz)
 #define fz_key_0(key)		((key).datum = 0)
 #define fz_prefix(key,fz)	((key).datum)
 
-static __inline__ fn_key_t fz_key(u32 dst, struct fn_zone *fz)
+static __inline__ fn_key_t
+fz_key(u32 dst, struct fn_zone *fz)
 {
 	fn_key_t k;
 	k.datum = dst & FZ_MASK(fz);
 	return k;
 }
 
-static __inline__ struct fib_node **fz_chain_p(fn_key_t key, struct fn_zone *fz)
+static __inline__ struct fib_node **
+fz_chain_p(fn_key_t key, struct fn_zone *fz)
 {
 	return &fz->fz_hash[fn_hash(key, fz).datum];
 }
 
-static __inline__ struct fib_node *fz_chain(fn_key_t key, struct fn_zone *fz)
+static __inline__ struct fib_node *
+fz_chain(fn_key_t key, struct fn_zone *fz)
 {
 	return fz->fz_hash[fn_hash(key, fz).datum];
 }
 
-extern __inline__ int fn_key_eq(fn_key_t a, fn_key_t b)
+extern __inline__ int
+fn_key_eq(fn_key_t a, fn_key_t b)
 {
 	return a.datum == b.datum;
 }
 
-extern __inline__ int fn_key_leq(fn_key_t a, fn_key_t b)
+extern __inline__ int
+fn_key_leq(fn_key_t a, fn_key_t b)
 {
 	return a.datum <= b.datum;
 }
@@ -226,6 +231,7 @@ fn_new_zone(struct fn_hash *table, int z)
 		return NULL;
 
 	memset(fz, 0, sizeof(struct fn_zone));
+
 	if (z) {
 		fz->fz_divisor = 16;
 		fz->fz_hashmask = 0xF;
@@ -233,21 +239,24 @@ fn_new_zone(struct fn_hash *table, int z)
 		fz->fz_divisor = 1;
 		fz->fz_hashmask = 0;
 	}
+
 	fz->fz_hash = kmalloc(fz->fz_divisor*sizeof(struct fib_node*), GFP_KERNEL);
 	if (!fz->fz_hash) {
 		kfree(fz);
 		return NULL;
 	}
+
 	memset(fz->fz_hash, 0, fz->fz_divisor*sizeof(struct fib_node*));
 	fz->fz_order = z;
 	fz->fz_mask = inet_make_mask(z);
 
 	/* Find the first not empty zone with more specific mask */
-	for (i=z+1; i<=32; i++)
+	for (i = z+1; i <= 32; i++)
 		if (table->fn_zones[i])
 			break;
+
 	write_lock_bh(&fib_hash_lock);
-	if (i>32) {
+	if (i > 32) {
 		/* No more specific masks, we are the first. */
 		fz->fz_next = table->fn_zone_list;
 		table->fn_zone_list = fz;
@@ -257,6 +266,7 @@ fn_new_zone(struct fn_hash *table, int z)
 	}
 	table->fn_zones[z] = fz;
 	write_unlock_bh(&fib_hash_lock);
+
 	return fz;
 }
 
@@ -412,18 +422,19 @@ out:
 	read_unlock(&fib_hash_lock);
 }
 
-#define FIB_SCAN(f, fp) \
-for ( ; ((f) = *(fp)) != NULL; (fp) = &(f)->fn_next)
+#define FIB_SCAN(f, fp)													\
+	for ( ; ((f) = *(fp)) != NULL; (fp) = &(f)->fn_next)
 
-#define FIB_SCAN_KEY(f, fp, key) \
-for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key)); (fp) = &(f)->fn_next)
+#define FIB_SCAN_KEY(f, fp, key)										\
+	for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key));		\
+		 (fp) = &(f)->fn_next)
 
 #ifndef CONFIG_IP_ROUTE_TOS
 #define FIB_SCAN_TOS(f, fp, key, tos) FIB_SCAN_KEY(f, fp, key)
 #else
-#define FIB_SCAN_TOS(f, fp, key, tos) \
-for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key)) && \
-	 (f)->fn_tos == (tos) ; (fp) = &(f)->fn_next)
+#define FIB_SCAN_TOS(f, fp, key, tos)									\
+	for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key)) &&	\
+		 (f)->fn_tos == (tos) ; (fp) = &(f)->fn_next)
 #endif
 
 
@@ -501,11 +512,13 @@ fn_hash_insert(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 
 	del_fp = NULL;
 
-	if (f && (f->fn_state&FN_S_ZOMBIE) &&
+	if (f
+		&& (f->fn_state&FN_S_ZOMBIE)
 #ifdef CONFIG_IP_ROUTE_TOS
-		f->fn_tos == tos &&
+		&& f->fn_tos == tos
 #endif
-		fn_key_eq(f->fn_key, key)) {
+		&& fn_key_eq(f->fn_key, key))
+	{
 		del_fp = fp;
 		fp = &f->fn_next;
 		f = *fp;
@@ -670,12 +683,14 @@ fn_hash_delete(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 		}
 		matched++;
 
-		if (del_fp == NULL &&
-			(!r->rtm_type || f->fn_type == r->rtm_type) &&
-			(r->rtm_scope == RT_SCOPE_NOWHERE || f->fn_scope == r->rtm_scope) &&
-			(!r->rtm_protocol || fi->fib_protocol == r->rtm_protocol) &&
-			fib_nh_match(r, n, rta, fi) == 0)
+		if (del_fp == NULL
+			&& (!r->rtm_type || f->fn_type == r->rtm_type)
+			&& (r->rtm_scope == RT_SCOPE_NOWHERE || f->fn_scope == r->rtm_scope)
+			&& (!r->rtm_protocol || fi->fib_protocol == r->rtm_protocol)
+			&& fib_nh_match(r, n, rta, fi) == 0)
+		{
 			del_fp = fp;
+		}
 	}
 
 	if (del_fp) {
@@ -750,7 +765,8 @@ static int fn_hash_flush(struct fib_table *tb)
 
 #ifdef CONFIG_PROC_FS
 
-static int fn_hash_get_info(struct fib_table *tb, char *buffer, int first, int count)
+static int
+fn_hash_get_info(struct fib_table *tb, char *buffer, int first, int count)
 {
 	struct fn_hash *table = (struct fn_hash*)tb->tb_data;
 	struct fn_zone *fz;
@@ -836,7 +852,7 @@ fn_hash_dump_zone(struct sk_buff *skb, struct netlink_callback *cb,
 	int h, s_h;
 
 	s_h = cb->args[2];
-	for (h=0; h < fz->fz_divisor; h++) {
+	for (h = 0; h < fz->fz_divisor; h++) {
 		if (h < s_h) continue;
 		if (h > s_h)
 			memset(&cb->args[3], 0, sizeof(cb->args) - 3*sizeof(cb->args[0]));

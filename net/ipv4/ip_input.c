@@ -237,13 +237,13 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 		/* If there maybe a raw socket we must check - if not we
 		 * don't care less
 		 */
-		if(raw_sk != NULL)
+		if (raw_sk != NULL)
 			raw_sk = raw_v4_input(skb, iph, hash);
 
 		ipprot = (struct inet_protocol *) inet_protos[hash];
 		flag = 0;
 
-		if(ipprot != NULL) {
+		if (ipprot != NULL) {
 			if(raw_sk == NULL &&
 			   ipprot->next == NULL &&
 			   ipprot->protocol == iph->protocol)

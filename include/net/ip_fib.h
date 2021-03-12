@@ -37,7 +37,7 @@ struct kern_rta
 struct fib_nh
 {
 	struct net_device	*nh_dev;   // 下一跳的出口设备
-	unsigned			nh_flags;
+	unsigned			nh_flags;  // 标志位
 	unsigned char		nh_scope;  // 范围
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 	int					nh_weight;
@@ -46,8 +46,8 @@ struct fib_nh
 #ifdef CONFIG_NET_CLS_ROUTE
 	__u32				nh_tclassid;
 #endif
-	int					nh_oif;
-	u32					nh_gw;    // 网关地址
+	int					nh_oif;   // 出口设备索引
+	u32					nh_gw;    // 网关IP地址
 };
 
 /*
@@ -56,8 +56,10 @@ struct fib_nh
 
 struct fib_info
 {
+	// 连接所有fib_info的链表
 	struct fib_info		*fib_next;
 	struct fib_info		*fib_prev;
+
 	int					fib_treeref;
 	atomic_t			fib_clntref;
 	int					fib_dead;
