@@ -1124,9 +1124,10 @@ int netif_rx(struct sk_buff *skb)
 	 */
 	queue = &softnet_data[this_cpu]; // 当前CPU对应的堆积队列
 
-	local_irq_save(flags);
+	local_irq_save(flags); // 关闭本地中断
 
 	netdev_rx_stat[this_cpu].total++;
+
 	if (queue->input_pkt_queue.qlen <= netdev_max_backlog) {
 		if (queue->input_pkt_queue.qlen) {
 			if (queue->throttle)

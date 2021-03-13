@@ -96,8 +96,9 @@ static struct net_device *init_alloc_dev(int sizeof_priv)
  *	setup.
  */
 
-static struct net_device *init_netdev(struct net_device *dev, int sizeof_priv,
-				      char *mask, void (*setup)(struct net_device *))
+static struct net_device *
+init_netdev(struct net_device *dev, int sizeof_priv, char *mask,
+			void (*setup)(struct net_device *))
 {
 	int new_device = 0;
 
@@ -262,19 +263,19 @@ void ether_setup(struct net_device *dev)
 	/* Fill in the fields of the device structure with ethernet-generic values.
 	   This should be in a common file instead of per-driver.  */
 
-	dev->change_mtu				= eth_change_mtu;
-	dev->hard_header			= eth_header;
-	dev->rebuild_header 		= eth_rebuild_header;
-	dev->set_mac_address 		= eth_mac_addr;
-	dev->hard_header_cache		= eth_header_cache;
-	dev->header_cache_update	= eth_header_cache_update;
-	dev->hard_header_parse		= eth_header_parse;
+	dev->change_mtu = eth_change_mtu;
+	dev->hard_header = eth_header;
+	dev->rebuild_header = eth_rebuild_header;
+	dev->set_mac_address = eth_mac_addr;
+	dev->hard_header_cache = eth_header_cache;
+	dev->header_cache_update = eth_header_cache_update;
+	dev->hard_header_parse = eth_header_parse;
 
-	dev->type					= ARPHRD_ETHER;
-	dev->hard_header_len 		= ETH_HLEN;
-	dev->mtu					= 1500; /* eth_mtu */
-	dev->addr_len				= ETH_ALEN;
-	dev->tx_queue_len			= 100;	/* Ethernet wants good queues */
+	dev->type = ARPHRD_ETHER;
+	dev->hard_header_len = ETH_HLEN;
+	dev->mtu = 1500; /* eth_mtu */
+	dev->addr_len = ETH_ALEN;
+	dev->tx_queue_len = 100;	/* Ethernet wants good queues */
 
 	memset(dev->broadcast, 0xFF, ETH_ALEN);
 
@@ -293,20 +294,20 @@ void fddi_setup(struct net_device *dev)
 	 * This should be in a common file instead of per-driver.
 	 */
 
-	dev->change_mtu			= fddi_change_mtu;
-	dev->hard_header		= fddi_header;
-	dev->rebuild_header		= fddi_rebuild_header;
+	dev->change_mtu = fddi_change_mtu;
+	dev->hard_header = fddi_header;
+	dev->rebuild_header = fddi_rebuild_header;
 
-	dev->type				= ARPHRD_FDDI;
-	dev->hard_header_len	= FDDI_K_SNAP_HLEN+3;	/* Assume 802.2 SNAP hdr len + 3 pad bytes */
-	dev->mtu				= FDDI_K_SNAP_DLEN;		/* Assume max payload of 802.2 SNAP frame */
-	dev->addr_len			= FDDI_K_ALEN;
-	dev->tx_queue_len		= 100;	/* Long queues on FDDI */
+	dev->type = ARPHRD_FDDI;
+	dev->hard_header_len = FDDI_K_SNAP_HLEN+3;	/* Assume 802.2 SNAP hdr len + 3 pad bytes */
+	dev->mtu = FDDI_K_SNAP_DLEN;		/* Assume max payload of 802.2 SNAP frame */
+	dev->addr_len = FDDI_K_ALEN;
+	dev->tx_queue_len = 100;	/* Long queues on FDDI */
 
 	memset(dev->broadcast, 0xFF, FDDI_K_ALEN);
 
 	/* New-style flags */
-	dev->flags		= IFF_BROADCAST | IFF_MULTICAST;
+	dev->flags = IFF_BROADCAST | IFF_MULTICAST;
 
 	dev_init_buffers(dev);
 
@@ -318,28 +319,27 @@ void fddi_setup(struct net_device *dev)
 #ifdef CONFIG_HIPPI
 void hippi_setup(struct net_device *dev)
 {
-	dev->set_multicast_list	= NULL;
-	dev->change_mtu			= hippi_change_mtu;
-	dev->hard_header		= hippi_header;
-	dev->rebuild_header 		= hippi_rebuild_header;
-	dev->set_mac_address 		= hippi_mac_addr;
-	dev->hard_header_parse		= NULL;
-	dev->hard_header_cache		= NULL;
-	dev->header_cache_update	= NULL;
-	dev->neigh_setup 		= hippi_neigh_setup_dev;
+	dev->set_multicast_list = NULL;
+	dev->change_mtu = hippi_change_mtu;
+	dev->hard_header = hippi_header;
+	dev->rebuild_header = hippi_rebuild_header;
+	dev->set_mac_address = hippi_mac_addr;
+	dev->hard_header_parse = NULL;
+	dev->hard_header_cache = NULL;
+	dev->header_cache_update = NULL;
+	dev->neigh_setup = hippi_neigh_setup_dev;
 
 	/*
 	 * We don't support HIPPI `ARP' for the time being, and probably
 	 * never will unless someone else implements it. However we
 	 * still need a fake ARPHRD to make ifconfig and friends play ball.
 	 */
-	dev->type		= ARPHRD_HIPPI;
-	dev->hard_header_len 	= HIPPI_HLEN;
-	dev->mtu		= 65280;
-	dev->addr_len		= HIPPI_ALEN;
-	dev->tx_queue_len	= 25 /* 5 */;
+	dev->type = ARPHRD_HIPPI;
+	dev->hard_header_len = HIPPI_HLEN;
+	dev->mtu = 65280;
+	dev->addr_len = HIPPI_ALEN;
+	dev->tx_queue_len = 25 /* 5 */;
 	memset(dev->broadcast, 0xFF, HIPPI_ALEN);
-
 
 	/*
 	 * HIPPI doesn't support broadcast+multicast and we only use
@@ -368,22 +368,19 @@ void ltalk_setup(struct net_device *dev)
 {
 	/* Fill in the fields of the device structure with localtalk-generic values. */
 
-	dev->change_mtu		= ltalk_change_mtu;
-	dev->hard_header	= NULL;
-	dev->rebuild_header 	= NULL;
-	dev->set_mac_address 	= ltalk_mac_addr;
-	dev->hard_header_cache	= NULL;
-	dev->header_cache_update= NULL;
-
-	dev->type		= ARPHRD_LOCALTLK;
-	dev->hard_header_len 	= LTALK_HLEN;
-	dev->mtu		= LTALK_MTU;
-	dev->addr_len		= LTALK_ALEN;
-	dev->tx_queue_len	= 10;
-
-	dev->broadcast[0]	= 0xFF;
-
-	dev->flags		= IFF_BROADCAST|IFF_MULTICAST|IFF_NOARP;
+	dev->change_mtu = ltalk_change_mtu;
+	dev->hard_header = NULL;
+	dev->rebuild_header = NULL;
+	dev->set_mac_address = ltalk_mac_addr;
+	dev->hard_header_cache = NULL;
+	dev->header_cache_update = NULL;
+	dev->type = ARPHRD_LOCALTLK;
+	dev->hard_header_len = LTALK_HLEN;
+	dev->mtu = LTALK_MTU;
+	dev->addr_len = LTALK_ALEN;
+	dev->tx_queue_len = 10;
+	dev->broadcast[0] = 0xFF;
+	dev->flags = IFF_BROADCAST|IFF_MULTICAST|IFF_NOARP;
 
 	dev_init_buffers(dev);
 }
@@ -460,20 +457,18 @@ static void tr_configure(struct net_device *dev)
 	/*
 	 *	Configure and register
 	 */
-
-	dev->hard_header	= tr_header;
-	dev->rebuild_header	= tr_rebuild_header;
-
-	dev->type		= ARPHRD_IEEE802_TR;
-	dev->hard_header_len	= TR_HLEN;
-	dev->mtu		= 2000;
-	dev->addr_len		= TR_ALEN;
-	dev->tx_queue_len	= 100;	/* Long queues on tr */
+	dev->hard_header = tr_header;
+	dev->rebuild_header = tr_rebuild_header;
+	dev->type = ARPHRD_IEEE802_TR;
+	dev->hard_header_len = TR_HLEN;
+	dev->mtu = 2000;
+	dev->addr_len = TR_ALEN;
+	dev->tx_queue_len = 100;	/* Long queues on tr */
 
 	memset(dev->broadcast,0xFF, TR_ALEN);
 
 	/* New-style flags. */
-	dev->flags		= IFF_BROADCAST | IFF_MULTICAST ;
+	dev->flags = IFF_BROADCAST | IFF_MULTICAST ;
 }
 
 struct net_device *init_trdev(struct net_device *dev, int sizeof_priv)
@@ -509,23 +504,23 @@ void unregister_trdev(struct net_device *dev)
 
 void fc_setup(struct net_device *dev)
 {
-	dev->hard_header        =        fc_header;
-        dev->rebuild_header  	=        fc_rebuild_header;
+	dev->hard_header = fc_header;
+	dev->rebuild_header = fc_rebuild_header;
+	dev->type = ARPHRD_IEEE802;
+	dev->hard_header_len = FC_HLEN;
+	dev->mtu = 2024;
+	dev->addr_len = FC_ALEN;
+	dev->tx_queue_len = 100; /* Long queues on fc */
 
-        dev->type               =        ARPHRD_IEEE802;
-	dev->hard_header_len    =        FC_HLEN;
-        dev->mtu                =        2024;
-        dev->addr_len           =        FC_ALEN;
-        dev->tx_queue_len       =        100; /* Long queues on fc */
+	memset(dev->broadcast,0xFF, FC_ALEN);
 
-        memset(dev->broadcast,0xFF, FC_ALEN);
+	/* New-style flags. */
+	dev->flags = IFF_BROADCAST;
 
-        /* New-style flags. */
-        dev->flags              =        IFF_BROADCAST;
 	dev_init_buffers(dev);
-        return;
-}
 
+	return;
+}
 
 struct net_device *init_fcdev(struct net_device *dev, int sizeof_priv)
 {
@@ -534,20 +529,19 @@ struct net_device *init_fcdev(struct net_device *dev, int sizeof_priv)
 
 int register_fcdev(struct net_device *dev)
 {
-        dev_init_buffers(dev);
-        if (dev->init && dev->init(dev) != 0) {
-                unregister_fcdev(dev);
-                return -EIO;
-        }
-        return 0;
+	dev_init_buffers(dev);
+	if (dev->init && dev->init(dev) != 0) {
+		unregister_fcdev(dev);
+		return -EIO;
+	}
+	return 0;
 }
 
 void unregister_fcdev(struct net_device *dev)
 {
-        rtnl_lock();
+	rtnl_lock();
 	unregister_netdevice(dev);
-        rtnl_unlock();
+	rtnl_unlock();
 }
 
 #endif /* CONFIG_NET_FC */
-

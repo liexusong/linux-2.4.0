@@ -258,19 +258,19 @@ struct net_device
 	struct net_device	*next;
 
 	/* The device initialization function. Called only once. */
-	int			(*init)(struct net_device *dev);
+	int (*init)(struct net_device *dev); // 设备初始化接口
 
 	/* ------- Fields preinitialized in Space.c finish here ------- */
 
 	struct net_device	*next_sched;
 
 	/* Interface index. Unique device identifier	*/
-	int			ifindex;
-	int			iflink;
+	int					ifindex;
+	int					iflink;
 
 
-	struct net_device_stats* (*get_stats)(struct net_device *dev);
-	struct iw_statistics*	(*get_wireless_stats)(struct net_device *dev);
+	struct net_device_stats *(*get_stats)(struct net_device *dev);
+	struct iw_statistics *(*get_wireless_stats)(struct net_device *dev);
 
 	/*
 	 * This marks the end of the "visible" part of the structure. All
@@ -279,15 +279,15 @@ struct net_device
 	 */
 
 	/* These may be needed for future network-power-down code. */
-	unsigned long		trans_start;	/* Time (in jiffies) of last Tx	*/
-	unsigned long		last_rx;	/* Time of last Rx	*/
+	unsigned long		trans_start;		/* Time (in jiffies) of last Tx	*/
+	unsigned long		last_rx;			/* Time of last Rx	*/
 
-	unsigned short		flags;	/* interface flags (a la BSD)	*/
+	unsigned short		flags;				/* interface flags (a la BSD)	*/
 	unsigned short		gflags;
-	unsigned			mtu;	/* interface MTU value		*/
-	unsigned short		type;	/* interface hardware type	*/
+	unsigned			mtu;				/* interface MTU value		*/
+	unsigned short		type;				/* interface hardware type	*/
 	unsigned short		hard_header_len;	/* hardware hdr length	*/
-	void				*priv;	/* pointer to private data	*/
+	void				*priv;				/* pointer to private data	*/
 
 	struct net_device	*master; /* Pointer to master device of a group,
 					  * which this device is member of.
@@ -295,9 +295,9 @@ struct net_device
 
 	/* Interface address info. */
 	unsigned char		broadcast[MAX_ADDR_LEN];	/* hw bcast add	*/
-	unsigned char		pad;		/* make dev_addr aligned to 8 bytes */
-	unsigned char		dev_addr[MAX_ADDR_LEN];	/* hw address	*/
-	unsigned char		addr_len;	/* hardware address length	*/
+	unsigned char		pad;						/* make dev_addr aligned to 8 bytes */
+	unsigned char		dev_addr[MAX_ADDR_LEN];		/* hw address	*/
+	unsigned char		addr_len;					/* hardware address length	*/
 
 	struct dev_mc_list	*mc_list;	/* Multicast mac addresses	*/
 	int					mc_count;	/* Number of installed mcasts	*/
@@ -308,13 +308,13 @@ struct net_device
 	struct timer_list	watchdog_timer;
 
 	/* Protocol specific pointers */
+	void 				*atalk_ptr;	/* AppleTalk link 	*/
+	void				*ip_ptr;	/* IPv4 specific data	*/
+	void				*dn_ptr;	/* DECnet specific data */
+	void				*ip6_ptr;	/* IPv6 specific data */
+	void				*ec_ptr;	/* Econet specific data	*/
 
-	void 			*atalk_ptr;	/* AppleTalk link 	*/
-	void			*ip_ptr;	/* IPv4 specific data	*/
-	void			*dn_ptr;        /* DECnet specific data */
-	void			*ip6_ptr;       /* IPv6 specific data */
-	void			*ec_ptr;	/* Econet specific data	*/
-
+	// 流量控制使用
 	struct Qdisc		*qdisc;
 	struct Qdisc		*qdisc_sleeping;
 	struct Qdisc		*qdisc_list;
@@ -322,20 +322,20 @@ struct net_device
 	unsigned long		tx_queue_len;	/* Max frames per queue allowed */
 
 	/* hard_start_xmit synchronizer */
-	spinlock_t		xmit_lock;
+	spinlock_t			xmit_lock;
 	/* cpu id of processor entered to hard_start_xmit or -1,
 	   if nobody entered there.
 	 */
-	int				xmit_lock_owner;
+	int					xmit_lock_owner;
 	/* device queue lock */
-	spinlock_t		queue_lock;
+	spinlock_t			queue_lock;
 	/* Number of references to this device */
-	atomic_t		refcnt;
+	atomic_t			refcnt;
 	/* The flag marking that device is unregistered, but held by an user */
-	int				deadbeaf;
+	int					deadbeaf;
 
 	/* Net device features */
-	int				features;
+	int					features;
 #define NETIF_F_SG			1	/* Scatter/gather IO. */
 #define NETIF_F_IP_CSUM		2	/* Can checksum only TCP/UDP over IPv4. */
 #define NETIF_F_NO_CSUM		4	/* Does not require checksum. F.e. loopack. */

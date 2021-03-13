@@ -466,9 +466,8 @@ void ei_interrupt(int irq, void *dev_id, struct pt_regs * regs)
 
 		if (interrupts & ENISR_OVER) {
 			ei_rx_overrun(dev);
-		} else if (interrupts & (ENISR_RX+ENISR_RX_ERR)) {
-			// 获取到一个完整的数据包?
-			ei_receive(dev);
+		} else if (interrupts & (ENISR_RX+ENISR_RX_ERR)) { // 接收到数据
+			ei_receive(dev); // 从网络接口中读取数据
 		}
 
 		/* Push the next to-transmit packet through. */
@@ -555,10 +554,9 @@ static void ei_tx_err(struct net_device *dev)
 
 	outb_p(ENISR_TX_ERR, e8390_base + EN0_ISR); /* Ack intr. */
 
-	if (tx_was_aborted)
+	if (tx_was_aborted) {
 		ei_tx_intr(dev);
-	else
-	{
+	} else {
 		ei_local->stat.tx_errors++;
 		if (txsr & ENTSR_CRS) ei_local->stat.tx_carrier_errors++;
 		if (txsr & ENTSR_CDH) ei_local->stat.tx_heartbeat_errors++;
