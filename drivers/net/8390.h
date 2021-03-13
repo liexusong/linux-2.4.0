@@ -116,9 +116,9 @@ struct ei_device {
 /*
  *	Only generate indirect loads given a machine that needs them.
  */
- 
-#if defined(CONFIG_MAC) || defined(CONFIG_AMIGA_PCMCIA) || \
-    defined(CONFIG_ARIADNE2) || defined(CONFIG_ARIADNE2_MODULE) || \
+
+#if defined(CONFIG_MAC) || defined(CONFIG_AMIGA_PCMCIA) ||          \
+    defined(CONFIG_ARIADNE2) || defined(CONFIG_ARIADNE2_MODULE) ||  \
     defined(CONFIG_HYDRA) || defined(CONFIG_HYDRA_MODULE)
 #define EI_SHIFT(x)	(ei_local->reg_offset[x])
 #else
@@ -170,11 +170,11 @@ struct ei_device {
 #define ENDCFG_BOS	0x02	/* byte order selection */
 
 /* Page 1 register offsets. */
-#define EN1_PHYS   EI_SHIFT(0x01)	/* This board's physical enet addr RD WR */
-#define EN1_PHYS_SHIFT(i)  EI_SHIFT(i+1) /* Get and set mac address */
-#define EN1_CURPAG EI_SHIFT(0x07)	/* Current memory page RD WR */
-#define EN1_MULT   EI_SHIFT(0x08)	/* Multicast filter mask array (8 bytes) RD WR */
-#define EN1_MULT_SHIFT(i)  EI_SHIFT(8+i) /* Get and set multicast filter */
+#define EN1_PHYS          EI_SHIFT(0x01)	/* This board's physical enet addr RD WR */
+#define EN1_PHYS_SHIFT(i) EI_SHIFT(i+1) /* Get and set mac address */
+#define EN1_CURPAG        EI_SHIFT(0x07)	/* Current memory page RD WR */
+#define EN1_MULT          EI_SHIFT(0x08)	/* Multicast filter mask array (8 bytes) RD WR */
+#define EN1_MULT_SHIFT(i) EI_SHIFT(8+i) /* Get and set multicast filter */
 
 /* Bits in received packet status byte and EN0_RSR*/
 #define ENRSR_RXOK	0x01	/* Received a good packet */

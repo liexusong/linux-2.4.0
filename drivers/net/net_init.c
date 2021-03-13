@@ -418,8 +418,7 @@ int register_netdev(struct net_device *dev)
 	 *	do a name allocation
 	 */
 
-	if (strchr(dev->name, '%'))
-	{
+	if (strchr(dev->name, '%')) {
 		err = -EBUSY;
 		if(dev_alloc_name(dev, dev->name)<0)
 			goto out;
@@ -429,13 +428,11 @@ int register_netdev(struct net_device *dev)
 	 *	Back compatibility hook. Kill this one in 2.5
 	 */
 
-	if (dev->name[0]==0 || dev->name[0]==' ')
-	{
+	if (dev->name[0] == 0 || dev->name[0] == ' ') {
 		err = -EBUSY;
 		if(dev_alloc_name(dev, "eth%d")<0)
 			goto out;
 	}
-
 
 	err = -EIO;
 	if (register_netdevice(dev))

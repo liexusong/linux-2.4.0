@@ -2341,11 +2341,12 @@ int register_netdevice(struct net_device *dev)
 		printk(KERN_INFO "early initialization of device %s is deferred\n", dev->name);
 
 		/* Check for existence, and append to tail of chain */
-		for (dp=&dev_base; (d=*dp) != NULL; dp=&d->next) {
+		for (dp = &dev_base; (d = *dp) != NULL; dp = &d->next) {
 			if (d == dev || strcmp(d->name, dev->name) == 0) {
 				return -EEXIST;
 			}
 		}
+
 		dev->next = NULL;
 		write_lock_bh(&dev_base_lock);
 		*dp = dev;
@@ -2379,11 +2380,12 @@ int register_netdevice(struct net_device *dev)
 		dev->iflink = dev->ifindex;
 
 	/* Check for existence, and append to tail of chain */
-	for (dp=&dev_base; (d=*dp) != NULL; dp=&d->next) {
+	for (dp = &dev_base; (d = *dp) != NULL; dp = &d->next) {
 		if (d == dev || strcmp(d->name, dev->name) == 0) {
 			return -EEXIST;
 		}
 	}
+
 	/*
 	 *	nil rebuild_header routine,
 	 *	that should be never called and used as just bug trap.

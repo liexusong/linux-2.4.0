@@ -12,14 +12,14 @@
  *		Mark Evans, <evansmp@uhura.aston.ac.uk>
  *		Florian  La Roche, <rzsfl@rz.uni-sb.de>
  *		Alan Cox, <gw4pts@gw4pts.ampr.org>
- * 
+ *
  * Fixes:
  *		Mr Linux	: Arp problems
  *		Alan Cox	: Generic queue tidyup (very tiny here)
  *		Alan Cox	: eth_header ntohs should be htons
  *		Alan Cox	: eth_rebuild_header missing an htons and
  *				  minor other things.
- *		Tegge		: Arp bug fixes. 
+ *		Tegge		: Arp bug fixes.
  *		Florian		: Removed many unnecessary functions, code cleanup
  *				  and changes for new arp and skbuff.
  *		Alan Cox	: Redid header building to reflect new format.
@@ -87,7 +87,7 @@ static int __init eth_setup(char *str)
 __setup("ether=", eth_setup);
 
 /*
- *	 Create the Ethernet MAC header for an arbitrary protocol layer 
+ *	 Create the Ethernet MAC header for an arbitrary protocol layer
  *
  *	saddr=NULL	means use device source address
  *	daddr=NULL	means leave destination address (eg unresolved arp)
@@ -98,41 +98,41 @@ int eth_header(struct sk_buff *skb, struct net_device *dev, unsigned short type,
 {
 	struct ethhdr *eth = (struct ethhdr *)skb_push(skb,ETH_HLEN);
 
-	/* 
+	/*
 	 *	Set the protocol type. For a packet of type ETH_P_802_3 we put the length
 	 *	in here instead. It is up to the 802.2 layer to carry protocol information.
 	 */
-	
-	if(type!=ETH_P_802_3) 
+
+	if(type!=ETH_P_802_3)
 		eth->h_proto = htons(type);
 	else
 		eth->h_proto = htons(len);
 
 	/*
-	 *	Set the source hardware address. 
+	 *	Set the source hardware address.
 	 */
-	 
+
 	if(saddr)
 		memcpy(eth->h_source,saddr,dev->addr_len);
 	else
 		memcpy(eth->h_source,dev->dev_addr,dev->addr_len);
 
 	/*
-	 *	Anyway, the loopback-device should never use this function... 
+	 *	Anyway, the loopback-device should never use this function...
 	 */
 
-	if (dev->flags & (IFF_LOOPBACK|IFF_NOARP)) 
+	if (dev->flags & (IFF_LOOPBACK|IFF_NOARP))
 	{
 		memset(eth->h_dest, 0, dev->addr_len);
 		return(dev->hard_header_len);
 	}
-	
+
 	if(daddr)
 	{
 		memcpy(eth->h_dest,daddr,dev->addr_len);
 		return dev->hard_header_len;
 	}
-	
+
 	return -dev->hard_header_len;
 }
 
@@ -156,12 +156,12 @@ int eth_rebuild_header(struct sk_buff *skb)
 #ifdef CONFIG_INET
 	case __constant_htons(ETH_P_IP):
  		return arp_find(eth->h_dest, skb);
-#endif	
+#endif
 	default:
 		printk(KERN_DEBUG
-		       "%s: unable to resolve type %X addresses.\n", 
+		       "%s: unable to resolve type %X addresses.\n",
 		       dev->name, (int)eth->h_proto);
-		
+
 		memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
 		break;
 	}
@@ -171,28 +171,27 @@ int eth_rebuild_header(struct sk_buff *skb)
 
 
 /*
- *	Determine the packet's protocol ID. The rule here is that we 
+ *	Determine the packet's protocol ID. The rule here is that we
  *	assume 802.3 if the type field is short enough to be a length.
  *	This is normal practice and works for any 'now in use' protocol.
  */
- 
+
 unsigned short eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 {
 	struct ethhdr *eth;
 	unsigned char *rawp;
-	
-	skb->mac.raw=skb->data;
+
+	skb->mac.raw = skb->data;
 	skb_pull(skb,dev->hard_header_len);
-	eth= skb->mac.ethernet;
-	
-	if(*eth->h_dest&1)
-	{
-		if(memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
+	eth = skb->mac.ethernet;
+
+	if (*eth->h_dest & 1) {
+		if (memcmp(eth->h_dest,dev->broadcast, ETH_ALEN)==0)
 			skb->pkt_type=PACKET_BROADCAST;
 		else
 			skb->pkt_type=PACKET_MULTICAST;
 	}
-	
+
 	/*
 	 *	This ALLMULTI check should be redundant by 1.4
 	 *	so don't forget to remove it.
@@ -200,18 +199,18 @@ unsigned short eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 	 *	Seems, you forgot to remove it. All silly devices
 	 *	seems to set IFF_PROMISC.
 	 */
-	 
-	else if(1 /*dev->flags&IFF_PROMISC*/)
+
+	else if (1 /*dev->flags&IFF_PROMISC*/)
 	{
-		if(memcmp(eth->h_dest,dev->dev_addr, ETH_ALEN))
-			skb->pkt_type=PACKET_OTHERHOST;
+		if (memcmp(eth->h_dest,dev->dev_addr, ETH_ALEN))
+			skb->pkt_type = PACKET_OTHERHOST;
 	}
-	
+
 	if (ntohs(eth->h_proto) >= 1536)
 		return eth->h_proto;
-		
+
 	rawp = skb->data;
-	
+
 	/*
 	 *	This is a magic hack to spot IPX packets. Older Novell breaks
 	 *	the protocol design and runs IPX over 802.3 without an 802.2 LLC
@@ -220,7 +219,7 @@ unsigned short eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 	 */
 	if (*(unsigned short *)rawp == 0xFFFF)
 		return htons(ETH_P_802_3);
-		
+
 	/*
 	 *	Real 802.2 LLC
 	 */
