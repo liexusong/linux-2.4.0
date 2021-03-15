@@ -1176,6 +1176,7 @@ asmlinkage long sys_sendto(int fd, void * buff, size_t len, unsigned flags,
 	sock = sockfd_lookup(fd, &err);
 	if (!sock)
 		goto out;
+
 	iov.iov_base=buff;
 	iov.iov_len=len;
 	msg.msg_name=NULL;
@@ -1184,16 +1185,19 @@ asmlinkage long sys_sendto(int fd, void * buff, size_t len, unsigned flags,
 	msg.msg_control=NULL;
 	msg.msg_controllen=0;
 	msg.msg_namelen=addr_len;
-	if(addr)
-	{
+
+	if(addr) {
 		err = move_addr_to_kernel(addr, addr_len, address);
 		if (err < 0)
 			goto out_put;
 		msg.msg_name=address;
 	}
+
 	if (sock->file->f_flags & O_NONBLOCK)
 		flags |= MSG_DONTWAIT;
+
 	msg.msg_flags = flags;
+
 	err = sock_sendmsg(sock, &msg, len);
 
 out_put:

@@ -327,7 +327,9 @@ fragment:
 		kfree_skb(skb);
 		return -EMSGSIZE;
 	}
+
 	ip_select_ident(iph, &rt->u.dst);
+
 	return ip_fragment(skb, skb->dst->output);
 }
 

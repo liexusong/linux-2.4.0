@@ -993,16 +993,20 @@ int tcp_sendmsg(struct sock *sk, struct msghdr *msg, int size)
 					from += copy;
 					copied += copy;
 					seglen -= copy;
+
 					if (PSH_NEEDED ||
-					    after(tp->write_seq, tp->pushed_seq+(tp->max_window>>1))) {
+					    after(tp->write_seq,tp->pushed_seq+(tp->max_window>>1)))
+                    {
 						TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_PSH;
 						tp->pushed_seq = tp->write_seq;
 					}
+
 					if (flags&MSG_OOB) {
 						tp->urg_mode = 1;
 						tp->snd_up = tp->write_seq;
 						TCP_SKB_CB(skb)->sacked |= TCPCB_URG;
 					}
+
 					continue;
 				} else {
 					TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_PSH;
@@ -1075,8 +1079,8 @@ int tcp_sendmsg(struct sock *sk, struct msghdr *msg, int size)
 			 * Reserve header space and checksum the data.
 			 */
 			skb_reserve(skb, MAX_TCP_HEADER);
-			skb->csum = csum_and_copy_from_user(from,
-					skb_put(skb, copy), copy, 0, &err);
+			skb->csum = csum_and_copy_from_user(from, skb_put(skb, copy),
+					                            copy, 0, &err);
 
 			if (err)
 				goto do_fault;
