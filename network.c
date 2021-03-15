@@ -22,7 +22,6 @@ send()
    \                                                                  user space
 ----\---------------------------------------------------------------------------
      \                                                              kernel space
-      \
        `+--> sys_send()               BSD layer
         |--> sys_sendto()             BSD layer
         |--> sock_sendmsg()           BSD layer
