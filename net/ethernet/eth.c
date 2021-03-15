@@ -94,7 +94,7 @@ __setup("ether=", eth_setup);
  */
 
 int eth_header(struct sk_buff *skb, struct net_device *dev, unsigned short type,
-	   void *daddr, void *saddr, unsigned len)
+			   void *daddr, void *saddr, unsigned len)
 {
 	struct ethhdr *eth = (struct ethhdr *)skb_push(skb,ETH_HLEN);
 
@@ -103,7 +103,7 @@ int eth_header(struct sk_buff *skb, struct net_device *dev, unsigned short type,
 	 *	in here instead. It is up to the 802.2 layer to carry protocol information.
 	 */
 
-	if(type!=ETH_P_802_3)
+	if (type != ETH_P_802_3)
 		eth->h_proto = htons(type);
 	else
 		eth->h_proto = htons(len);
@@ -112,7 +112,7 @@ int eth_header(struct sk_buff *skb, struct net_device *dev, unsigned short type,
 	 *	Set the source hardware address.
 	 */
 
-	if(saddr)
+	if (saddr)
 		memcpy(eth->h_source,saddr,dev->addr_len);
 	else
 		memcpy(eth->h_source,dev->dev_addr,dev->addr_len);
@@ -121,14 +121,12 @@ int eth_header(struct sk_buff *skb, struct net_device *dev, unsigned short type,
 	 *	Anyway, the loopback-device should never use this function...
 	 */
 
-	if (dev->flags & (IFF_LOOPBACK|IFF_NOARP))
-	{
+	if (dev->flags & (IFF_LOOPBACK|IFF_NOARP)) {
 		memset(eth->h_dest, 0, dev->addr_len);
 		return(dev->hard_header_len);
 	}
 
-	if(daddr)
-	{
+	if(daddr) {
 		memcpy(eth->h_dest,daddr,dev->addr_len);
 		return dev->hard_header_len;
 	}
@@ -151,8 +149,7 @@ int eth_rebuild_header(struct sk_buff *skb)
 	struct ethhdr *eth = (struct ethhdr *)skb->data;
 	struct net_device *dev = skb->dev;
 
-	switch (eth->h_proto)
-	{
+	switch (eth->h_proto) {
 #ifdef CONFIG_INET
 	case __constant_htons(ETH_P_IP):
  		return arp_find(eth->h_dest, skb);
@@ -200,9 +197,8 @@ unsigned short eth_type_trans(struct sk_buff *skb, struct net_device *dev)
 	 *	seems to set IFF_PROMISC.
 	 */
 
-	else if (1 /*dev->flags&IFF_PROMISC*/)
-	{
-		if (memcmp(eth->h_dest,dev->dev_addr, ETH_ALEN))
+	else if (1 /*dev->flags&IFF_PROMISC*/) {
+		if (memcmp(eth->h_dest, dev->dev_addr, ETH_ALEN))
 			skb->pkt_type = PACKET_OTHERHOST;
 	}
 
@@ -253,7 +249,8 @@ int eth_header_cache(struct neighbour *neigh, struct hh_cache *hh)
  * Called by Address Resolution module to notify changes in address.
  */
 
-void eth_header_cache_update(struct hh_cache *hh, struct net_device *dev, unsigned char * haddr)
+void eth_header_cache_update(struct hh_cache *hh, struct net_device *dev,
+							 unsigned char * haddr)
 {
 	memcpy(((u8*)hh->hh_data) + 2, haddr, dev->addr_len);
 }
