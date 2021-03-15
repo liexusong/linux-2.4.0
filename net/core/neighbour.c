@@ -987,7 +987,7 @@ int neigh_resolve_output(struct sk_buff *skb)
 		}
 
 		if (err >= 0)
-			return neigh->ops->queue_xmit(skb);
+			return neigh->ops->queue_xmit(skb); // 一般调用 dev_queue_xmit()
 
 		kfree_skb(skb);
 
@@ -1085,7 +1085,8 @@ void pneigh_enqueue(struct neigh_table *tbl, struct neigh_parms *p,
 }
 
 
-struct neigh_parms *neigh_parms_alloc(struct net_device *dev, struct neigh_table *tbl)
+struct neigh_parms *
+neigh_parms_alloc(struct net_device *dev, struct neigh_table *tbl)
 {
 	struct neigh_parms *p;
 	p = kmalloc(sizeof(*p), GFP_KERNEL);
@@ -1134,15 +1135,18 @@ void neigh_table_init(struct neigh_table *tbl)
 {
 	unsigned long now = jiffies;
 
-	tbl->parms.reachable_time = neigh_rand_reach_time(tbl->parms.base_reachable_time);
+	tbl->parms.reachable_time =
+			neigh_rand_reach_time(tbl->parms.base_reachable_time);
 
 	if (tbl->kmem_cachep == NULL)
 		tbl->kmem_cachep = kmem_cache_create(tbl->id, (tbl->entry_size+15)&~15,
 											 0, SLAB_HWCACHE_ALIGN, NULL, NULL);
 
 #ifdef CONFIG_SMP
-	tasklet_init(&tbl->gc_task, SMP_TIMER_NAME(neigh_periodic_timer), (unsigned long)tbl);
+	tasklet_init(&tbl->gc_task, SMP_TIMER_NAME(neigh_periodic_timer),
+				(unsigned long)tbl);
 #endif
+
 	init_timer(&tbl->gc_timer);
 	tbl->lock = RW_LOCK_UNLOCKED;
 	tbl->gc_timer.data = (unsigned long)tbl;
@@ -1191,6 +1195,7 @@ int neigh_table_clear(struct neigh_table *tbl)
 #ifdef CONFIG_SYSCTL
 	neigh_sysctl_unregister(&tbl->parms);
 #endif
+
 	return 0;
 }
 
