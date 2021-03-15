@@ -105,12 +105,13 @@ void skb_over_panic(struct sk_buff *skb, int sz, void *here)
 
 void skb_under_panic(struct sk_buff *skb, int sz, void *here)
 {
-        printk("skput:under: %p:%d put:%d dev:%s",
-                here, skb->len, sz, skb->dev ? skb->dev->name : "<NULL>");
+	printk("skput:under: %p:%d put:%d dev:%s",
+		here, skb->len, sz, skb->dev ? skb->dev->name : "<NULL>");
 	BUG();
 }
 
-static __inline__ struct sk_buff *skb_head_from_pool(void)
+static __inline__ struct sk_buff *
+skb_head_from_pool(void)
 {
 	struct sk_buff_head *list = &skb_head_pool[smp_processor_id()].list;
 
@@ -126,7 +127,8 @@ static __inline__ struct sk_buff *skb_head_from_pool(void)
 	return NULL;
 }
 
-static __inline__ void skb_head_to_pool(struct sk_buff *skb)
+static __inline__ void
+skb_head_to_pool(struct sk_buff *skb)
 {
 	struct sk_buff_head *list = &skb_head_pool[smp_processor_id()].list;
 
@@ -162,7 +164,8 @@ static __inline__ void skb_head_to_pool(struct sk_buff *skb)
  *	%GFP_ATOMIC.
  */
 
-struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
+struct sk_buff *
+alloc_skb(unsigned int size, int gfp_mask)
 {
 	struct sk_buff *skb;
 	u8 *data;
@@ -178,6 +181,7 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 	}
 
 	/* Get the HEAD */
+	// 申请一个skb对象
 	skb = skb_head_from_pool();
 	if (skb == NULL) {
 		skb = kmem_cache_alloc(skbuff_head_cache, gfp_mask);
@@ -186,6 +190,7 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 	}
 
 	/* Get the DATA. Size must match skb_add_mtu(). */
+	// 申请skb的数据域
 	size = ((size + 15) & ~15); // 16字节对齐
 	data = kmalloc(size + sizeof(atomic_t), gfp_mask);
 	if (data == NULL)
@@ -195,6 +200,7 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 	skb->truesize = size + sizeof(struct sk_buff); // 真正的size, 包括结构本身和数据
 
 	/* Load the data pointers. */
+	// 初始化各个指针
 	skb->head = data;
 	skb->data = data;
 	skb->tail = data;
@@ -206,6 +212,7 @@ struct sk_buff *alloc_skb(unsigned int size,int gfp_mask)
 
 	atomic_set(&skb->users, 1);
 	atomic_set(skb_datarefp(skb), 1);
+
 	return skb;
 
 nodata:
@@ -218,8 +225,9 @@ nohead:
 /*
  *	Slab constructor for a skb head.
  */
-static inline void skb_headerinit(void *p, kmem_cache_t *cache,
-				  unsigned long flags)
+// 初始化skb对象各个字段
+static inline void
+skb_headerinit(void *p, kmem_cache_t *cache, unsigned long flags)
 {
 	struct sk_buff *skb = p;
 
@@ -230,7 +238,9 @@ static inline void skb_headerinit(void *p, kmem_cache_t *cache,
 	skb->stamp.tv_sec=0;	/* No idea about time */
 	skb->dev = NULL;
 	skb->dst = NULL;
+
 	memset(skb->cb, 0, sizeof(skb->cb));
+
 	skb->pkt_type = PACKET_HOST;	/* Default type */
 	skb->ip_summed = 0;
 	skb->priority = 0;
@@ -281,7 +291,7 @@ void __kfree_skb(struct sk_buff *skb)
 	if(skb->destructor) {
 		if (in_irq()) {
 			printk(KERN_WARNING "Warning: kfree_skb on hard IRQ %p\n",
-				NET_CALLER(skb));
+				   NET_CALLER(skb));
 		}
 		skb->destructor(skb);
 	}
@@ -306,7 +316,8 @@ void __kfree_skb(struct sk_buff *skb)
  *	%GFP_ATOMIC.
  */
 // skb_clone() 函数只复制skb结构，不复制其管理的数据，所以两个skb都指向相同的数据
-struct sk_buff *skb_clone(struct sk_buff *skb, int gfp_mask)
+struct sk_buff *
+skb_clone(struct sk_buff *skb, int gfp_mask)
 {
 	struct sk_buff *n;
 
@@ -335,39 +346,41 @@ struct sk_buff *skb_clone(struct sk_buff *skb, int gfp_mask)
 }
 
 // 复制旧skb的字段到新的skb
-static void copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
+static void
+copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
 {
 	/*
 	 *	Shift between the two data areas in bytes
 	 */
 	unsigned long offset = new->data - old->data;
 
-	new->list=NULL;
-	new->sk=NULL;
-	new->dev=old->dev;
-	new->priority=old->priority;
-	new->protocol=old->protocol;
-	new->dst=dst_clone(old->dst);
+	new->list = NULL;
+	new->sk = NULL;
+	new->dev = old->dev;
+	new->priority = old->priority;
+	new->protocol = old->protocol;
+	new->dst = dst_clone(old->dst);
 
 	// 因为new->h.raw指向old->h.raw, 所以要重新设置这些字段的值
-	new->h.raw=old->h.raw+offset;
-	new->nh.raw=old->nh.raw+offset;
-	new->mac.raw=old->mac.raw+offset;
+	new->h.raw = old->h.raw+offset;
+	new->nh.raw = old->nh.raw+offset;
+	new->mac.raw = old->mac.raw+offset;
 
 	memcpy(new->cb, old->cb, sizeof(old->cb));
-	new->used=old->used;
+
+	new->used = old->used;
 	atomic_set(&new->users, 1);
-	new->pkt_type=old->pkt_type;
-	new->stamp=old->stamp;
+	new->pkt_type = old->pkt_type;
+	new->stamp = old->stamp;
 	new->destructor = NULL;
-	new->security=old->security;
+	new->security = old->security;
 #ifdef CONFIG_NETFILTER
-	new->nfmark=old->nfmark;
-	new->nfcache=old->nfcache;
-	new->nfct=old->nfct;
+	new->nfmark = old->nfmark;
+	new->nfcache = old->nfcache;
+	new->nfct = old->nfct;
 	nf_conntrack_get(new->nfct);
 #ifdef CONFIG_NETFILTER_DEBUG
-	new->nf_debug=old->nf_debug;
+	new->nf_debug = old->nf_debug;
 #endif
 #endif
 #ifdef CONFIG_NET_SCHED
@@ -389,16 +402,16 @@ static void copy_skb_header(struct sk_buff *new, const struct sk_buff *old)
  *	is called from an interrupt.
  */
 
-struct sk_buff *skb_copy(const struct sk_buff *skb, int gfp_mask)
+struct sk_buff *
+skb_copy(const struct sk_buff *skb, int gfp_mask)
 {
 	struct sk_buff *n;
 
 	/*
 	 *	Allocate the copy buffer
 	 */
-
-	n=alloc_skb(skb->end - skb->head, gfp_mask); // 申请指定大小的skb
-	if(n==NULL)
+	n = alloc_skb(skb->end - skb->head, gfp_mask); // 申请指定大小的skb
+	if(n == NULL)
 		return NULL;
 
 	/* Set the data pointer */
@@ -433,10 +446,9 @@ struct sk_buff *skb_copy(const struct sk_buff *skb, int gfp_mask)
  */
 
 
-struct sk_buff *skb_copy_expand(const struct sk_buff *skb,
-								int newheadroom,
-								int newtailroom,
-								int gfp_mask)
+struct sk_buff *
+skb_copy_expand(const struct sk_buff *skb, int newheadroom, int newtailroom,
+				int gfp_mask)
 {
 	struct sk_buff *n;
 
@@ -444,7 +456,7 @@ struct sk_buff *skb_copy_expand(const struct sk_buff *skb,
 	 *	Allocate the copy buffer
 	 */
 
-	n = alloc_skb(newheadroom+(skb->tail-skb->data)+newtailroom, gfp_mask);
+	n = alloc_skb(newheadroom + (skb->tail-skb->data) + newtailroom, gfp_mask);
 	if (n == NULL)
 		return NULL;
 
@@ -457,6 +469,7 @@ struct sk_buff *skb_copy_expand(const struct sk_buff *skb,
 	memcpy(n->data, skb->data, skb->len);
 
 	copy_skb_header(n, skb);
+
 	return n;
 }
 
@@ -482,6 +495,7 @@ void __init skb_init(void)
 					      0,
 					      SLAB_HWCACHE_ALIGN,
 					      skb_headerinit, NULL);
+
 	if (!skbuff_head_cache)
 		panic("cannot create skbuff cache");
 
