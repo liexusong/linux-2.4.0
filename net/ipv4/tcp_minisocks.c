@@ -127,7 +127,7 @@ void tcp_timewait_kill(struct tcp_tw_bucket *tw)
  */
 enum tcp_tw_status
 tcp_timewait_state_process(struct tcp_tw_bucket *tw, struct sk_buff *skb,
-			   struct tcphdr *th, unsigned len)
+						   struct tcphdr *th, unsigned len)
 {
 	struct tcp_opt tp;
 	int paws_reject = 0;
@@ -639,7 +639,9 @@ SMP_TIMER_DEFINE(tcp_twcal_tick, tcp_twcal_tasklet);
  * Actually, we could lots of memory writes here. tp of listening
  * socket contains all necessary default parameters.
  */
-struct sock *tcp_create_openreq_child(struct sock *sk, struct open_request *req, struct sk_buff *skb)
+struct sock *
+tcp_create_openreq_child(struct sock *sk, struct open_request *req,
+						 struct sk_buff *skb)
 {
 	struct sock *newsk = sk_alloc(PF_INET, GFP_ATOMIC, 0);
 
@@ -796,10 +798,9 @@ struct sock *tcp_create_openreq_child(struct sock *sk, struct open_request *req,
  *	as an open_request.
  */
 
-struct sock *tcp_check_req(struct sock *sk,
-						   struct sk_buff *skb,
-						   struct open_request *req,
-						   struct open_request **prev)
+struct sock *
+tcp_check_req(struct sock *sk, struct sk_buff *skb, struct open_request *req,
+			  struct open_request **prev)
 {
 	struct tcphdr *th = skb->h.th;
 	struct tcp_opt *tp = &(sk->tp_pinfo.af_tcp);
@@ -818,7 +819,8 @@ struct sock *tcp_check_req(struct sock *sk,
 			 * it can be estimated (approximately)
 			 * from another data.
 			 */
-			ttp.ts_recent_stamp = xtime.tv_sec - ((TCP_TIMEOUT_INIT/HZ)<<req->retrans);
+			ttp.ts_recent_stamp = xtime.tv_sec
+									- ((TCP_TIMEOUT_INIT/HZ)<<req->retrans);
 			paws_reject = tcp_paws_check(&ttp, th->rst);
 		}
 	}
@@ -952,7 +954,7 @@ embryonic_reset:
  */
 
 int tcp_child_process(struct sock *parent, struct sock *child,
-		      struct sk_buff *skb)
+					  struct sk_buff *skb)
 {
 	int ret = 0;
 	int state = child->state;
