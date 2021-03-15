@@ -965,26 +965,40 @@ int neigh_resolve_output(struct sk_buff *skb)
 	if (neigh_event_send(neigh, skb) == 0) {
 		int err;
 		struct net_device *dev = neigh->dev;
+
 		if (dev->hard_header_cache && dst->hh == NULL) {
 			write_lock_bh(&neigh->lock);
+
 			if (dst->hh == NULL)
 				neigh_hh_init(neigh, dst, dst->ops->protocol);
-			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha, NULL, skb->len);
+
+			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha,
+								   NULL, skb->len);
+
 			write_unlock_bh(&neigh->lock);
+
 		} else {
 			read_lock_bh(&neigh->lock);
-			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha, NULL, skb->len);
+
+			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha,
+								   NULL, skb->len);
+
 			read_unlock_bh(&neigh->lock);
 		}
+
 		if (err >= 0)
 			return neigh->ops->queue_xmit(skb);
+
 		kfree_skb(skb);
+
 		return -EINVAL;
 	}
+
 	return 0;
 
 discard:
-	NEIGH_PRINTK1("neigh_resolve_output: dst=%p neigh=%p\n", dst, dst ? dst->neighbour : NULL);
+	NEIGH_PRINTK1("neigh_resolve_output: dst=%p neigh=%p\n",
+				  dst, dst ? dst->neighbour : NULL);
 	kfree_skb(skb);
 	return -EINVAL;
 }

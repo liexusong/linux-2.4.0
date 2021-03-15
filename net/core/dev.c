@@ -873,7 +873,8 @@ void dev_queue_xmit_nit(struct sk_buff *skb, struct net_device *dev)
 
 			if (skb2->nh.raw < skb2->data || skb2->nh.raw >= skb2->tail) {
 				if (net_ratelimit())
-					printk(KERN_DEBUG "protocol %04x is buggy, dev %s\n", skb2->protocol, dev->name);
+					printk(KERN_DEBUG "protocol %04x is buggy, dev %s\n",
+						   skb2->protocol, dev->name);
 				skb2->nh.raw = skb2->data;
 				if (dev->hard_header)
 					skb2->nh.raw += dev->hard_header_len;
@@ -907,13 +908,16 @@ int dev_queue_xmit(struct sk_buff *skb)
 
 	/* Grab device queue */
 	spin_lock_bh(&dev->queue_lock);
-	q = dev->qdisc;
-	if (q->enqueue) {
-		int ret = q->enqueue(skb, q);
 
-		qdisc_run(dev);
+	q = dev->qdisc; // 获取设备优先队列
+
+	if (q->enqueue) {
+		int ret = q->enqueue(skb, q); // 把数据包放入到优先队列中
+
+		qdisc_run(dev); // 将设备优先队列的数据发送出去
 
 		spin_unlock_bh(&dev->queue_lock);
+
 		return ret == NET_XMIT_BYPASS ? NET_XMIT_SUCCESS : ret;
 	}
 
@@ -928,39 +932,53 @@ int dev_queue_xmit(struct sk_buff *skb)
 	   Check this and shot the lock. It is not prone from deadlocks.
 	   Either shot noqueue qdisc, it is even simpler 8)
 	 */
-	if (dev->flags&IFF_UP) {
+	if (dev->flags & IFF_UP) {
 		int cpu = smp_processor_id();
 
 		if (dev->xmit_lock_owner != cpu) {
 			spin_unlock(&dev->queue_lock);
+
 			spin_lock(&dev->xmit_lock);
+
 			dev->xmit_lock_owner = cpu;
 
 			if (!netif_queue_stopped(dev)) {
 				if (netdev_nit)
 					dev_queue_xmit_nit(skb,dev);
 
+				// 直接调用设备的数据发送把数据发送出去
 				if (dev->hard_start_xmit(skb, dev) == 0) {
 					dev->xmit_lock_owner = -1;
 					spin_unlock_bh(&dev->xmit_lock);
 					return 0;
 				}
 			}
+
 			dev->xmit_lock_owner = -1;
+
 			spin_unlock_bh(&dev->xmit_lock);
+
 			if (net_ratelimit())
-				printk(KERN_DEBUG "Virtual device %s asks to queue packet!\n", dev->name);
+				printk(KERN_DEBUG "Virtual device %s asks to queue packet!\n",
+					   dev->name);
+
 			kfree_skb(skb);
+
 			return -ENETDOWN;
+
 		} else {
 			/* Recursion is detected! It is possible, unfortunately */
 			if (net_ratelimit())
-				printk(KERN_DEBUG "Dead loop on virtual device %s, fix it urgently!\n", dev->name);
+				printk(KERN_DEBUG
+					  "Dead loop on virtual device %s, fix it urgently!\n",
+					  dev->name);
 		}
 	}
+
 	spin_unlock_bh(&dev->queue_lock);
 
 	kfree_skb(skb);
+
 	return -ENETDOWN;
 }
 
@@ -994,7 +1012,8 @@ static struct
 	struct net_device *dev;
 } netdev_fc_slots[32];
 
-int netdev_register_fc(struct net_device *dev, void (*stimul)(struct net_device *dev))
+int netdev_register_fc(struct net_device *dev,
+					   void (*stimul)(struct net_device *dev))
 {
 	int bit = 0;
 	unsigned long flags;
@@ -1886,9 +1905,9 @@ int dev_change_flags(struct net_device *dev, unsigned flags)
 	 *	Set the flags on our device.
 	 */
 
-	dev->flags = (flags & (IFF_DEBUG|IFF_NOTRAILERS|IFF_NOARP|IFF_DYNAMIC|
-			       IFF_MULTICAST|IFF_PORTSEL|IFF_AUTOMEDIA)) |
-				       (dev->flags & (IFF_UP|IFF_VOLATILE|IFF_PROMISC|IFF_ALLMULTI));
+	dev->flags = (flags&(IFF_DEBUG|IFF_NOTRAILERS|IFF_NOARP|IFF_DYNAMIC
+							|IFF_MULTICAST|IFF_PORTSEL|IFF_AUTOMEDIA))
+				  |(dev->flags&(IFF_UP|IFF_VOLATILE|IFF_PROMISC|IFF_ALLMULTI));
 
 	/*
 	 *	Load in the correct multicast list now the flags have changed.
@@ -1903,10 +1922,9 @@ int dev_change_flags(struct net_device *dev, unsigned flags)
 	 */
 
 	ret = 0;
-	if ((old_flags^flags)&IFF_UP)	/* Bit is different  ? */
-	{
-		ret = ((old_flags & IFF_UP) ? dev_close : dev_open)(dev);
 
+	if ((old_flags^flags) & IFF_UP) {	/* Bit is different  ? */
+		ret = ((old_flags & IFF_UP) ? dev_close : dev_open)(dev);
 		if (ret == 0)
 			dev_mc_upload(dev);
 	}
@@ -2339,7 +2357,8 @@ int register_netdevice(struct net_device *dev)
 
 		   So that this message should be printed for a while.
 		 */
-		printk(KERN_INFO "early initialization of device %s is deferred\n", dev->name);
+		printk(KERN_INFO "early initialization of device %s is deferred\n",
+			   dev->name);
 
 		/* Check for existence, and append to tail of chain */
 		for (dp = &dev_base; (d = *dp) != NULL; dp = &d->next) {
@@ -2482,7 +2501,9 @@ int unregister_netdevice(struct net_device *dev)
 		}
 	}
 	if (d == NULL) {
-		printk(KERN_DEBUG "unregister_netdevice: device %s/%p never was registered\n", dev->name, dev);
+		printk(KERN_DEBUG
+			   "unregister_netdevice: device %s/%p never was registered\n",
+			   dev->name, dev);
 		return -ENODEV;
 	}
 
@@ -2524,7 +2545,8 @@ int unregister_netdevice(struct net_device *dev)
 	if (dev->features & NETIF_F_DYNALLOC) {
 #ifdef NET_REFCNT_DEBUG
 		if (atomic_read(&dev->refcnt) != 1)
-			printk(KERN_DEBUG "unregister_netdevice: holding %s refcnt=%d\n", dev->name, atomic_read(&dev->refcnt)-1);
+			printk(KERN_DEBUG "unregister_netdevice: holding %s refcnt=%d\n",
+				   dev->name, atomic_read(&dev->refcnt)-1);
 #endif
 		dev_put(dev);
 		return 0;
@@ -2537,7 +2559,8 @@ int unregister_netdevice(struct net_device *dev)
 	}
 
 #ifdef NET_REFCNT_DEBUG
-	printk("unregister_netdevice: waiting %s refcnt=%d\n", dev->name, atomic_read(&dev->refcnt));
+	printk("unregister_netdevice: waiting %s refcnt=%d\n",
+		   dev->name, atomic_read(&dev->refcnt));
 #endif
 
 	/* EXPLANATION. If dev->refcnt is not now 1 (our own reference)

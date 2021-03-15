@@ -312,7 +312,7 @@ static inline int ip_queue_xmit2(struct sk_buff *skb)
 	ip_send_check(iph);
 
 	skb->priority = sk->priority;
-	return skb->dst->output(skb);
+	return skb->dst->output(skb); // 调用 ip_output() 把数据发送出去
 
 fragment:
 	if (ip_dont_fragment(sk, &rt->u.dst)) {
