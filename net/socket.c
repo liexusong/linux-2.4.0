@@ -1262,7 +1262,7 @@ out:
  *	Receive a datagram from a socket.
  */
 
-asmlinkage long sys_recv(int fd, void * ubuf, size_t size, unsigned flags)
+asmlinkage long sys_recv(int fd, void *ubuf, size_t size, unsigned flags)
 {
 	return sys_recvfrom(fd, ubuf, size, flags, NULL, NULL);
 }

@@ -3164,7 +3164,7 @@ tcp_checksum_complete_user(struct sock *sk, struct sk_buff *skb)
  *	tcp_data_queue when everything is OK.
  */
 int tcp_rcv_established(struct sock *sk, struct sk_buff *skb,
-			struct tcphdr *th, unsigned len)
+						struct tcphdr *th, unsigned len)
 {
 	struct tcp_opt *tp = &(sk->tp_pinfo.af_tcp);
 
@@ -3194,8 +3194,9 @@ int tcp_rcv_established(struct sock *sk, struct sk_buff *skb,
 	 *	PSH flag is ignored.
 	 */
 
-	if ((tcp_flag_word(th) & TCP_HP_BITS) == tp->pred_flags &&
-		TCP_SKB_CB(skb)->seq == tp->rcv_nxt) {
+	if ((tcp_flag_word(th) & TCP_HP_BITS) == tp->pred_flags
+		&& TCP_SKB_CB(skb)->seq == tp->rcv_nxt)
+	{
 		int tcp_header_len = tp->tcp_header_len;
 
 		/* Timestamp header prediction: tcp_header_len

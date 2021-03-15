@@ -278,11 +278,9 @@ static int ei_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	   SMP: We have to grab the lock here otherwise the IRQ handler
 	   on another CPU can flip window and race the IRQ mask set. We end
 	   up trashing the mcast filter not disabling irqs if we dont lock */
-
 	spin_lock_irqsave(&ei_local->page_lock, flags);
 	outb_p(0x00, e8390_base + EN0_IMR);
 	spin_unlock_irqrestore(&ei_local->page_lock, flags);
-
 
 	/*
 	 *	Slow phase with lock held.
@@ -382,8 +380,11 @@ static int ei_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	ei_block_output(dev, length, skb->data, ei_local->tx_start_page);
 
 	ei_local->txing = 1;
+
 	NS8390_trigger_send(dev, send_length, ei_local->tx_start_page);
+
 	dev->trans_start = jiffies;
+
 	netif_stop_queue(dev);
 
 #endif	/* EI_PINGPONG */
