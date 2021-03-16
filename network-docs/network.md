@@ -30,18 +30,23 @@ send()
        `+--> sys_send()               BSD layer
         |--> sys_sendto()             BSD layer
         |--> sock_sendmsg()           BSD layer
+        +=======================================
         |--> inet_sendmsg()           INET layer
+        +=======================================
         |--> tcp_sendmsg()            TCP layer
         |--> tcp_send_skb()           TCP layer
         |--> tcp_transmit_skb()       TCP layer
+        +=======================================
         |--> ip_queue_xmit()          IP layer
         |--> ip_queue_xmit2()         IP layer
         |--> ip_output()              IP layer
         |--> ip_finish_output()       IP layer
         |--> ip_finish_output2()      IP layer
+        +=======================================
         |--> neigh_resolve_output()   Link layer
         |--> dev_queue_xmit()         Link layer
-        +--> ei_start_xmit()          Physical layer
+        +=======================================
+        |--> ei_start_xmit()          Physical layer
 
 */
 ```
