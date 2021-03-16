@@ -27,26 +27,33 @@ send()
    \                                                                  user space
 ----\---------------------------------------------------------------------------
      \                                                              kernel space
-       `+--> sys_send()               BSD layer
-        |--> sys_sendto()             BSD layer
-        |--> sock_sendmsg()           BSD layer
-        +=======================================
-        |--> inet_sendmsg()           INET layer
-        +=======================================
-        |--> tcp_sendmsg()            TCP layer
-        |--> tcp_send_skb()           TCP layer
-        |--> tcp_transmit_skb()       TCP layer
-        +=======================================
-        |--> ip_queue_xmit()          IP layer
-        |--> ip_queue_xmit2()         IP layer
-        |--> ip_output()              IP layer
-        |--> ip_finish_output()       IP layer
-        |--> ip_finish_output2()      IP layer
-        +=======================================
-        |--> neigh_resolve_output()   Link layer
-        |--> dev_queue_xmit()         Link layer
-        +=======================================
-        |--> ei_start_xmit()          Physical layer
+       `+----------------------------------------+ BSD layer
+        | sys_send()                             |
+        | sys_sendto()                           |
+        | sock_sendmsg()                         |
+        v----------------------------------------+ INET layer
+        | inet_sendmsg()                         |
+        v----------------------------------------+ TCP layer
+        | tcp_sendmsg()                          |
+        | tcp_send_skb()                         |
+        | tcp_transmit_skb()                     |
+        v----------------------------------------+ IP layer
+        | ip_queue_xmit()                        |
+        | ip_queue_xmit2()                       |
+        | ip_output()                            |
+        | ip_finish_output()                     |
+        | ip_finish_output2()                    |
+        v----------------------------------------+ Link layer
+        | neigh_resolve_output()                 |
+        | dev_queue_xmit()                       |
+        v----------------------------------------+ Physical layer
+        | ei_start_xmit()                        |
+        +----------------------------------------+
+                   |
+                   v
+            +--------------+
+            |  networking  |
+            +--------------+
 
 */
 ```
