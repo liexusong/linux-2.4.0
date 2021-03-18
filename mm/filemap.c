@@ -1588,8 +1588,9 @@ page_not_uptodate:
 /* Called with mm->page_table_lock held to protect against other
  * threads/the swapper from ripping pte's out from under us.
  */
-static inline int filemap_sync_pte(pte_t * ptep, struct vm_area_struct *vma,
-	unsigned long address, unsigned int flags)
+static inline int
+filemap_sync_pte(pte_t * ptep, struct vm_area_struct *vma,
+				 unsigned long address, unsigned int flags)
 {
 	pte_t pte = *ptep;
 
@@ -1601,9 +1602,10 @@ static inline int filemap_sync_pte(pte_t * ptep, struct vm_area_struct *vma,
 	return 0;
 }
 
-static inline int filemap_sync_pte_range(pmd_t * pmd,
-	unsigned long address, unsigned long size,
-	struct vm_area_struct *vma, unsigned long offset, unsigned int flags)
+static inline int
+filemap_sync_pte_range(pmd_t *pmd, unsigned long address,
+					   unsigned long size, struct vm_area_struct *vma,
+					   unsigned long offset, unsigned int flags)
 {
 	pte_t * pte;
 	unsigned long end;
@@ -1631,9 +1633,10 @@ static inline int filemap_sync_pte_range(pmd_t * pmd,
 	return error;
 }
 
-static inline int filemap_sync_pmd_range(pgd_t * pgd,
-	unsigned long address, unsigned long size,
-	struct vm_area_struct *vma, unsigned int flags)
+static inline int
+filemap_sync_pmd_range(pgd_t *pgd, unsigned long address,
+					   unsigned long size, struct vm_area_struct *vma,
+					   unsigned int flags)
 {
 	pmd_t * pmd;
 	unsigned long offset, end;
@@ -1654,7 +1657,8 @@ static inline int filemap_sync_pmd_range(pgd_t * pgd,
 		end = PGDIR_SIZE;
 	error = 0;
 	do {
-		error |= filemap_sync_pte_range(pmd, address, end - address, vma, offset, flags);
+		error |= filemap_sync_pte_range(pmd, address, end - address, vma,
+										offset, flags);
 		address = (address + PMD_SIZE) & PMD_MASK;
 		pmd++;
 	} while (address && (address < end));
@@ -1678,7 +1682,8 @@ int filemap_sync(struct vm_area_struct * vma, unsigned long address,
 	if (address >= end)
 		BUG();
 	do {
-		error |= filemap_sync_pmd_range(dir, address, end - address, vma, flags);
+		error |= filemap_sync_pmd_range(dir, address, end - address, vma,
+										flags);
 		address = (address + PGDIR_SIZE) & PGDIR_MASK;
 		dir++;
 	} while (address && (address < end));
