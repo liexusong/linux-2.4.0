@@ -1,2 +1,2 @@
-sys_mmap2();
+sys_mmap();
 generic_file_mmap();
