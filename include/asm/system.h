@@ -12,49 +12,49 @@ struct task_struct;	/* one of the stranger aspects of C forward declarations.. *
 extern void FASTCALL(__switch_to(struct task_struct *prev, struct task_struct *next));
 
 #define prepare_to_switch()	do { } while(0)
-#define switch_to(prev,next,last) do {					\
-	asm volatile("pushl %%esi\n\t"					\
-		     "pushl %%edi\n\t"					\
-		     "pushl %%ebp\n\t"					\
-		     "movl %%esp,%0\n\t"	/* save ESP */		\
-		     "movl %3,%%esp\n\t"	/* restore ESP */	\
-		     "movl $1f,%1\n\t"		/* save EIP */		\
-		     "pushl %4\n\t"		/* restore EIP */	\
-		     "jmp __switch_to\n"				\
-		     "1:\t"						\
-		     "popl %%ebp\n\t"					\
-		     "popl %%edi\n\t"					\
-		     "popl %%esi\n\t"					\
+#define switch_to(prev,next,last) do {							\
+	asm volatile("pushl %%esi\n\t"								\
+		     "pushl %%edi\n\t"									\
+		     "pushl %%ebp\n\t"									\
+		     "movl %%esp,%0\n\t"	/* save ESP */				\
+		     "movl %3,%%esp\n\t"	/* restore ESP */			\
+		     "movl $1f,%1\n\t"		/* save EIP */				\
+		     "pushl %4\n\t"			/* restore EIP */			\
+		     "jmp __switch_to\n"								\
+		     "1:\t"												\
+		     "popl %%ebp\n\t"									\
+		     "popl %%edi\n\t"									\
+		     "popl %%esi\n\t"									\
 		     :"=m" (prev->thread.esp),"=m" (prev->thread.eip),	\
-		      "=b" (last)					\
+		      "=b" (last)										\
 		     :"m" (next->thread.esp),"m" (next->thread.eip),	\
-		      "a" (prev), "d" (next),				\
-		      "b" (prev));					\
+		      "a" (prev), "d" (next),							\
+		      "b" (prev));										\
 } while (0)
 
-#define _set_base(addr,base) do { unsigned long __pr; \
-__asm__ __volatile__ ("movw %%dx,%1\n\t" \
-	"rorl $16,%%edx\n\t" \
-	"movb %%dl,%2\n\t" \
-	"movb %%dh,%3" \
-	:"=&d" (__pr) \
-	:"m" (*((addr)+2)), \
-	 "m" (*((addr)+4)), \
-	 "m" (*((addr)+7)), \
-         "0" (base) \
+#define _set_base(addr,base) do { unsigned long __pr;	\
+__asm__ __volatile__ ("movw %%dx,%1\n\t"				\
+	"rorl $16,%%edx\n\t"								\
+	"movb %%dl,%2\n\t"									\
+	"movb %%dh,%3"										\
+	:"=&d" (__pr)										\
+	:"m" (*((addr)+2)),									\
+	 "m" (*((addr)+4)),									\
+	 "m" (*((addr)+7)),									\
+         "0" (base)										\
         ); } while(0)
 
-#define _set_limit(addr,limit) do { unsigned long __lr; \
-__asm__ __volatile__ ("movw %%dx,%1\n\t" \
-	"rorl $16,%%edx\n\t" \
-	"movb %2,%%dh\n\t" \
-	"andb $0xf0,%%dh\n\t" \
-	"orb %%dh,%%dl\n\t" \
-	"movb %%dl,%2" \
-	:"=&d" (__lr) \
-	:"m" (*(addr)), \
-	 "m" (*((addr)+6)), \
-	 "0" (limit) \
+#define _set_limit(addr,limit) do { unsigned long __lr;	\
+__asm__ __volatile__ ("movw %%dx,%1\n\t"				\
+	"rorl $16,%%edx\n\t"								\
+	"movb %2,%%dh\n\t"									\
+	"andb $0xf0,%%dh\n\t"								\
+	"orb %%dh,%%dl\n\t"									\
+	"movb %%dl,%2"										\
+	:"=&d" (__lr)										\
+	:"m" (*(addr)),										\
+	 "m" (*((addr)+6)),									\
+	 "0" (limit)										\
         ); } while(0)
 
 #define set_base(ldt,base) _set_base( ((char *)&(ldt)) , (base) )
@@ -81,20 +81,20 @@ static inline unsigned long _get_base(char * addr)
  * segment if something goes wrong..
  */
 #define loadsegment(seg,value)			\
-	asm volatile("\n"			\
-		"1:\t"				\
-		"movl %0,%%" #seg "\n"		\
-		"2:\n"				\
-		".section .fixup,\"ax\"\n"	\
-		"3:\t"				\
-		"pushl $0\n\t"			\
-		"popl %%" #seg "\n\t"		\
-		"jmp 2b\n"			\
-		".previous\n"			\
+	asm volatile("\n"					\
+		"1:\t"							\
+		"movl %0,%%" #seg "\n"			\
+		"2:\n"							\
+		".section .fixup,\"ax\"\n"		\
+		"3:\t"							\
+		"pushl $0\n\t"					\
+		"popl %%" #seg "\n\t"			\
+		"jmp 2b\n"						\
+		".previous\n"					\
 		".section __ex_table,\"a\"\n\t"	\
-		".align 4\n\t"			\
-		".long 1b,3b\n"			\
-		".previous"			\
+		".align 4\n\t"					\
+		".long 1b,3b\n"					\
+		".previous"						\
 		: :"m" (*(unsigned int *)&(value)))
 
 /*
@@ -249,7 +249,7 @@ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
 #define cmpxchg(ptr,o,n)\
 	((__typeof__(*(ptr)))__cmpxchg((ptr),(unsigned long)(o),\
 					(unsigned long)(n),sizeof(*(ptr))))
-    
+
 #else
 /* Compiling for a 386 proper.	Is it worth implementing via cli/sti?  */
 #endif
