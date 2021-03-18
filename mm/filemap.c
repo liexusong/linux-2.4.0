@@ -1431,8 +1431,8 @@ static void nopage_sequential_readahead(struct vm_area_struct * vma,
  * it in the page cache, and handles the special cases reasonably without
  * having a lot of duplicated code.
  */
-struct page * filemap_nopage(struct vm_area_struct * area,
-	unsigned long address, int no_share)
+struct page *
+filemap_nopage(struct vm_area_struct *area, unsigned long address, int no_share)
 {
 	int error;
 	struct file *file = area->vm_file;
@@ -1568,7 +1568,9 @@ page_not_uptodate:
 		UnlockPage(page);
 		goto success;
 	}
+
 	ClearPageError(page);
+
 	if (!mapping->a_ops->readpage(file, page)) {
 		wait_on_page(page);
 		if (Page_Uptodate(page))
@@ -1708,9 +1710,9 @@ static struct vm_operations_struct file_private_mmap = {
 
 /* This is used for a general mmap of a disk file */
 
-int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
+int generic_file_mmap(struct file *file, struct vm_area_struct *vma)
 {
-	struct vm_operations_struct * ops;
+	struct vm_operations_struct *ops;
 	struct inode *inode = file->f_dentry->d_inode; // 文件所属inode
 
 	ops = &file_private_mmap;
@@ -1719,10 +1721,13 @@ int generic_file_mmap(struct file * file, struct vm_area_struct * vma)
 			return -EINVAL;
 		ops = &file_shared_mmap;
 	}
+
 	if (!inode->i_sb || !S_ISREG(inode->i_mode))
 		return -EACCES;
+
 	if (!inode->i_mapping->a_ops->readpage)
 		return -ENOEXEC;
+
 	UPDATE_ATIME(inode);
 	vma->vm_ops = ops;
 	return 0;
