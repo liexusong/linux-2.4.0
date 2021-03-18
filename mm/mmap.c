@@ -176,7 +176,7 @@ static inline unsigned long vm_flags(unsigned long prot, unsigned long flags)
 
 	unsigned long prot_bits, flag_bits;
 	prot_bits =
-		_trans(prot, PROT_READ, VM_READ) |
+		_trans(prot, PROT_READ, VM_READ)   |
 		_trans(prot, PROT_WRITE, VM_WRITE) |
 		_trans(prot, PROT_EXEC, VM_EXEC);
 	flag_bits =
@@ -187,10 +187,10 @@ static inline unsigned long vm_flags(unsigned long prot, unsigned long flags)
 #undef _trans
 }
 
-unsigned long do_mmap_pgoff(
-	struct file * file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flags, unsigned long pgoff)
+unsigned long
+do_mmap_pgoff(struct file *file, unsigned long addr,
+			  unsigned long len, unsigned long prot,
+			  unsigned long flags, unsigned long pgoff)
 {
 	struct mm_struct * mm = current->mm;
 	struct vm_area_struct * vma;
@@ -267,23 +267,24 @@ unsigned long do_mmap_pgoff(
 	 * specific mapper. the address has already been validated, but
 	 * not unmapped, but the maps are removed from the list.
 	 */
+	// 申请一个 vm_area_struct 对象
 	vma = kmem_cache_alloc(vm_area_cachep, SLAB_KERNEL);
 	if (!vma)
 		return -ENOMEM;
 
 	vma->vm_mm = mm;
-	vma->vm_start = addr;
-	vma->vm_end = addr + len;
-	vma->vm_flags = vm_flags(prot,flags) | mm->def_flags;
+	vma->vm_start = addr;      // 映射的开始地址
+	vma->vm_end = addr + len;  // 映射的结束地址
+	vma->vm_flags = vm_flags(prot,flags)|mm->def_flags; // 标志位
 
 	if (file) {
 		VM_ClearReadHint(vma);
 		vma->vm_raend = 0;
 
 		if (file->f_mode & FMODE_READ)
-			vma->vm_flags |= VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+			vma->vm_flags |= VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC;
 		if (flags & MAP_SHARED) {
-			vma->vm_flags |= VM_SHARED | VM_MAYSHARE;
+			vma->vm_flags |= VM_SHARED|VM_MAYSHARE;
 
 			/* This looks strange, but when we don't have the file open
 			 * for writing, we can demote the shared mapping to a simpler
@@ -295,16 +296,17 @@ unsigned long do_mmap_pgoff(
 			 * from /proc/xxx/maps..
 			 */
 			if (!(file->f_mode & FMODE_WRITE))
-				vma->vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
+				vma->vm_flags &= ~(VM_MAYWRITE|VM_SHARED);
 		}
 	} else {
-		vma->vm_flags |= VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+		vma->vm_flags |= VM_MAYREAD|VM_MAYWRITE|VM_MAYEXEC;
 		if (flags & MAP_SHARED)
-			vma->vm_flags |= VM_SHARED | VM_MAYSHARE;
+			vma->vm_flags |= VM_SHARED|VM_MAYSHARE;
 	}
+
 	vma->vm_page_prot = protection_map[vma->vm_flags & 0x0f];
 	vma->vm_ops = NULL;
-	vma->vm_pgoff = pgoff;
+	vma->vm_pgoff = pgoff; // 文件偏移量
 	vma->vm_file = NULL;
 	vma->vm_private_data = NULL;
 
@@ -314,14 +316,13 @@ unsigned long do_mmap_pgoff(
 		goto free_vma;
 
 	/* Check against address space limit. */
-	if ((mm->total_vm << PAGE_SHIFT) + len
-	    > current->rlim[RLIMIT_AS].rlim_cur)
+	if ((mm->total_vm << PAGE_SHIFT) + len > current->rlim[RLIMIT_AS].rlim_cur)
 		goto free_vma;
 
 	/* Private writable mapping? Check memory availability.. */
-	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) == VM_WRITE &&
-	    !(flags & MAP_NORESERVE)				 &&
-	    !vm_enough_memory(len >> PAGE_SHIFT))
+	if ((vma->vm_flags & (VM_SHARED|VM_WRITE)) == VM_WRITE
+	    && !(flags & MAP_NORESERVE)
+	    && !vm_enough_memory(len >> PAGE_SHIFT))
 		goto free_vma;
 
 	if (file) {
@@ -359,6 +360,7 @@ unsigned long do_mmap_pgoff(
 		mm->locked_vm += len >> PAGE_SHIFT;
 		make_pages_present(addr, addr + len);
 	}
+
 	return addr;
 
 unmap_and_free_vma:

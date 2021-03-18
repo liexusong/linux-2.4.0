@@ -99,8 +99,8 @@ struct vm_area_struct {
 
 #define VM_STACK_FLAGS	0x00000177
 
-#define VM_READHINTMASK			(VM_SEQ_READ | VM_RAND_READ)
-#define VM_ClearReadHint(v)		(v)->vm_flags &= ~VM_READHINTMASK
+#define VM_READHINTMASK				(VM_SEQ_READ | VM_RAND_READ)
+#define VM_ClearReadHint(v)			(v)->vm_flags &= ~VM_READHINTMASK
 #define VM_NormalReadHint(v)		(!((v)->vm_flags & VM_READHINTMASK))
 #define VM_SequentialReadHint(v)	((v)->vm_flags & VM_SEQ_READ)
 #define VM_RandomReadHint(v)		((v)->vm_flags & VM_RAND_READ)

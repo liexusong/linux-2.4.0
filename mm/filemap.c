@@ -285,7 +285,9 @@ repeat:
 	spin_unlock(&pagecache_lock);
 }
 
-static inline struct page * __find_page_nolock(struct address_space *mapping, unsigned long offset, struct page *page)
+static inline struct page *
+__find_page_nolock(struct address_space *mapping, unsigned long offset,
+				   struct page *page)
 {
 	goto inside;
 
@@ -681,8 +683,9 @@ struct page * __find_get_page(struct address_space *mapping,
 /*
  * Get the lock to a page atomically.
  */
-struct page * __find_lock_page (struct address_space *mapping,
-				unsigned long offset, struct page **hash)
+struct page *
+__find_lock_page(struct address_space *mapping, unsigned long offset,
+				 struct page **hash)
 {
 	struct page *page;
 
