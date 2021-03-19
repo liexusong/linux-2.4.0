@@ -268,7 +268,6 @@ struct net_device
 	int					ifindex;
 	int					iflink;
 
-
 	struct net_device_stats *(*get_stats)(struct net_device *dev);
 	struct iw_statistics *(*get_wireless_stats)(struct net_device *dev);
 
@@ -356,6 +355,7 @@ struct net_device
 	// ----------------- 发送数据接口 ----------------- //
 	int		(*hard_start_xmit)(struct sk_buff *skb,struct net_device *dev);
 
+	// ----------------- 构建MAC头部接口 -----------------//
 	int		(*hard_header)(struct sk_buff *skb, struct net_device *dev,
 						   unsigned short type, void *daddr, void *saddr,
 						   unsigned len);

@@ -107,27 +107,27 @@ struct sk_buff {
 	 * want to keep them across layers you have to do a skb_clone()
 	 * first. This is owned by whoever has the skb queued ATM.
 	 */
-	char cb[48];
+	char cb[48]; // 不同协议的控制数据
 
-	unsigned int	len;			/* Length of actual data			*/
-	unsigned int	csum;			/* Checksum 					*/
-	volatile char	used;			/* Data moved to user and not MSG_PEEK		*/
+	unsigned int	len;			/* Length of actual data */ // 数据长度
+	unsigned int	csum;			/* Checksum */ // 校验和
+	volatile char	used;			/* Data moved to user and not MSG_PEEK */ // 数据包数据是否已经被读取
 	unsigned char	cloned, 		/* head may be cloned (check refcnt to be sure). */
 					pkt_type,		/* Packet class	(包类型, 由链路层设置) */
-					ip_summed;		/* Driver fed us an IP checksum			*/
-	__u32			priority;		/* Packet queueing priority			*/
-	atomic_t		users;			/* User count - see datagram.c,tcp.c 		*/
-	unsigned short	protocol;		/* Packet protocol from driver. 		*/
-	unsigned short	security;		/* Security level of packet			*/
-	unsigned int	truesize;		/* Buffer size 					*/
+					ip_summed;		/* Driver fed us an IP checksum */
+	__u32			priority;		/* Packet queueing priority */
+	atomic_t		users;			/* User count - see datagram.c,tcp.c */
+	unsigned short	protocol;		/* Packet protocol from driver */
+	unsigned short	security;		/* Security level of packet */
+	unsigned int	truesize;		/* Buffer size */ // 包括数据和sk_buff头部
 
 	// 数据部分指针
-	unsigned char	*head;			/* Head of buffer 				*/
-	unsigned char	*data;			/* Data head pointer				*/
-	unsigned char	*tail;			/* Tail pointer					*/
-	unsigned char 	*end;			/* End pointer					*/
+	unsigned char	*head;			/* Head of buffer		*/
+	unsigned char	*data;			/* Data head pointer	*/
+	unsigned char	*tail;			/* Tail pointer			*/
+	unsigned char 	*end;			/* End pointer			*/
 
-	void (*destructor)(struct sk_buff *);	/* Destruct function		*/
+	void (*destructor)(struct sk_buff *);	/* Destruct function */
 
 #ifdef CONFIG_NETFILTER
 	/* Can be used for communication between hooks. */
@@ -177,7 +177,8 @@ extern void	skb_over_panic(struct sk_buff *skb, int len, void *here);
 extern void	skb_under_panic(struct sk_buff *skb, int len, void *here);
 
 /* Backwards compatibility */
-#define skb_realloc_headroom(skb,nhr) skb_copy_expand(skb,nhr,skb_tailroom(skb),GFP_ATOMIC)
+#define skb_realloc_headroom(skb,nhr)	\
+	skb_copy_expand(skb,nhr, skb_tailroom(skb), GFP_ATOMIC)
 
 /* Internal */
 static inline atomic_t *skb_datarefp(struct sk_buff *skb)
@@ -194,7 +195,7 @@ static inline atomic_t *skb_datarefp(struct sk_buff *skb)
 
 static inline int skb_queue_empty(struct sk_buff_head *list)
 {
-	return (list->next == (struct sk_buff *) list);
+	return (list->next == (struct sk_buff *)list);
 }
 
 /**
@@ -283,10 +284,14 @@ skb_share_check(struct sk_buff *skb, int pri)
 {
 	if (skb_shared(skb)) {
 		struct sk_buff *nskb;
+
 		nskb = skb_clone(skb, pri);
+
 		kfree_skb(skb);
+
 		return nskb;
 	}
+
 	return skb;
 }
 
@@ -315,10 +320,14 @@ skb_share_check(struct sk_buff *skb, int pri)
 static inline struct sk_buff *skb_unshare(struct sk_buff *skb, int pri)
 {
 	struct sk_buff *nskb;
+
 	if (!skb_cloned(skb))
 		return skb;
+
 	nskb = skb_copy(skb, pri);
+
 	kfree_skb(skb);		/* Free our shared copy */
+
 	return nskb;
 }
 

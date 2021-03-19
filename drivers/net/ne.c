@@ -329,7 +329,7 @@ static int __init ne_probe1(struct net_device *dev, int ioaddr)
 	}
 
 	for (i = 0; i < 32 /*sizeof(SA_prom)*/; i += 2) {
-		SA_prom[i] = inb(ioaddr + NE_DATAPORT);
+		SA_prom[i]   = inb(ioaddr + NE_DATAPORT);
 		SA_prom[i+1] = inb(ioaddr + NE_DATAPORT);
 		if (SA_prom[i] != SA_prom[i+1])
 			wordlength = 1;
@@ -347,9 +347,9 @@ static int __init ne_probe1(struct net_device *dev, int ioaddr)
 		stop_page = NE1SM_STOP_PG;
 	}
 
-	neX000 = (SA_prom[14] == 0x57  &&  SA_prom[15] == 0x57);
-	ctron = (SA_prom[0] == 0x00 && SA_prom[1] == 0x00 && SA_prom[2] == 0x1d);
-	copam = (SA_prom[14] == 0x49 && SA_prom[15] == 0x00);
+	neX000 = (SA_prom[14] == 0x57 && SA_prom[15] == 0x57);
+	ctron  = (SA_prom[0]  == 0x00 && SA_prom[1] == 0x00 && SA_prom[2] == 0x1d);
+	copam  = (SA_prom[14] == 0x49 && SA_prom[15] == 0x00);
 
 	/* Set up the rest of the parameters. */
 	if (neX000 || bad_card || copam) {
@@ -414,6 +414,7 @@ static int __init ne_probe1(struct net_device *dev, int ioaddr)
 	}
 
 	/* Allocate dev->priv and fill in 8390 specific dev fields. */
+	// 申请网卡设备私有数据部分, 并且设置硬件发送数据接口
 	if (ethdev_init(dev)) {
 		printk(" unable to get memory for dev->priv.\n");
 		ret = -ENOMEM;
@@ -448,9 +449,9 @@ static int __init ne_probe1(struct net_device *dev, int ioaddr)
 	 /* Allow the packet buffer size to be overridden by know-it-alls. */
 	ei_status.stop_page = ei_status.tx_start_page + PACKETBUF_MEMSIZE;
 #endif
-	ei_status.reset_8390 = &ne_reset_8390;
-	ei_status.block_input = &ne_block_input;   // 读取网卡接收数据的接口
-	ei_status.block_output = &ne_block_output; // 使用网卡发送数据的接口
+	ei_status.reset_8390   = &ne_reset_8390;
+	ei_status.block_input  = &ne_block_input;   // 读取网卡接收数据的接口
+	ei_status.block_output = &ne_block_output;  // 使用网卡发送数据的接口
 	ei_status.get_8390_hdr = &ne_get_8390_hdr;
 	ei_status.priv = 0;
 
@@ -722,7 +723,7 @@ retry:
 #endif
 
 	while ((inb_p(nic_base + EN0_ISR) & ENISR_RDC) == 0) {
-		if (jiffies - dma_start > 2*HZ/100) {		/* 20ms */
+		if (jiffies - dma_start > 2 * HZ / 100) { /* 20ms */
 			printk(KERN_WARNING "%s: timeout waiting for Tx RDC.\n", dev->name);
 			ne_reset_8390(dev);
 			NS8390_init(dev,1);

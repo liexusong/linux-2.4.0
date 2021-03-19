@@ -578,17 +578,20 @@ int dev_alloc_name(struct net_device *dev, const char *name)
 
 struct net_device *dev_alloc(const char *name, int *err)
 {
-	struct net_device *dev=kmalloc(sizeof(struct net_device), GFP_KERNEL);
+	struct net_device *dev = kmalloc(sizeof(struct net_device), GFP_KERNEL);
 	if (dev == NULL) {
 		*err = -ENOBUFS;
 		return NULL;
 	}
+
 	memset(dev, 0, sizeof(struct net_device));
+
 	*err = dev_alloc_name(dev, name);
 	if (*err < 0) {
 		kfree(dev);
 		return NULL;
 	}
+
 	return dev;
 }
 
@@ -635,7 +638,9 @@ extern inline void dev_load(const char *unused){;}
 
 static int default_rebuild_header(struct sk_buff *skb)
 {
-	printk(KERN_DEBUG "%s: default_rebuild_header called -- BUG!\n", skb->dev ? skb->dev->name : "NULL!!!");
+	printk(KERN_DEBUG
+		   "%s: default_rebuild_header called -- BUG!\n",
+		   skb->dev ? skb->dev->name : "NULL!!!");
 	kfree_skb(skb);
 	return 1;
 }
@@ -1643,8 +1648,11 @@ static int dev_get_info(char *buffer, char **start, off_t offset, int length)
 
 
 	size = sprintf(buffer,
-		"Inter-|   Receive                                                |  Transmit\n"
-		" face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n");
+				"Inter-"
+				"|   Receive                                                "
+				"|  Transmit\n face "
+				"|bytes    packets errs drop fifo frame compressed multicast"
+				"|bytes    packets errs drop fifo colls carrier compressed\n");
 
 	pos += size;
 	len += size;
@@ -2334,6 +2342,7 @@ int register_netdevice(struct net_device *dev)
 
 	spin_lock_init(&dev->queue_lock);
 	spin_lock_init(&dev->xmit_lock);
+
 	dev->xmit_lock_owner = -1;
 #ifdef CONFIG_NET_FASTROUTE
 	dev->fastpath_lock=RW_LOCK_UNLOCKED;
@@ -2422,7 +2431,9 @@ int register_netdevice(struct net_device *dev)
 	set_bit(__LINK_STATE_PRESENT, &dev->state);
 
 	dev->next = NULL;
+
 	dev_init_scheduler(dev);
+
 	write_lock_bh(&dev_base_lock);
 	*dp = dev;
 	dev_hold(dev);
@@ -2447,18 +2458,20 @@ int register_netdevice(struct net_device *dev)
 
 int netdev_finish_unregister(struct net_device *dev)
 {
-	BUG_TRAP(dev->ip_ptr==NULL);
-	BUG_TRAP(dev->ip6_ptr==NULL);
-	BUG_TRAP(dev->dn_ptr==NULL);
+	BUG_TRAP(dev->ip_ptr == NULL);
+	BUG_TRAP(dev->ip6_ptr == NULL);
+	BUG_TRAP(dev->dn_ptr == NULL);
 
 	if (!dev->deadbeaf) {
 		printk(KERN_ERR "Freeing alive device %p, %s\n", dev, dev->name);
 		return 0;
 	}
+
 #ifdef NET_REFCNT_DEBUG
 	printk(KERN_DEBUG "netdev_finish_unregister: %s%s.\n", dev->name,
 	       (dev->features & NETIF_F_DYNALLOC)?"":", old style");
 #endif
+
 	if (dev->destructor)
 		dev->destructor(dev);
 	if (dev->features & NETIF_F_DYNALLOC)
@@ -2678,6 +2691,7 @@ int __init net_dev_init(void)
 	while ((dev = *dp) != NULL) {
 		spin_lock_init(&dev->queue_lock);
 		spin_lock_init(&dev->xmit_lock);
+
 #ifdef CONFIG_NET_FASTROUTE
 		dev->fastpath_lock = RW_LOCK_UNLOCKED;
 #endif
@@ -2705,14 +2719,19 @@ int __init net_dev_init(void)
 			 */
 			dev->deadbeaf = 1;
 			dp = &dev->next;
+
 		} else {
 			dp = &dev->next;
+
 			dev->ifindex = dev_new_index();
 			if (dev->iflink == -1)
 				dev->iflink = dev->ifindex;
+
 			if (dev->rebuild_header == NULL)
 				dev->rebuild_header = default_rebuild_header;
+
 			dev_init_scheduler(dev);
+
 			set_bit(__LINK_STATE_PRESENT, &dev->state);
 		}
 	}
@@ -2742,8 +2761,8 @@ int __init net_dev_init(void)
 
 	dev_boot_phase = 0;
 
-	open_softirq(NET_TX_SOFTIRQ, net_tx_action, NULL);
-	open_softirq(NET_RX_SOFTIRQ, net_rx_action, NULL);
+	open_softirq(NET_TX_SOFTIRQ, net_tx_action, NULL); // 打开网络发送软中断
+	open_softirq(NET_RX_SOFTIRQ, net_rx_action, NULL); // 打开网络接受软中断
 
 	dst_init();
 	dev_mcast_init();

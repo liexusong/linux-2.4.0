@@ -204,10 +204,12 @@ int ei_close(struct net_device *dev)
 	 *	Hold the page lock during close
 	 */
 
-      	spin_lock_irqsave(&ei_local->page_lock, flags);
+	spin_lock_irqsave(&ei_local->page_lock, flags);
 	NS8390_init(dev, 0);
-      	spin_unlock_irqrestore(&ei_local->page_lock, flags);
+	spin_unlock_irqrestore(&ei_local->page_lock, flags);
+
 	netif_stop_queue(dev);
+
 	return 0;
 }
 
@@ -233,12 +235,7 @@ void ei_tx_timeout(struct net_device *dev)
 	isr = inb(e8390_base+EN0_ISR);
 	spin_unlock_irqrestore(&ei_local->page_lock, flags);
 
-	printk(KERN_DEBUG "%s: Tx timed out, %s TSR=%#2x, ISR=%#2x, t=%d.\n",
-		dev->name, (txsr & ENTSR_ABT) ? "excess collisions." :
-		(isr) ? "lost interrupt?" : "cable problem?", txsr, isr, tickssofar);
-
-	if (!isr && !ei_local->stat.tx_packets)
-	{
+	if (!isr && !ei_local->stat.tx_packets) {
 		/* The 8390 probably hasn't gotten on the cable yet. */
 		ei_local->interface_num ^= 1;   /* Try a different xcvr.  */
 	}
@@ -268,7 +265,7 @@ void ei_tx_timeout(struct net_device *dev)
 static int ei_start_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	long e8390_base = dev->base_addr;
-	struct ei_device *ei_local = (struct ei_device *) dev->priv;
+	struct ei_device *ei_local = (struct ei_device *)dev->priv;
 	int length, send_length, output_page;
 	unsigned long flags;
 
@@ -439,8 +436,8 @@ void ei_interrupt(int irq, void *dev_id, struct pt_regs * regs)
 #if 1 /* This might just be an interrupt for a PCI device sharing this line */
 		/* The "irqlock" check is only for testing. */
 		printk(ei_local->irqlock
-					? "%s: Interrupted while interrupts are masked! isr=%#2x imr=%#2x.\n"
-					: "%s: Reentering the interrupt handler! isr=%#2x imr=%#2x.\n",
+				? "%s: Interrupted while interrupts are masked! isr=%#2x imr=%#2x.\n"
+				: "%s: Reentering the interrupt handler! isr=%#2x imr=%#2x.\n",
 			   dev->name, inb_p(e8390_base + EN0_ISR),
 			   inb_p(e8390_base + EN0_IMR));
 #endif
@@ -1055,7 +1052,7 @@ int ethdev_init(struct net_device *dev)
 	dev->get_stats = get_stats;
 	dev->set_multicast_list = &set_multicast_list;
 
-	ether_setup(dev);
+	ether_setup(dev); // 设置以太网设备的各个接口
 
 	return 0;
 }
@@ -1124,8 +1121,8 @@ void NS8390_init(struct net_device *dev, int startp)
 	ei_local->txing = 0;
 
 	if (startp) {
-		outb_p(0xff,  e8390_base + EN0_ISR);
-		outb_p(ENISR_ALL,  e8390_base + EN0_IMR);
+		outb_p(0xff, e8390_base + EN0_ISR);
+		outb_p(ENISR_ALL, e8390_base + EN0_IMR);
 		outb_p(E8390_NODMA+E8390_PAGE0+E8390_START, e8390_base+E8390_CMD);
 		outb_p(E8390_TXCONFIG, e8390_base + EN0_TXCR); /* xmit on. */
 		/* 3c503 TechMan says rxconfig only after the NIC is started. */
