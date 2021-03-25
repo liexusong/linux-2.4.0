@@ -203,15 +203,19 @@ static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
 	do {
 		if (ipprot->protocol == iph->protocol) {
 			struct sk_buff *skb2 = skb;
+
 			if (ipprot->copy || force_copy)
 				skb2 = skb_clone(skb, GFP_ATOMIC);
-			if(skb2 != NULL) {
+
+			if (skb2 != NULL) {
 				ret = 1;
 				ipprot->handler(skb2, ntohs(iph->tot_len) - (iph->ihl * 4));
 			}
 		}
-		ipprot = (struct inet_protocol *) ipprot->next;
-	} while(ipprot != NULL);
+
+		ipprot = (struct inet_protocol *)ipprot->next;
+
+	} while (ipprot != NULL);
 
 	return ret;
 }
@@ -240,20 +244,20 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 		if (raw_sk != NULL)
 			raw_sk = raw_v4_input(skb, iph, hash);
 
-		ipprot = (struct inet_protocol *) inet_protos[hash];
+		ipprot = (struct inet_protocol *)inet_protos[hash];
 		flag = 0;
 
 		if (ipprot != NULL) {
-			if(raw_sk == NULL &&
-			   ipprot->next == NULL &&
-			   ipprot->protocol == iph->protocol)
+			if (raw_sk == NULL
+			   && ipprot->next == NULL
+			   && ipprot->protocol == iph->protocol)
 			{
 				int ret;
 
 				/* Fast path... */
 				ret = ipprot->handler(skb, (ntohs(iph->tot_len) - iph->ihl*4));
-
 				return ret;
+
 			} else {
 				flag = ip_run_ipprot(skb, iph, ipprot, (raw_sk != NULL));
 			}
@@ -264,7 +268,7 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 		 * causes (proven, grin) ARP storms and a leakage of memory (i.e. all
 		 * ICMP reply messages get queued up for transmission...)
 		 */
-		if(raw_sk != NULL) {	/* Shift to last raw user */
+		if (raw_sk != NULL) {	/* Shift to last raw user */
 			raw_rcv(raw_sk, skb);
 			sock_put(raw_sk);
 		} else if (!flag) {		/* Free and report errors */
@@ -337,9 +341,10 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 		skb = skb_cow(skb, skb_headroom(skb));
 		if (skb == NULL)
 			return NET_RX_DROP;
-		iph = skb->nh.iph;
 
+		iph = skb->nh.iph;
 		skb->ip_summed = 0;
+
 		if (ip_options_compile(NULL, skb))
 			goto inhdr_error;
 

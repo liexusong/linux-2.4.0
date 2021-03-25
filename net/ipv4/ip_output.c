@@ -925,7 +925,7 @@ void ip_send_reply(struct sock *sk, struct sk_buff *skb,
 {
 	struct {
 		struct ip_options	opt;
-		char			data[40];
+		char				data[40];
 	} replyopts;
 	struct ipcm_cookie ipc;
 	u32 daddr;
