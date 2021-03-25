@@ -637,7 +637,8 @@ int ip_build_xmit(struct sock *sk,
 		 * 	Check for slow path.
 		 */
 		if (length > rt->u.dst.pmtu || ipc->opt != NULL)
-			return ip_build_xmit_slow(sk, getfrag, frag, length, ipc, rt, flags);
+			return ip_build_xmit_slow(sk, getfrag, frag, length, ipc, rt,
+									  flags);
 	} else {
 		if (length > rt->u.dst.dev->mtu) {
 			ip_local_error(sk, EMSGSIZE, rt->rt_dst, sk->dport,
@@ -662,7 +663,8 @@ int ip_build_xmit(struct sock *sk,
 	{
 		int hh_len = (rt->u.dst.dev->hard_header_len + 15)&~15;
 
-		skb = sock_alloc_send_skb(sk, length+hh_len+15, 0, flags&MSG_DONTWAIT, &err);
+		skb = sock_alloc_send_skb(sk, length+hh_len+15, 0, flags&MSG_DONTWAIT,
+								  &err);
 		if(skb == NULL)
 			goto error;
 
