@@ -110,10 +110,10 @@ struct sk_buff {
 	unsigned int	csum;			/* Checksum 					*/
 	volatile char 	used;			/* Data moved to user and not MSG_PEEK		*/
 	unsigned char	cloned, 		/* head may be cloned (check refcnt to be sure). */
-  			pkt_type,		/* Packet class					*/
-  			ip_summed;		/* Driver fed us an IP checksum			*/
-	__u32		priority;		/* Packet queueing priority			*/
-	atomic_t	users;			/* User count - see datagram.c,tcp.c 		*/
+					pkt_type,		/* Packet class					*/
+					ip_summed;		/* Driver fed us an IP checksum			*/
+	__u32			priority;		/* Packet queueing priority			*/
+	atomic_t		users;			/* User count - see datagram.c,tcp.c 		*/
 	unsigned short	protocol;		/* Packet protocol from driver. 		*/
 	unsigned short	security;		/* Security level of packet			*/
 	unsigned int	truesize;		/* Buffer size 					*/

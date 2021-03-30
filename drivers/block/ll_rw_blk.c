@@ -436,15 +436,15 @@ void blk_init_queue(request_queue_t * q, request_fn_proc * rfn)
 	INIT_LIST_HEAD(&q->request_freelist[WRITE]);
 	elevator_init(&q->elevator, ELEVATOR_LINUS);
 	blk_init_free_list(q);
-	q->request_fn     	= rfn;
-	q->back_merge_fn       	= ll_back_merge_fn;
-	q->front_merge_fn      	= ll_front_merge_fn;
-	q->merge_requests_fn	= ll_merge_requests_fn;
-	q->make_request_fn	= __make_request;
-	q->plug_tq.sync		= 0;
-	q->plug_tq.routine	= &generic_unplug_device;
-	q->plug_tq.data		= q;
-	q->plugged        	= 0;
+	q->request_fn        = rfn;
+	q->back_merge_fn     = ll_back_merge_fn;
+	q->front_merge_fn    = ll_front_merge_fn;
+	q->merge_requests_fn = ll_merge_requests_fn;
+	q->make_request_fn   = __make_request;
+	q->plug_tq.sync      = 0;
+	q->plug_tq.routine   = &generic_unplug_device;
+	q->plug_tq.data      = q;
+	q->plugged           = 0;
 	/*
 	 * These booleans describe the queue properties.  We set the
 	 * default (and most common) values here.  Other drivers can
@@ -891,8 +891,8 @@ void generic_make_request (int rw, struct buffer_head * bh)
 		unsigned long maxsector = (blk_size[major][MINOR(bh->b_rdev)] << 1) + 1;
 		unsigned int sector, count;
 
-		count = bh->b_size >> 9;
-		sector = bh->b_rsector;
+		count = bh->b_size >> 9; // 多少个扇区?
+		sector = bh->b_rsector;  // 扇区号
 
 		if (maxsector < count || maxsector - count < sector) {
 			bh->b_state &= (1 << BH_Lock) | (1 << BH_Mapped);
@@ -930,9 +930,7 @@ void generic_make_request (int rw, struct buffer_head * bh)
 			buffer_IO_error(bh);
 			break;
 		}
-
-	}
-	while (q->make_request_fn(q, rw, bh));
+	} while (q->make_request_fn(q, rw, bh));
 }
 
 
@@ -1055,13 +1053,13 @@ void ll_rw_block(int rw, int nr, struct buffer_head * bhs[])
 		bh = bhs[i];
 
 		/* Only one thread can actually submit the I/O. */
-		if (test_and_set_bit(BH_Lock, &bh->b_state))
+		if (test_and_set_bit(BH_Lock, &bh->b_state)) // 上锁
 			continue;
 
 		/* We have the buffer lock */
 		bh->b_end_io = end_buffer_io_sync;
 
-		switch(rw) {
+		switch (rw) {
 		case WRITE:
 			if (!atomic_set_buffer_clean(bh))
 				/* Hmmph! Nothing to write */

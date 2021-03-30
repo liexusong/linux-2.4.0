@@ -484,8 +484,8 @@ struct sock {
 	__u32			daddr;		/* Foreign IPv4 addr			*/
 	__u32			rcv_saddr;	/* Bound local IPv4 addr		*/
 	__u16			dport;		/* Destination port			*/
-	unsigned short		num;		/* Local port				*/
-	int			bound_dev_if;	/* Bound device index if != 0		*/
+	unsigned short	num;		/* Local port				*/
+	int				bound_dev_if;	/* Bound device index if != 0		*/
 
 	/* Main hash linkage for various protocol lookup tables. */
 	struct sock		*next;
@@ -493,52 +493,52 @@ struct sock {
 	struct sock		*bind_next;
 	struct sock		**bind_pprev;
 
-	volatile unsigned char	state,		/* Connection state			*/
-				zapped;		/* In ax25 & ipx means not linked	*/
-	__u16			sport;		/* Source port				*/
+	volatile unsigned char	state,			/* Connection state			*/
+							zapped;			/* In ax25 & ipx means not linked	*/
+	__u16					sport;			/* Source port				*/
 
-	unsigned short		family;		/* Address family			*/
-	unsigned char		reuse;		/* SO_REUSEADDR setting			*/
-	unsigned char		shutdown;
-	atomic_t		refcnt;		/* Reference count			*/
+	unsigned short			family;			/* Address family			*/
+	unsigned char			reuse;			/* SO_REUSEADDR setting			*/
+	unsigned char			shutdown;
+	atomic_t				refcnt;			/* Reference count			*/
 
-	socket_lock_t		lock;		/* Synchronizer...			*/
-	int			rcvbuf;		/* Size of receive buffer in bytes	*/
+	socket_lock_t			lock;			/* Synchronizer...			*/
+	int						rcvbuf;			/* Size of receive buffer in bytes	*/
 
-	wait_queue_head_t	*sleep;		/* Sock wait queue			*/
-	struct dst_entry	*dst_cache;	/* Destination cache			*/
-	rwlock_t		dst_lock;
-	atomic_t		rmem_alloc;	/* Receive queue bytes committed	*/
-	struct sk_buff_head	receive_queue;	/* Incoming packets			*/
-	atomic_t		wmem_alloc;	/* Transmit queue bytes committed	*/
-	struct sk_buff_head	write_queue;	/* Packet sending queue			*/
-	atomic_t		omem_alloc;	/* "o" is "option" or "other" */
-	int			wmem_queued;	/* Persistent queue size */
-	int			forward_alloc;	/* Space allocated forward. */
-	__u32			saddr;		/* Sending source			*/
-	unsigned int		allocation;	/* Allocation mode			*/
-	int			sndbuf;		/* Size of send buffer in bytes		*/
-	struct sock		*prev;
+	wait_queue_head_t		*sleep;			/* Sock wait queue			*/
+	struct dst_entry		*dst_cache;		/* Destination cache			*/
+	rwlock_t				dst_lock;
+	atomic_t				rmem_alloc;		/* Receive queue bytes committed	*/
+	struct sk_buff_head		receive_queue;	/* Incoming packets			*/
+	atomic_t				wmem_alloc;		/* Transmit queue bytes committed	*/
+	struct sk_buff_head		write_queue;	/* Packet sending queue			*/
+	atomic_t				omem_alloc;		/* "o" is "option" or "other" */
+	int						wmem_queued;	/* Persistent queue size */
+	int						forward_alloc;	/* Space allocated forward. */
+	__u32					saddr;			/* Sending source			*/
+	unsigned int			allocation;		/* Allocation mode			*/
+	int						sndbuf;			/* Size of send buffer in bytes		*/
+	struct sock				*prev;
 
 	/* Not all are volatile, but some are, so we might as well say they all are.
 	 * XXX Make this a flag word -DaveM
 	 */
-	volatile char		dead,
-				done,
-				urginline,
-				keepopen,
-				linger,
-				destroy,
-				no_check,
-				broadcast,
-				bsdism;
-	unsigned char		debug;
-	unsigned char		rcvtstamp;
-	unsigned char		userlocks;
-	int			proc;
-	unsigned long	        lingertime;
+	volatile char	dead,
+					done,
+					urginline,
+					keepopen,
+					linger,
+					destroy,
+					no_check,
+					broadcast,
+					bsdism;
+	unsigned char	debug;
+	unsigned char	rcvtstamp;
+	unsigned char	userlocks;
+	int				proc;
+	unsigned long	lingertime;
 
-	int			hashent;
+	int				hashent;
 	struct sock		*pair;
 
 	/* The backlog queue is special, it is always used with
@@ -577,20 +577,20 @@ struct sock {
 
 	} tp_pinfo;
 
-	int			err, err_soft;	/* Soft holds errors that don't
+	int					err, err_soft;	/* Soft holds errors that don't
 						   cause failure but are the cause
 						   of a persistent failure not just
 						   'timed out' */
 	unsigned short		ack_backlog;
 	unsigned short		max_ack_backlog;
-	__u32			priority;
+	__u32				priority;
 	unsigned short		type;
 	unsigned char		localroute;	/* Route locally only */
 	unsigned char		protocol;
 	struct ucred		peercred;
-	int			rcvlowat;
-	long			rcvtimeo;
-	long			sndtimeo;
+	int					rcvlowat;
+	long				rcvtimeo;
+	long				sndtimeo;
 
 #ifdef CONFIG_FILTER
 	/* Socket Filtering Instructions */
@@ -643,7 +643,7 @@ struct sock {
 		struct atm_vcc		*af_atm;
 #endif
 #if defined(CONFIG_IRDA) || defined(CONFIG_IRDA_MODULE)
-		struct irda_sock        *irda;
+		struct irda_sock	*irda;
 #endif
 	} protinfo;  		
 
@@ -656,17 +656,15 @@ struct sock {
 	struct socket		*socket;
 
 	/* RPC layer private data */
-	void			*user_data;
+	void				*user_data;
   
 	/* Callbacks */
-	void			(*state_change)(struct sock *sk);
-	void			(*data_ready)(struct sock *sk,int bytes);
-	void			(*write_space)(struct sock *sk);
-	void			(*error_report)(struct sock *sk);
-
-  	int			(*backlog_rcv) (struct sock *sk,
-						struct sk_buff *skb);  
-	void                    (*destruct)(struct sock *sk);
+	void	(*state_change)(struct sock *sk);
+	void	(*data_ready)(struct sock *sk,int bytes);
+	void	(*write_space)(struct sock *sk);
+	void	(*error_report)(struct sock *sk);
+	int		(*backlog_rcv) (struct sock *sk, struct sk_buff *skb);  
+	void	(*destruct)(struct sock *sk);
 };
 
 /* The per-socket spinlock must be held here. */

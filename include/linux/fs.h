@@ -362,7 +362,7 @@ struct address_space_operations {
 	int (*bmap)(struct address_space *, long);
 };
 
-struct address_space { // 为mmap而生
+struct address_space { // 文件页面缓存
 	struct list_head	clean_pages;		/* list of clean pages */
 	struct list_head	dirty_pages;		/* list of dirty pages */
 	struct list_head	locked_pages;		/* list of locked pages */

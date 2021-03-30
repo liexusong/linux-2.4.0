@@ -16,9 +16,9 @@
 
 struct vfsmount
 {
-	struct dentry *mnt_mountpoint;	/* dentry of mountpoint */
-	struct dentry *mnt_root;	/* root of the mounted tree */
-	struct vfsmount *mnt_parent;	/* fs we are mounted on */
+	struct dentry *mnt_mountpoint;	/* dentry of mountpoint */ // 挂载点目录dentry
+	struct dentry *mnt_root;	/* root of the mounted tree */ // 根节点目录dentry
+	struct vfsmount *mnt_parent;	/* fs we are mounted on */ // 父挂载点(除了跟设备, 所有的挂载点都有父挂载点)
 	struct list_head mnt_instances;	/* other vfsmounts of the same fs */
 	struct list_head mnt_clash;	/* those who are mounted on (other */
 					/* instances) of the same dentry */

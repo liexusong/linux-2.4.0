@@ -1010,7 +1010,7 @@ static void generic_file_readahead(int reada_ok,
  * This is really ugly. But the goto's actually try to clarify some
  * of the logic when it comes to error handling etc.
  */
-void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * desc, read_actor_t actor)
+void do_generic_file_read(struct file *filp, loff_t *ppos, read_descriptor_t *desc, read_actor_t actor)
 {
 	struct inode *inode = filp->f_dentry->d_inode;
 	struct address_space *mapping = inode->i_mapping;
@@ -1085,7 +1085,7 @@ void do_generic_file_read(struct file * filp, loff_t *ppos, read_descriptor_t * 
 		hash = page_hash(mapping, index);
 
 		spin_lock(&pagecache_lock);
-		page = __find_page_nolock(mapping, index, *hash);
+		page = __find_page_nolock(mapping, index, *hash); // 缓存是否存在
 		if (!page)
 			goto no_cached_page;
 found_page:
@@ -1150,7 +1150,7 @@ page_not_up_to_date:
 
 readpage:
 		/* ... and start the actual read. The read will unlock the page. */
-		error = mapping->a_ops->readpage(filp, page);
+		error = mapping->a_ops->readpage(filp, page); // example: ext2_readpage()
 
 		if (!error) {
 			if (Page_Uptodate(page))

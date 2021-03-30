@@ -262,24 +262,24 @@ void ether_setup(struct net_device *dev)
 	/* Fill in the fields of the device structure with ethernet-generic values.
 	   This should be in a common file instead of per-driver.  */
 	
-	dev->change_mtu		= eth_change_mtu;
-	dev->hard_header	= eth_header;
-	dev->rebuild_header 	= eth_rebuild_header;
-	dev->set_mac_address 	= eth_mac_addr;
-	dev->hard_header_cache	= eth_header_cache;
-	dev->header_cache_update= eth_header_cache_update;
-	dev->hard_header_parse	= eth_header_parse;
+	dev->change_mtu = eth_change_mtu;
+	dev->hard_header = eth_header;
+	dev->rebuild_header = eth_rebuild_header;
+	dev->set_mac_address = eth_mac_addr;
+	dev->hard_header_cache = eth_header_cache;
+	dev->header_cache_update = eth_header_cache_update;
+	dev->hard_header_parse = eth_header_parse;
 
-	dev->type		= ARPHRD_ETHER;
-	dev->hard_header_len 	= ETH_HLEN;
-	dev->mtu		= 1500; /* eth_mtu */
-	dev->addr_len		= ETH_ALEN;
-	dev->tx_queue_len	= 100;	/* Ethernet wants good queues */	
+	dev->type = ARPHRD_ETHER;
+	dev->hard_header_len = ETH_HLEN;
+	dev->mtu = 1500; /* eth_mtu */
+	dev->addr_len = ETH_ALEN;
+	dev->tx_queue_len = 100;	/* Ethernet wants good queues */	
 	
 	memset(dev->broadcast,0xFF, ETH_ALEN);
 
 	/* New-style flags. */
-	dev->flags		= IFF_BROADCAST|IFF_MULTICAST;
+	dev->flags = IFF_BROADCAST|IFF_MULTICAST;
 
 	dev_init_buffers(dev);
 }

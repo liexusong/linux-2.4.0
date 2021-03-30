@@ -1504,9 +1504,11 @@ int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 /* Argument list sizes for sys_socketcall */
 #define AL(x) ((x) * sizeof(unsigned long))
-static unsigned char nargs[18]={AL(0),AL(3),AL(3),AL(3),AL(2),AL(3),
-				AL(3),AL(3),AL(4),AL(4),AL(4),AL(6),
-				AL(6),AL(2),AL(5),AL(5),AL(3),AL(3)};
+static unsigned char nargs[18] = {
+	AL(0), AL(3), AL(3), AL(3), AL(2), AL(3),
+	AL(3), AL(3), AL(4), AL(4), AL(4), AL(6),
+	AL(6), AL(2), AL(5), AL(5), AL(3), AL(3),
+};
 #undef AL
 
 /*

@@ -384,23 +384,23 @@ static inline void follow_dotdot(struct nameidata *nd)
 		struct vfsmount *parent;
 		struct dentry *dentry;
 		read_lock(&current->fs->lock);
-		if (nd->dentry == current->fs->root &&
-		    nd->mnt == current->fs->rootmnt)  { // 如果当前目录是根目录, 那么直接返回(因为根目录没有父目录)
+		if (nd->dentry == current->fs->root &&  // 如果当前目录是进程的根目录
+		    nd->mnt == current->fs->rootmnt)  { // 并且当前目录是进程的根挂载点
 			read_unlock(&current->fs->lock);
 			break;
 		}
 		read_unlock(&current->fs->lock);
 		spin_lock(&dcache_lock);
-		if (nd->dentry != nd->mnt->mnt_root) { // 如果当前目录不是一个挂载点, 那么进入父目录
+		if (nd->dentry != nd->mnt->mnt_root) { // 如果当前目录不是根目录, 那么进入父目录
 			dentry = dget(nd->dentry->d_parent);
 			spin_unlock(&dcache_lock);
 			dput(nd->dentry);
 			nd->dentry = dentry;
 			break;
 		}
-		// 到这里说明当前目录是一个挂载点
+		// 到这里说明当前目录是一个设备的根目录
 		parent=nd->mnt->mnt_parent; // 当前挂载点的父挂载点
-		if (parent == nd->mnt) {    // 如果当前挂载点的父挂载点就是本身, 说明是根挂载点(直接返回)
+		if (parent == nd->mnt) {    // 如果当前挂载点的父挂载点就是本身, 说明是根设备(直接返回)
 			spin_unlock(&dcache_lock);
 			break;
 		}
@@ -544,18 +544,19 @@ last_with_slashes:
 last_component:
 		if (lookup_flags & LOOKUP_PARENT)
 			goto lookup_parent;
-		if (this.name[0] == '.') switch (this.len) {
-			default:
-				break;
-			case 2:	
-				if (this.name[1] != '.')
+		if (this.name[0] == '.') 
+			switch (this.len) {
+				default:
 					break;
-				follow_dotdot(nd);
-				inode = nd->dentry->d_inode;
-				/* fallthrough */
-			case 1:
-				goto return_base;
-		}
+				case 2:	
+					if (this.name[1] != '.')
+						break;
+					follow_dotdot(nd);
+					inode = nd->dentry->d_inode;
+					/* fallthrough */
+				case 1:
+					goto return_base;
+			}
 		if (nd->dentry->d_op && nd->dentry->d_op->d_hash) {
 			err = nd->dentry->d_op->d_hash(nd->dentry, &this);
 			if (err < 0)

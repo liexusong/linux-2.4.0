@@ -64,18 +64,18 @@ typedef enum {
 
 struct socket
 {
-	socket_state		state;
+	socket_state			state;
 
-	unsigned long		flags;
-	struct proto_ops	*ops;
-	struct inode		*inode;
-	struct fasync_struct	*fasync_list;	/* Asynchronous wake up list	*/
-	struct file		*file;		/* File back pointer for gc	*/
-	struct sock		*sk;
-	wait_queue_head_t	wait;
+	unsigned long			flags;
+	struct proto_ops		*ops;
+	struct inode			*inode;
+	struct fasync_struct	*fasync_list;	/* Asynchronous wake up list */
+	struct file				*file;			/* File back pointer for gc	 */
+	struct sock				*sk;
+	wait_queue_head_t		wait;
 
-	short			type;
-	unsigned char		passcred;
+	short					type;
+	unsigned char			passcred;
 };
 
 #define SOCK_INODE(S)	((S)->inode)

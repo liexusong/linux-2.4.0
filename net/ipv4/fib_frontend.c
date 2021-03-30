@@ -99,13 +99,13 @@ void fib_flush(void)
 
 #ifdef CONFIG_PROC_FS
 
-/* 
+/*
  *	Called from the PROCfs module. This outputs /proc/net/route.
  *
  *	It always works in backward compatibility mode.
  *	The format of the file is not supposed to be changed.
  */
- 
+
 static int
 fib_get_procinfo(char *buffer, char **start, off_t offset, int length)
 {
@@ -115,7 +115,7 @@ fib_get_procinfo(char *buffer, char **start, off_t offset, int length)
 	int len;
 
 	*start = buffer + offset%128;
-	
+
 	if (--first < 0) {
 		sprintf(buffer, "%-127s\n", "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT");
 		--count;
@@ -184,7 +184,7 @@ unsigned inet_addr_type(u32 addr)
 #ifdef CONFIG_IP_MULTIPLE_TABLES
 	res.r = NULL;
 #endif
-	
+
 	if (local_table) {
 		ret = RTN_UNICAST;
 		if (local_table->tb_lookup(local_table, &key, &res) == 0) {
@@ -204,7 +204,7 @@ unsigned inet_addr_type(u32 addr)
  */
 
 int fib_validate_source(u32 src, u32 dst, u8 tos, int oif,
-			struct net_device *dev, u32 *spec_dst, u32 *itag)
+						struct net_device *dev, u32 *spec_dst, u32 *itag)
 {
 	struct in_device *in_dev;
 	struct rt_key key;
@@ -283,7 +283,7 @@ e_inval:
 /*
  *	Handle IP routing ioctl calls. These are used to manipulate the routing tables
  */
- 
+
 int ip_rt_ioctl(unsigned int cmd, void *arg)
 {
 	int err;
@@ -401,7 +401,7 @@ int inet_dump_fib(struct sk_buff *skb, struct netlink_callback *cb)
 			memset(&cb->args[1], 0, sizeof(cb->args)-sizeof(cb->args[0]));
 		if ((tb = fib_get_table(t))==NULL)
 			continue;
-		if (tb->tb_dump(tb, skb, cb) < 0) 
+		if (tb->tb_dump(tb, skb, cb) < 0)
 			break;
 	}
 

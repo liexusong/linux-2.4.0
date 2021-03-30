@@ -1637,7 +1637,7 @@ int tcp_v4_rcv(struct sk_buff *skb, unsigned short len)
 	skb->used = 0;
 
 	sk = __tcp_v4_lookup(skb->nh.iph->saddr, th->source,
-			     skb->nh.iph->daddr, ntohs(th->dest), tcp_v4_iif(skb));
+						 skb->nh.iph->daddr, ntohs(th->dest), tcp_v4_iif(skb));
 
 	if (!sk)
 		goto no_tcp_socket;
@@ -2167,23 +2167,23 @@ out_no_bh:
 }
 
 struct proto tcp_prot = {
-	name:		"TCP",
-	close:		tcp_close,
-	connect:	tcp_v4_connect,
-	disconnect:	tcp_disconnect,
-	accept:		tcp_accept,
-	ioctl:		tcp_ioctl,
-	init:		tcp_v4_init_sock,
-	destroy:	tcp_v4_destroy_sock,
-	shutdown:	tcp_shutdown,
-	setsockopt:	tcp_setsockopt,
-	getsockopt:	tcp_getsockopt,
-	sendmsg:	tcp_sendmsg,
-	recvmsg:	tcp_recvmsg,
+	name:			"TCP",
+	close:			tcp_close,
+	connect:		tcp_v4_connect,
+	disconnect:		tcp_disconnect,
+	accept:			tcp_accept,
+	ioctl:			tcp_ioctl,
+	init:			tcp_v4_init_sock,
+	destroy:		tcp_v4_destroy_sock,
+	shutdown:		tcp_shutdown,
+	setsockopt:		tcp_setsockopt,
+	getsockopt:		tcp_getsockopt,
+	sendmsg:		tcp_sendmsg,
+	recvmsg:		tcp_recvmsg,
 	backlog_rcv:	tcp_v4_do_rcv,
-	hash:		tcp_v4_hash,
-	unhash:		tcp_unhash,
-	get_port:	tcp_v4_get_port,
+	hash:			tcp_v4_hash,
+	unhash:			tcp_unhash,
+	get_port:		tcp_v4_get_port,
 };
 
 

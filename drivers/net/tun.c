@@ -47,7 +47,7 @@
 #include <asm/system.h>
 #include <asm/uaccess.h>
 
-#ifdef TUN_DEBUG
+#if 0
 static int debug=0;
 #endif
 
@@ -56,7 +56,7 @@ static int debug=0;
 /* Net device open. */
 static int tun_net_open(struct net_device *dev)
 {
-#ifdef TUN_DEBUG  
+#if 0
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
 	DBG(KERN_INFO "%s: tun_net_open\n", tun->name);
@@ -70,7 +70,7 @@ static int tun_net_open(struct net_device *dev)
 /* Net device close. */
 static int tun_net_close(struct net_device *dev)
 {
-#ifdef TUN_DEBUG  
+#if 0
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
 	DBG(KERN_INFO "%s: tun_net_close\n", tun->name);
@@ -82,6 +82,7 @@ static int tun_net_close(struct net_device *dev)
 }
 
 /* Net device start xmit */
+// 数据传输方法
 static int tun_net_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
@@ -96,7 +97,7 @@ static int tun_net_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (tun->flags & TUN_FASYNC)
 		kill_fasync(&tun->fasync, SIGIO, POLL_IN);
 
-	/* Wake up process */ 
+	/* Wake up process */
 	wake_up_interruptible(&tun->read_wait);
 
 	return 0;
@@ -104,13 +105,13 @@ static int tun_net_xmit(struct sk_buff *skb, struct net_device *dev)
 
 static void tun_net_mclist(struct net_device *dev)
 {
-#ifdef TUN_DEBUG
+#if 0
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
 	DBG(KERN_INFO "%s: tun_net_mclist\n", tun->name);
 #endif
 
-	/* Nothing to do for multicast filters. 
+	/* Nothing to do for multicast filters.
 	 * We always accept all frames.
 	 */
 	return;
@@ -127,7 +128,7 @@ static struct net_device_stats *tun_net_stats(struct net_device *dev)
 int tun_net_init(struct net_device *dev)
 {
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
-   
+
 	DBG(KERN_INFO "%s: tun_net_init\n", tun->name);
 
 	SET_MODULE_OWNER(dev);
@@ -144,7 +145,7 @@ int tun_net_init(struct net_device *dev)
 		dev->mtu = 1500;
 
 		/* Type PPP seems most suitable */
-		dev->type = ARPHRD_PPP; 
+		dev->type = ARPHRD_PPP;
 		dev->flags = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
 		dev->tx_queue_len = 10;
 
@@ -170,13 +171,13 @@ int tun_net_init(struct net_device *dev)
 
 /* Poll */
 static unsigned int tun_chr_poll(struct file *file, poll_table * wait)
-{  
+{
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
 
 	DBG(KERN_INFO "%s: tun_chr_poll\n", tun->name);
 
 	poll_wait(file, &tun->read_wait, wait);
- 
+
 	if (skb_queue_len(&tun->txq))
 		return POLLIN | POLLRDNORM;
 
@@ -187,7 +188,7 @@ static unsigned int tun_chr_poll(struct file *file, poll_table * wait)
 static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, size_t count)
 {
 	struct tun_pi pi = { 0, __constant_htons(ETH_P_IP) };
-	register const char *ptr = buf; 
+	register const char *ptr = buf;
 	register int len = count;
 	struct sk_buff *skb;
 
@@ -201,14 +202,14 @@ static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, 
 		copy_from_user(&pi, ptr, sizeof(pi));
 		ptr += sizeof(pi);
 	}
- 
+
 	if (!(skb = alloc_skb(len + 2, GFP_KERNEL))) {
 		tun->stats.rx_dropped++;
 		return -ENOMEM;
 	}
 
 	skb_reserve(skb, 2);
-	copy_from_user(skb_put(skb, len), ptr, len); 
+	copy_from_user(skb_put(skb, len), ptr, len);
 
 	skb->dev = &tun->dev;
 	switch (tun->flags & TUN_TYPE_MASK) {
@@ -223,17 +224,17 @@ static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, 
 
 	if (tun->flags & TUN_NOCHECKSUM)
 		skb->ip_summed = CHECKSUM_UNNECESSARY;
- 
+
 	netif_rx(skb);
-   
+
 	tun->stats.rx_packets++;
 	tun->stats.rx_bytes += len;
 
 	return count;
-} 
+}
 
 /* Write */
-static ssize_t tun_chr_write(struct file * file, const char * buf, 
+static ssize_t tun_chr_write(struct file * file, const char * buf,
 			     size_t count, loff_t *pos)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
@@ -266,15 +267,15 @@ static __inline__ ssize_t tun_put_user(struct tun_struct *tun,
 			/* Packet will be striped */
 			pi.flags |= TUN_PKT_STRIP;
 		}
- 
+
 		copy_to_user(ptr, &pi, sizeof(pi));
 
 		total += sizeof(pi);
 		ptr += sizeof(pi);
-	}       
+	}
 
-	len = MIN(skb->len, len); 
-	copy_to_user(ptr, skb->data, len); 
+	len = MIN(skb->len, len);
+	copy_to_user(ptr, skb->data, len);
 	total += len;
 
 	tun->stats.tx_packets++;
@@ -284,7 +285,7 @@ static __inline__ ssize_t tun_put_user(struct tun_struct *tun,
 }
 
 /* Read */
-static ssize_t tun_chr_read(struct file * file, char * buf, 
+static ssize_t tun_chr_read(struct file * file, char * buf,
 			    size_t count, loff_t *pos)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
@@ -356,9 +357,9 @@ static int tun_set_iff(struct tun_struct *tun, unsigned long arg)
 		/* TAP device */
 		tun->flags |= TUN_TAP_DEV;
 		mask = "tap%d";
-	} else 
+	} else
 		return -EINVAL;
-   
+
 	if (ifr.ifr_flags & IFF_NO_PI)
 		tun->flags |= TUN_NO_PI;
 
@@ -378,10 +379,10 @@ static int tun_set_iff(struct tun_struct *tun, unsigned long arg)
 	strcpy(ifr.ifr_name, tun->dev.name);
 	copy_to_user((void *)arg, &ifr, sizeof(ifr));
 
-	return 0;   
+	return 0;
 }
 
-static int tun_chr_ioctl(struct inode *inode, struct file *file, 
+static int tun_chr_ioctl(struct inode *inode, struct file *file,
 			 unsigned int cmd, unsigned long arg)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
@@ -390,7 +391,7 @@ static int tun_chr_ioctl(struct inode *inode, struct file *file,
 
 	switch (cmd) {
 	case TUNSETIFF:
-		return tun_set_iff(tun, arg); 
+		return tun_set_iff(tun, arg);
 
 	case TUNSETNOCSUM:
 		/* Disable/Enable checksum on net iface */
@@ -403,7 +404,7 @@ static int tun_chr_ioctl(struct inode *inode, struct file *file,
 		    tun->name, arg ? "disabled" : "enabled");
 		break;
 
-#ifdef TUN_DEBUG
+#if 0
 	case TUNSETDEBUG:
 		tun->debug = arg;
 		break;
@@ -424,11 +425,11 @@ static int tun_chr_fasync(int fd, struct file *file, int on)
 	DBG(KERN_INFO "%s: tun_chr_fasync %d\n", tun->name, on);
 
 	if ((ret = fasync_helper(fd, file, on, &tun->fasync)) < 0)
-		return ret; 
- 
+		return ret;
+
 	if (on)
 		tun->flags |= TUN_FASYNC;
-	else 
+	else
 		tun->flags &= ~TUN_FASYNC;
 
 	return 0;
@@ -436,7 +437,7 @@ static int tun_chr_fasync(int fd, struct file *file, int on)
 
 static int tun_chr_open(struct inode *inode, struct file * file)
 {
-	struct tun_struct *tun = NULL; 
+	struct tun_struct *tun = NULL;
 
 	DBG1(KERN_INFO "tunX: tun_chr_open\n");
 
@@ -482,7 +483,7 @@ static int tun_chr_close(struct inode *inode, struct file *file)
 }
 
 static struct file_operations tun_fops = {
-	owner:	THIS_MODULE,	
+	owner:	THIS_MODULE,
 	llseek:	tun_chr_lseek,
 	read:	tun_chr_read,
 	write:	tun_chr_write,
@@ -490,7 +491,7 @@ static struct file_operations tun_fops = {
 	ioctl:	tun_chr_ioctl,
 	open:	tun_chr_open,
 	release:tun_chr_close,
-	fasync:	tun_chr_fasync		
+	fasync:	tun_chr_fasync
 };
 
 static struct miscdevice tun_miscdev=
@@ -502,7 +503,7 @@ static struct miscdevice tun_miscdev=
 
 int __init tun_init(void)
 {
-	printk(KERN_INFO "Universal TUN/TAP device driver %s " 
+	printk(KERN_INFO "Universal TUN/TAP device driver %s "
 	       "(C)1999-2000 Maxim Krasnyansky\n", TUN_VER);
 
 	if (misc_register(&tun_miscdev)) {
@@ -515,7 +516,7 @@ int __init tun_init(void)
 
 void tun_cleanup(void)
 {
-	misc_deregister(&tun_miscdev);  
+	misc_deregister(&tun_miscdev);
 }
 
 module_init(tun_init);

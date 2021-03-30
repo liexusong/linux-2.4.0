@@ -1288,7 +1288,7 @@ void set_bh_page (struct buffer_head *bh, struct page *page, unsigned long offse
  * from ordinary buffer allocations, and only async requests are allowed
  * to sleep waiting for buffer heads. 
  */
-static struct buffer_head * create_buffers(struct page * page, unsigned long size, int async)
+static struct buffer_head *create_buffers(struct page *page, unsigned long size, int async)
 {
 	struct buffer_head *bh, *head;
 	long offset;

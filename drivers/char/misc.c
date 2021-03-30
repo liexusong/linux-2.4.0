@@ -112,9 +112,9 @@ static int misc_open(struct inode * inode, struct file * file)
 	struct miscdevice *c;
 	int err = -ENODEV;
 	struct file_operations *old_fops, *new_fops = NULL;
-	
+
 	down(&misc_sem);
-	
+
 	c = misc_list.next;
 
 	while ((c != &misc_list) && (c->minor != minor))
@@ -159,7 +159,7 @@ static struct file_operations misc_fops = {
 /**
  *	misc_register	-	register a miscellaneous device
  *	@misc: device structure
- *	
+ *
  *	Register a miscellaneous device with the kernel. If the minor
  *	number is set to %MISC_DYNAMIC_MINOR a minor number is assigned
  *	and placed in the minor field of the structure. For other cases
@@ -171,7 +171,7 @@ static struct file_operations misc_fops = {
  *	A zero is returned on success and a negative errno code for
  *	failure.
  */
- 
+
 int misc_register(struct miscdevice * misc)
 {
 	static devfs_handle_t devfs_handle;
@@ -194,12 +194,11 @@ int misc_register(struct miscdevice * misc)
 	if (misc->minor < DYNAMIC_MINORS)
 		misc_minors[misc->minor >> 3] |= 1 << (misc->minor & 7);
 	if (!devfs_handle)
-		devfs_handle = devfs_mk_dir (NULL, "misc", NULL);
-	misc->devfs_handle =
-	    devfs_register (devfs_handle, misc->name, DEVFS_FL_NONE,
-			    MISC_MAJOR, misc->minor,
-			    S_IFCHR | S_IRUSR | S_IWUSR | S_IRGRP,
-			    misc->fops, NULL);
+		devfs_handle = devfs_mk_dir(NULL, "misc", NULL);
+	misc->devfs_handle = devfs_register(devfs_handle, misc->name,
+									    DEVFS_FL_NONE, MISC_MAJOR, misc->minor,
+									    S_IFCHR|S_IRUSR|S_IWUSR|S_IRGRP,
+									    misc->fops, NULL);
 
 	/*
 	 * Add it to the front, so that later devices can "override"
