@@ -2,10 +2,10 @@
  * Linux Socket Filter - Kernel level socket filtering
  *
  * Author:
- *     Jay Schulist <jschlst@turbolinux.com>
+ *	 Jay Schulist <jschlst@turbolinux.com>
  *
  * Based on the design of:
- *     - The Berkeley Packet Filter
+ *	 - The Berkeley Packet Filter
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,9 +44,9 @@ static u8 *load_pointer(struct sk_buff *skb, int k)
 {
 	u8 *ptr = NULL;
 
-	if (k>=SKF_NET_OFF)
+	if (k >= SKF_NET_OFF)   // 网络层
 		ptr = skb->nh.raw + k - SKF_NET_OFF;
-	else if (k>=SKF_LL_OFF)
+	else if (k>=SKF_LL_OFF) // 链路层
 		ptr = skb->mac.raw + k - SKF_LL_OFF;
 
 	if (ptr >= skb->head && ptr < skb->tail)
@@ -65,7 +65,7 @@ static u8 *load_pointer(struct sk_buff *skb, int k)
  * filtering, filter is the array of filter instructions, and
  * len is the number of filter blocks in the array.
  */
- 
+
 int sk_run_filter(struct sk_buff *skb, struct sock_filter *filter, int flen)
 {
 	unsigned char *data = skb->data;
@@ -74,8 +74,8 @@ int sk_run_filter(struct sk_buff *skb, struct sock_filter *filter, int flen)
 	 */
 	unsigned int len = skb->len;
 	struct sock_filter *fentry;	/* We walk down these */
-	u32 A = 0;	   		/* Accumulator */
-	u32 X = 0;   			/* Index Register */
+	u32 A = 0;					/* Accumulator */
+	u32 X = 0;					/* Index Register */
 	u32 mem[BPF_MEMWORDS];		/* Scratch Memory Store */
 	int k;
 	int pc;
@@ -84,12 +84,10 @@ int sk_run_filter(struct sk_buff *skb, struct sock_filter *filter, int flen)
 	 * Process array of filter instructions.
 	 */
 
-	for(pc = 0; pc < flen; pc++)
-	{
+	for (pc = 0; pc < flen; pc++) {
 		fentry = &filter[pc];
-			
-		switch(fentry->code)
-		{
+
+		switch (fentry->code) {
 			case BPF_ALU|BPF_ADD|BPF_X:
 				A += X;
 				continue;
@@ -267,11 +265,11 @@ load_b:
 				k = X + fentry->k;
 				goto load_w;
 
-                       case BPF_LD|BPF_H|BPF_IND:
+			case BPF_LD|BPF_H|BPF_IND:
 				k = X + fentry->k;
 				goto load_h;
 
-                       case BPF_LD|BPF_B|BPF_IND:
+			case BPF_LD|BPF_B|BPF_IND:
 				k = X + fentry->k;
 				goto load_b;
 
@@ -362,68 +360,63 @@ load_b:
 int sk_chk_filter(struct sock_filter *filter, int flen)
 {
 	struct sock_filter *ftest;
-        int pc;
+	int pc;
 
-       /*
-        * Check the filter code now.
-        */
-	for(pc = 0; pc < flen; pc++)
-	{
+	/*
+	* Check the filter code now.
+	*/
+	for (pc = 0; pc < flen; pc++) {
 		/*
-                 *	All jumps are forward as they are not signed
-                 */
-                 
-                ftest = &filter[pc];
-		if(BPF_CLASS(ftest->code) == BPF_JMP)
-		{
+		 *	All jumps are forward as they are not signed
+		 */
+
+		ftest = &filter[pc];
+
+		if (BPF_CLASS(ftest->code) == BPF_JMP) {
 			/*
 			 *	But they mustn't jump off the end.
 			 */
-			if(BPF_OP(ftest->code) == BPF_JA)
-			{
+			if (BPF_OP(ftest->code) == BPF_JA) {
 				/* Note, the large ftest->k might cause
 				   loops. Compare this with conditional
 				   jumps below, where offsets are limited. --ANK (981016)
 				 */
-				if (ftest->k >= (unsigned)(flen-pc-1))
+				if (ftest->k >= (unsigned)(flen - pc - 1))
 					return (-EINVAL);
-			}
-                        else
-			{
+			} else {
 				/*
 				 *	For conditionals both must be safe
 				 */
  				if(pc + ftest->jt +1 >= flen || pc + ftest->jf +1 >= flen)
 					return (-EINVAL);
 			}
-                }
+		}
 
-                /*
-                 *	Check that memory operations use valid addresses.
-                 */
-                 
-                if (ftest->k >= BPF_MEMWORDS)
-                {
-                	/*
-                	 *	But it might not be a memory operation...
-                	 */
+				/*
+				 *	Check that memory operations use valid addresses.
+				 */
+
+		if (ftest->k >= BPF_MEMWORDS) {
+			/*
+			 *	But it might not be a memory operation...
+			 */
 			switch (ftest->code) {
-			case BPF_ST:	
-			case BPF_STX:	
-			case BPF_LD|BPF_MEM:	
-			case BPF_LDX|BPF_MEM:	
-                		return -EINVAL;
+			case BPF_ST:
+			case BPF_STX:
+			case BPF_LD|BPF_MEM:
+			case BPF_LDX|BPF_MEM:
+				return -EINVAL;
 			}
 		}
-        }
+	}
 
 	/*
 	 *	The program must end with a return. We don't care where they
 	 *	jumped within the script (its always forwards) but in the
 	 *	end they _will_ hit this.
 	 */
-	 
-        return (BPF_CLASS(filter[flen - 1].code) == BPF_RET)?0:-EINVAL;
+
+	return (BPF_CLASS(filter[flen - 1].code) == BPF_RET) ? 0 : -EINVAL;
 }
 
 /**
@@ -439,33 +432,36 @@ int sk_chk_filter(struct sock_filter *filter, int flen)
 
 int sk_attach_filter(struct sock_fprog *fprog, struct sock *sk)
 {
-	struct sk_filter *fp; 
+	struct sk_filter *fp;
 	unsigned int fsize = sizeof(struct sock_filter) * fprog->len;
 	int err;
 
 	/* Make sure new filter is there and in the right amounts. */
-        if (fprog->filter == NULL || fprog->len > BPF_MAXINSNS)
-                return (-EINVAL);
+	if (fprog->filter == NULL || fprog->len > BPF_MAXINSNS)
+		return (-EINVAL);
 
-	fp = (struct sk_filter *)sock_kmalloc(sk, fsize+sizeof(*fp), GFP_KERNEL);
+	fp = (struct sk_filter *)sock_kmalloc(sk, fsize + sizeof(*fp), GFP_KERNEL);
 	if(fp == NULL)
 		return (-ENOMEM);
 
 	if (copy_from_user(fp->insns, fprog->filter, fsize)) {
-		sock_kfree_s(sk, fp, fsize+sizeof(*fp)); 
+		sock_kfree_s(sk, fp, fsize+sizeof(*fp));
 		return -EFAULT;
 	}
 
 	atomic_set(&fp->refcnt, 1);
 	fp->len = fprog->len;
 
-	if ((err = sk_chk_filter(fp->insns, fp->len))==0) {
+	if ((err = sk_chk_filter(fp->insns, fp->len)) == 0) {
 		struct sk_filter *old_fp;
 
 		spin_lock_bh(&sk->lock.slock);
+
 		old_fp = sk->filter;
 		sk->filter = fp;
+
 		spin_unlock_bh(&sk->lock.slock);
+
 		fp = old_fp;
 	}
 

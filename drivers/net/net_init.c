@@ -15,15 +15,15 @@
 	Modifications/additions by Bjorn Ekwall <bj0rn@blox.se>:
 		ethdev_index[MAX_ETH_CARDS]
 		register_netdev() / unregister_netdev()
-		
+
 	Modifications by Wolfgang Walter
 		Use dev_close cleanly so we always shut things down tidily.
-		
+
 	Changed 29/10/95, Alan Cox to pass sockaddr's around for mac addresses.
-	
-	14/06/96 - Paul Gortmaker:	Add generic eth_change_mtu() function. 
-	24/09/96 - Paul Norton: Add token-ring variants of the netdev functions. 
-	
+
+	14/06/96 - Paul Gortmaker:	Add generic eth_change_mtu() function.
+	24/09/96 - Paul Norton: Add token-ring variants of the netdev functions.
+
 	08/11/99 - Alan Cox: Got fed up of the mess in this file and cleaned it
 			up. We now share common code and have regularised name
 			allocation setups. Abolished the 16 card limits.
@@ -61,7 +61,7 @@
 
    Given that almost all of these functions are handled in the current
    socket-based scheme, putting ethercard devices in /dev/ seems pointless.
-   
+
    [Removed all support for /dev network devices. When someone adds
     streams then by magic we get them, but otherwise they are un-needed
 	and a space waste]
@@ -91,20 +91,21 @@ static struct net_device *init_alloc_dev(int sizeof_priv)
 	return dev;
 }
 
-/* 
+/*
  *	Create and name a device from a prototype, then perform any needed
  *	setup.
  */
 
-static struct net_device *init_netdev(struct net_device *dev, int sizeof_priv,
-				      char *mask, void (*setup)(struct net_device *))
+static struct net_device *
+init_netdev(struct net_device *dev, int sizeof_priv, char *mask,
+			void (*setup)(struct net_device *))
 {
 	int new_device = 0;
 
 	/*
 	 *	Allocate a device if one is not provided.
 	 */
-	 
+
 	if (dev == NULL) {
 		dev=init_alloc_dev(sizeof_priv);
 		if(dev==NULL)
@@ -115,7 +116,7 @@ static struct net_device *init_netdev(struct net_device *dev, int sizeof_priv,
 	/*
 	 *	Allocate a name
 	 */
-	 
+
 	if (dev->name[0] == '\0' || dev->name[0] == ' ') {
 		strcpy(dev->name, mask);
 		if (dev_alloc_name(dev, mask)<0) {
@@ -126,14 +127,14 @@ static struct net_device *init_netdev(struct net_device *dev, int sizeof_priv,
 	}
 
 	netdev_boot_setup_check(dev);
-	
+
 	/*
 	 *	Configure via the caller provided setup function then
 	 *	register if needed.
 	 */
-	
+
 	setup(dev);
-	
+
 	if (new_device) {
 		rtnl_lock();
 		register_netdevice(dev);
@@ -245,10 +246,10 @@ static int hippi_neigh_setup_dev(struct net_device *dev, struct neigh_parms *p)
 {
 	/* Never send broadcast/multicast ARP messages */
 	p->mcast_probes = 0;
- 
+
 	/* In IPv6 unicast probes are valid even on NBMA,
 	* because they are encapsulated in normal IPv6 protocol.
-	* Should be a generic flag. 
+	* Should be a generic flag.
 	*/
 	if (p->tbl->family != AF_INET6)
 		p->ucast_probes = 0;
@@ -261,7 +262,11 @@ void ether_setup(struct net_device *dev)
 {
 	/* Fill in the fields of the device structure with ethernet-generic values.
 	   This should be in a common file instead of per-driver.  */
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	dev->change_mtu = eth_change_mtu;
 	dev->hard_header = eth_header;
 	dev->rebuild_header = eth_rebuild_header;
@@ -274,9 +279,15 @@ void ether_setup(struct net_device *dev)
 	dev->hard_header_len = ETH_HLEN;
 	dev->mtu = 1500; /* eth_mtu */
 	dev->addr_len = ETH_ALEN;
+<<<<<<< HEAD
 	dev->tx_queue_len = 100;	/* Ethernet wants good queues */	
 	
 	memset(dev->broadcast,0xFF, ETH_ALEN);
+=======
+	dev->tx_queue_len = 100;	/* Ethernet wants good queues */
+
+	memset(dev->broadcast, 0xFF, ETH_ALEN);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	/* New-style flags. */
 	dev->flags = IFF_BROADCAST|IFF_MULTICAST;
@@ -292,24 +303,24 @@ void fddi_setup(struct net_device *dev)
 	 * Fill in the fields of the device structure with FDDI-generic values.
 	 * This should be in a common file instead of per-driver.
 	 */
-	
-	dev->change_mtu			= fddi_change_mtu;
-	dev->hard_header		= fddi_header;
-	dev->rebuild_header		= fddi_rebuild_header;
 
-	dev->type				= ARPHRD_FDDI;
-	dev->hard_header_len	= FDDI_K_SNAP_HLEN+3;	/* Assume 802.2 SNAP hdr len + 3 pad bytes */
-	dev->mtu				= FDDI_K_SNAP_DLEN;		/* Assume max payload of 802.2 SNAP frame */
-	dev->addr_len			= FDDI_K_ALEN;
-	dev->tx_queue_len		= 100;	/* Long queues on FDDI */
-	
+	dev->change_mtu = fddi_change_mtu;
+	dev->hard_header = fddi_header;
+	dev->rebuild_header = fddi_rebuild_header;
+
+	dev->type = ARPHRD_FDDI;
+	dev->hard_header_len = FDDI_K_SNAP_HLEN+3;	/* Assume 802.2 SNAP hdr len + 3 pad bytes */
+	dev->mtu = FDDI_K_SNAP_DLEN;		/* Assume max payload of 802.2 SNAP frame */
+	dev->addr_len = FDDI_K_ALEN;
+	dev->tx_queue_len = 100;	/* Long queues on FDDI */
+
 	memset(dev->broadcast, 0xFF, FDDI_K_ALEN);
 
 	/* New-style flags */
-	dev->flags		= IFF_BROADCAST | IFF_MULTICAST;
+	dev->flags = IFF_BROADCAST | IFF_MULTICAST;
 
 	dev_init_buffers(dev);
-	
+
 	return;
 }
 
@@ -318,34 +329,33 @@ void fddi_setup(struct net_device *dev)
 #ifdef CONFIG_HIPPI
 void hippi_setup(struct net_device *dev)
 {
-	dev->set_multicast_list	= NULL;
-	dev->change_mtu			= hippi_change_mtu;
-	dev->hard_header		= hippi_header;
-	dev->rebuild_header 		= hippi_rebuild_header;
-	dev->set_mac_address 		= hippi_mac_addr;
-	dev->hard_header_parse		= NULL;
-	dev->hard_header_cache		= NULL;
-	dev->header_cache_update	= NULL;
-	dev->neigh_setup 		= hippi_neigh_setup_dev; 
+	dev->set_multicast_list = NULL;
+	dev->change_mtu = hippi_change_mtu;
+	dev->hard_header = hippi_header;
+	dev->rebuild_header = hippi_rebuild_header;
+	dev->set_mac_address = hippi_mac_addr;
+	dev->hard_header_parse = NULL;
+	dev->hard_header_cache = NULL;
+	dev->header_cache_update = NULL;
+	dev->neigh_setup = hippi_neigh_setup_dev;
 
 	/*
 	 * We don't support HIPPI `ARP' for the time being, and probably
 	 * never will unless someone else implements it. However we
 	 * still need a fake ARPHRD to make ifconfig and friends play ball.
 	 */
-	dev->type		= ARPHRD_HIPPI;
-	dev->hard_header_len 	= HIPPI_HLEN;
-	dev->mtu		= 65280;
-	dev->addr_len		= HIPPI_ALEN;
-	dev->tx_queue_len	= 25 /* 5 */;
+	dev->type = ARPHRD_HIPPI;
+	dev->hard_header_len = HIPPI_HLEN;
+	dev->mtu = 65280;
+	dev->addr_len = HIPPI_ALEN;
+	dev->tx_queue_len = 25 /* 5 */;
 	memset(dev->broadcast, 0xFF, HIPPI_ALEN);
-
 
 	/*
 	 * HIPPI doesn't support broadcast+multicast and we only use
-	 * static ARP tables. ARP is disabled by hippi_neigh_setup_dev. 
+	 * static ARP tables. ARP is disabled by hippi_neigh_setup_dev.
 	 */
-	dev->flags = 0; 
+	dev->flags = 0;
 
 	dev_init_buffers(dev);
 }
@@ -359,7 +369,7 @@ static int ltalk_change_mtu(struct net_device *dev, int mtu)
 }
 
 static int ltalk_mac_addr(struct net_device *dev, void *addr)
-{	
+{
 	return -EINVAL;
 }
 
@@ -367,23 +377,20 @@ static int ltalk_mac_addr(struct net_device *dev, void *addr)
 void ltalk_setup(struct net_device *dev)
 {
 	/* Fill in the fields of the device structure with localtalk-generic values. */
-	
-	dev->change_mtu		= ltalk_change_mtu;
-	dev->hard_header	= NULL;
-	dev->rebuild_header 	= NULL;
-	dev->set_mac_address 	= ltalk_mac_addr;
-	dev->hard_header_cache	= NULL;
-	dev->header_cache_update= NULL;
 
-	dev->type		= ARPHRD_LOCALTLK;
-	dev->hard_header_len 	= LTALK_HLEN;
-	dev->mtu		= LTALK_MTU;
-	dev->addr_len		= LTALK_ALEN;
-	dev->tx_queue_len	= 10;	
-	
-	dev->broadcast[0]	= 0xFF;
-
-	dev->flags		= IFF_BROADCAST|IFF_MULTICAST|IFF_NOARP;
+	dev->change_mtu = ltalk_change_mtu;
+	dev->hard_header = NULL;
+	dev->rebuild_header = NULL;
+	dev->set_mac_address = ltalk_mac_addr;
+	dev->hard_header_cache = NULL;
+	dev->header_cache_update = NULL;
+	dev->type = ARPHRD_LOCALTLK;
+	dev->hard_header_len = LTALK_HLEN;
+	dev->mtu = LTALK_MTU;
+	dev->addr_len = LTALK_ALEN;
+	dev->tx_queue_len = 10;
+	dev->broadcast[0] = 0xFF;
+	dev->flags = IFF_BROADCAST|IFF_MULTICAST|IFF_NOARP;
 
 	dev_init_buffers(dev);
 }
@@ -417,26 +424,23 @@ int register_netdev(struct net_device *dev)
 	 *	If the name is a format string the caller wants us to
 	 *	do a name allocation
 	 */
-	 
-	if (strchr(dev->name, '%'))
-	{
+
+	if (strchr(dev->name, '%')) {
 		err = -EBUSY;
 		if(dev_alloc_name(dev, dev->name)<0)
 			goto out;
 	}
-	
+
 	/*
 	 *	Back compatibility hook. Kill this one in 2.5
 	 */
-	
-	if (dev->name[0]==0 || dev->name[0]==' ')
-	{
+
+	if (dev->name[0] == 0 || dev->name[0] == ' ') {
 		err = -EBUSY;
 		if(dev_alloc_name(dev, "eth%d")<0)
 			goto out;
 	}
-		
-		
+
 	err = -EIO;
 	if (register_netdevice(dev))
 		goto out;
@@ -463,20 +467,18 @@ static void tr_configure(struct net_device *dev)
 	/*
 	 *	Configure and register
 	 */
-	
-	dev->hard_header	= tr_header;
-	dev->rebuild_header	= tr_rebuild_header;
+	dev->hard_header = tr_header;
+	dev->rebuild_header = tr_rebuild_header;
+	dev->type = ARPHRD_IEEE802_TR;
+	dev->hard_header_len = TR_HLEN;
+	dev->mtu = 2000;
+	dev->addr_len = TR_ALEN;
+	dev->tx_queue_len = 100;	/* Long queues on tr */
 
-	dev->type		= ARPHRD_IEEE802_TR;
-	dev->hard_header_len	= TR_HLEN;
-	dev->mtu		= 2000;
-	dev->addr_len		= TR_ALEN;
-	dev->tx_queue_len	= 100;	/* Long queues on tr */
-	
 	memset(dev->broadcast,0xFF, TR_ALEN);
 
 	/* New-style flags. */
-	dev->flags		= IFF_BROADCAST | IFF_MULTICAST ;
+	dev->flags = IFF_BROADCAST | IFF_MULTICAST ;
 }
 
 struct net_device *init_trdev(struct net_device *dev, int sizeof_priv)
@@ -491,7 +493,7 @@ void tr_setup(struct net_device *dev)
 int register_trdev(struct net_device *dev)
 {
 	dev_init_buffers(dev);
-	
+
 	if (dev->init && dev->init(dev) != 0) {
 		unregister_trdev(dev);
 		return -EIO;
@@ -512,23 +514,23 @@ void unregister_trdev(struct net_device *dev)
 
 void fc_setup(struct net_device *dev)
 {
-	dev->hard_header        =        fc_header;
-        dev->rebuild_header  	=        fc_rebuild_header;
-                
-        dev->type               =        ARPHRD_IEEE802;
-	dev->hard_header_len    =        FC_HLEN;
-        dev->mtu                =        2024;
-        dev->addr_len           =        FC_ALEN;
-        dev->tx_queue_len       =        100; /* Long queues on fc */
+	dev->hard_header = fc_header;
+	dev->rebuild_header = fc_rebuild_header;
+	dev->type = ARPHRD_IEEE802;
+	dev->hard_header_len = FC_HLEN;
+	dev->mtu = 2024;
+	dev->addr_len = FC_ALEN;
+	dev->tx_queue_len = 100; /* Long queues on fc */
 
-        memset(dev->broadcast,0xFF, FC_ALEN);
+	memset(dev->broadcast,0xFF, FC_ALEN);
 
-        /* New-style flags. */
-        dev->flags              =        IFF_BROADCAST;
+	/* New-style flags. */
+	dev->flags = IFF_BROADCAST;
+
 	dev_init_buffers(dev);
-        return;
-}
 
+	return;
+}
 
 struct net_device *init_fcdev(struct net_device *dev, int sizeof_priv)
 {
@@ -537,20 +539,19 @@ struct net_device *init_fcdev(struct net_device *dev, int sizeof_priv)
 
 int register_fcdev(struct net_device *dev)
 {
-        dev_init_buffers(dev);
-        if (dev->init && dev->init(dev) != 0) {
-                unregister_fcdev(dev);
-                return -EIO;
-        }
-        return 0;
-}                                               
-        
+	dev_init_buffers(dev);
+	if (dev->init && dev->init(dev) != 0) {
+		unregister_fcdev(dev);
+		return -EIO;
+	}
+	return 0;
+}
+
 void unregister_fcdev(struct net_device *dev)
 {
-        rtnl_lock();
+	rtnl_lock();
 	unregister_netdevice(dev);
-        rtnl_unlock();
+	rtnl_unlock();
 }
 
 #endif /* CONFIG_NET_FC */
-

@@ -209,13 +209,21 @@ static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
 
 			if (skb2 != NULL) {
 				ret = 1;
+<<<<<<< HEAD
 				ipprot->handler(skb2, ntohs(iph->tot_len)-(iph->ihl*4));
+=======
+				ipprot->handler(skb2, ntohs(iph->tot_len) - (iph->ihl * 4));
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 			}
 		}
 
 		ipprot = (struct inet_protocol *)ipprot->next;
 
+<<<<<<< HEAD
 	} while(ipprot != NULL);
+=======
+	} while (ipprot != NULL);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	return ret;
 }
@@ -228,8 +236,8 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 	nf_debug_ip_local_deliver(skb);
 #endif /*CONFIG_NETFILTER_DEBUG*/
 
-        /* Point into the IP datagram, just past the header. */
-        skb->h.raw = skb->nh.raw + iph->ihl*4;
+	/* Point into the IP datagram, just past the header. */
+	skb->h.raw = skb->nh.raw + iph->ihl*4; // 跳过IP头部
 
 	{
 		/* Note: See raw.c and net/raw.h, RAWV4_HTABLE_SIZE==MAX_INET_PROTOS */
@@ -241,22 +249,30 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 		/* If there maybe a raw socket we must check - if not we
 		 * don't care less
 		 */
-		if(raw_sk != NULL)
+		if (raw_sk != NULL)
 			raw_sk = raw_v4_input(skb, iph, hash);
 
-		ipprot = (struct inet_protocol *) inet_protos[hash];
+		ipprot = (struct inet_protocol *)inet_protos[hash];
 		flag = 0;
-		if(ipprot != NULL) {
-			if(raw_sk == NULL &&
-			   ipprot->next == NULL &&
-			   ipprot->protocol == iph->protocol) {
+
+		if (ipprot != NULL) {
+			if (raw_sk == NULL
+			   && ipprot->next == NULL
+			   && ipprot->protocol == iph->protocol)
+			{
 				int ret;
+<<<<<<< HEAD
 
 				/* Fast path... */
 				ret = ipprot->handler(skb, (ntohs(iph->tot_len) -
 							    (iph->ihl * 4)));
+=======
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
+				/* Fast path... */
+				ret = ipprot->handler(skb, (ntohs(iph->tot_len) - iph->ihl*4));
 				return ret;
+
 			} else {
 				flag = ip_run_ipprot(skb, iph, ipprot, (raw_sk != NULL));
 			}
@@ -267,7 +283,7 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 		 * causes (proven, grin) ARP storms and a leakage of memory (i.e. all
 		 * ICMP reply messages get queued up for transmission...)
 		 */
-		if(raw_sk != NULL) {	/* Shift to last raw user */
+		if (raw_sk != NULL) {	/* Shift to last raw user */
 			raw_rcv(raw_sk, skb);
 			sock_put(raw_sk);
 		} else if (!flag) {		/* Free and report errors */
@@ -310,6 +326,7 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 	 *	how the packet travels inside Linux networking.
 	 */
 	if (skb->dst == NULL) {
+		// 获取数据包的输入路由信息
 		if (ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev))
 			goto drop;
 	}
@@ -339,9 +356,10 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 		skb = skb_cow(skb, skb_headroom(skb));
 		if (skb == NULL)
 			return NET_RX_DROP;
-		iph = skb->nh.iph;
 
+		iph = skb->nh.iph;
 		skb->ip_summed = 0;
+
 		if (ip_options_compile(NULL, skb))
 			goto inhdr_error;
 
@@ -352,7 +370,7 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 				if (!IN_DEV_SOURCE_ROUTE(in_dev)) {
 					if (IN_DEV_LOG_MARTIANS(in_dev) && net_ratelimit())
 						printk(KERN_INFO "source route option %u.%u.%u.%u -> %u.%u.%u.%u\n",
-						       NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
+							   NIPQUAD(iph->saddr), NIPQUAD(iph->daddr));
 					in_dev_put(in_dev);
 					goto drop;
 				}
@@ -363,7 +381,7 @@ static inline int ip_rcv_finish(struct sk_buff *skb)
 		}
 	}
 
-	return skb->dst->input(skb);
+	return skb->dst->input(skb); // 一般是调用: ip_local_deliver()
 
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);
@@ -375,19 +393,24 @@ drop:
 /*
  * 	Main IP Receive routine.
  */
+<<<<<<< HEAD
 int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
+=======
+int
+ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct iphdr *iph = skb->nh.iph;
 
 	/* When the interface is in promisc. mode, drop all the crap
 	 * that it receives, do not try to analyse it.
 	 */
-	if (skb->pkt_type == PACKET_OTHERHOST)
+	if (skb->pkt_type == PACKET_OTHERHOST) // 如果不是给本机的数据包, 丢掉这个包
 		goto drop;
 
 	IP_INC_STATS_BH(IpInReceives);
 
-	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL)
+	if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL) // 如果当前包被其他地方引用, 那么就复制一份新的
 		goto out;
 
 	/*
@@ -400,10 +423,14 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	 *	3.	Checksums correctly. [Speed optimisation for later, skip loopback checksums]
 	 *	4.	Doesn't have a bogus length
 	 */
-
+	// 包的长度不合法
 	if (skb->len < sizeof(struct iphdr) || skb->len < (iph->ihl<<2))
 		goto inhdr_error;
 
+<<<<<<< HEAD
+=======
+	// IP头部不合法
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	if (iph->ihl < 5
 		|| iph->version != 4
 		|| ip_fast_csum((u8 *)iph, iph->ihl) != 0)
@@ -421,12 +448,19 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 		__skb_trim(skb, len);
 	}
 
+<<<<<<< HEAD
+=======
+	/*
+	 * 运行 nf_hooks[PF_INET][NF_IP_PRE_ROUTING] 链上的钩子函数
+	 * 如果所有钩子函数都通过, 那么执行: ip_rcv_finish() 函数
+	 */
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL, ip_rcv_finish);
 
 inhdr_error:
 	IP_INC_STATS_BH(IpInHdrErrors);
 drop:
-        kfree_skb(skb);
+	kfree_skb(skb);
 out:
-        return NET_RX_DROP;
+	return NET_RX_DROP;
 }

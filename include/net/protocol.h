@@ -34,6 +34,7 @@
 
 
 /* This is used to register protocols. */
+<<<<<<< HEAD
 struct inet_protocol
 {
 	int (*handler)(struct sk_buff *skb, unsigned short len);
@@ -43,23 +44,32 @@ struct inet_protocol
 	unsigned char copy:1;
 	void *data;
 	const char *name;
+=======
+// 传输层协议操作对象
+struct inet_protocol
+{
+	int						(*handler)(struct sk_buff *skb, unsigned short len);
+	void					(*err_handler)(struct sk_buff *skb, unsigned char *dp, int len);
+	struct inet_protocol	*next;
+	unsigned char			protocol;
+	unsigned char			copy:1; // 处理时是否需要复制skb对象
+	void					*data;
+	const char				*name;
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 };
 
 #if defined(CONFIG_IPV6) || defined (CONFIG_IPV6_MODULE)
 struct inet6_protocol
 {
-	int	(*handler)(struct sk_buff *skb,
-			unsigned long len);
-
-	void	(*err_handler)(struct sk_buff *skb, struct ipv6hdr *hdr,
-			       struct inet6_skb_parm *opt,
-			       int type, int code, unsigned char *buff,
-			       __u32 info);
+	int (*handler)(struct sk_buff *skb, unsigned long len);
+	void (*err_handler)(struct sk_buff *skb, struct ipv6hdr *hdr,
+						struct inet6_skb_parm *opt, int type, int code,
+						unsigned char *buff, __u32 info);
 	struct inet6_protocol *next;
-	unsigned char	protocol;
-	unsigned char	copy:1;
-	void		*data;
-	const char	*name;
+	unsigned char protocol;
+	unsigned char copy:1;
+	void *data;
+	const char *name;
 };
 
 #endif

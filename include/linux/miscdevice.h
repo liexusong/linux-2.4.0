@@ -37,9 +37,15 @@ extern int misc_init(void);
 
 struct miscdevice
 {
+<<<<<<< HEAD
 	int minor;                    // 次版本号
 	const char *name;             // 设备名称
 	struct file_operations *fops; // 设备相关操作
+=======
+	int minor;
+	const char *name;
+	struct file_operations *fops;
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	struct miscdevice *next, *prev;
 	devfs_handle_t devfs_handle;
 };

@@ -11,12 +11,12 @@
 #define MAX_SWAPFILES 8
 
 union swap_header {
-	struct 
+	struct
 	{
 		char reserved[PAGE_SIZE - 10];
 		char magic[10];
 	} magic;
-	struct 
+	struct
 	{
 		char	     bootbits[1024];	/* Space for disklabel etc. */
 		unsigned int version;
@@ -50,11 +50,11 @@ struct swap_info_struct {
 	unsigned int flags;
 	kdev_t swap_device;
 	spinlock_t sdev_lock;
-	struct dentry * swap_file;
-	struct vfsmount *swap_vfsmnt;
-	unsigned short * swap_map; // 交换区位图(每个交换区页面用一个short来计数)
-	unsigned int lowest_bit;   // 可用的交换页面开始位置
-	unsigned int highest_bit;  // 可用的交换页面结束位置
+	struct dentry * swap_file;    // 指向交换文件的dentry对象
+	struct vfsmount *swap_vfsmnt; // 指向交换文件所在的挂载点
+	unsigned short * swap_map;    // 交换区位图(每个交换区页面用一个short来计数)
+	unsigned int lowest_bit;      // 可用的交换页面开始位置
+	unsigned int highest_bit;     // 可用的交换页面结束位置
 	unsigned int cluster_next;
 	unsigned int cluster_nr;
 	int prio;			/* swap priority */
@@ -142,7 +142,7 @@ extern struct swap_info_struct swap_info[];
 extern int is_swap_partition(kdev_t);
 extern void si_swapinfo(struct sysinfo *);
 extern swp_entry_t __get_swap_page(unsigned short);
-extern void get_swaphandle_info(swp_entry_t, unsigned long *, kdev_t *, 
+extern void get_swaphandle_info(swp_entry_t, unsigned long *, kdev_t *,
 					struct inode **);
 extern int swap_duplicate(swp_entry_t);
 extern int swap_count(struct page *);

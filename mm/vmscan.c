@@ -502,13 +502,13 @@ int page_launder(int gfp_mask, int sync)
 
 dirty_page_rescan:
 	spin_lock(&pagemap_lru_lock);
-	maxscan = nr_inactive_dirty_pages;
+	maxscan = nr_inactive_dirty_pages; // 不活跃脏页面的数量
 	while ((page_lru = inactive_dirty_list.prev) != &inactive_dirty_list &&
-				maxscan-- > 0) {
+				maxscan-- > 0) { // 遍历不活跃脏页面LRU列表
 		page = list_entry(page_lru, struct page, lru);
 
 		/* Wrong page on list?! (list corruption, should not happen) */
-		if (!PageInactiveDirty(page)) { // 没有设置 `PG_inactive_dirty` 标志
+		if (!PageInactiveDirty(page)) { // 没有设置 `PG_inactive_dirty` 标志, 这里已经有bug了
 			printk("VM: page_launder, wrong page on list.\n");
 			list_del(page_lru);
 			nr_inactive_dirty_pages--;
@@ -549,7 +549,7 @@ dirty_page_rescan:
 				goto page_active;
 
 			/* First time through? Move it to the back of the list */
-			if (!launder_loop) { // 第一次只把页面移动到链表的头部
+			if (!launder_loop) { // 第一次只把页面移动到链表的尾部
 				list_del(page_lru);
 				list_add(page_lru, &inactive_dirty_list);
 				UnlockPage(page);
@@ -557,18 +557,18 @@ dirty_page_rescan:
 			}
 
 			/* OK, do a physical asynchronous write to swap.  */
-			ClearPageDirty(page);
-			page_cache_get(page);
+			ClearPageDirty(page); // 去掉dirty标志
+			page_cache_get(page); // page->count++
 			spin_unlock(&pagemap_lru_lock);
 
-			result = writepage(page);
-			page_cache_release(page);
+			result = writepage(page); // 把内存页数据写到磁盘中
+			page_cache_release(page); // page->count--
 
 			/* And re-start the thing.. */
 			spin_lock(&pagemap_lru_lock);
 			if (result != 1)
 				continue;
-			/* writepage refused to do anything */
+			/* writepage refused to do anything */ // 写磁盘失败了
 			set_page_dirty(page);
 			goto page_active;
 		}
@@ -582,7 +582,7 @@ dirty_page_rescan:
 		 * On the first round, we should free all previously cleaned
 		 * buffer pages
 		 */
-		if (page->buffers) {
+		if (page->buffers) { // 如果内存页与IO有关?
 			int wait, clearedbuf;
 			int freed_page = 0;
 			/*
@@ -921,8 +921,8 @@ static int do_try_to_free_pages(unsigned int gfp_mask, int user)
 	 * before we get around to moving them to the other
 	 * list, so this is a relatively cheap operation.
 	 */
-	if (free_shortage() || nr_inactive_dirty_pages > nr_free_pages() +
-			nr_inactive_clean_pages())
+	if (free_shortage() ||
+		nr_inactive_dirty_pages > nr_free_pages() + nr_inactive_clean_pages())
 		ret += page_launder(gfp_mask, user); // 把非活跃脏页面链表的页面刷新到磁盘中, 然后放置到非活跃干净页面链表中
 
 	/*
@@ -931,14 +931,14 @@ static int do_try_to_free_pages(unsigned int gfp_mask, int user)
 	 * the inode and dentry cache whenever we do this.
 	 */
 	if (free_shortage() || inactive_shortage()) {
-		shrink_dcache_memory(6, gfp_mask);
-		shrink_icache_memory(6, gfp_mask);
+		shrink_dcache_memory(6, gfp_mask); // 释放dentry缓存
+		shrink_icache_memory(6, gfp_mask); // 释放inode缓存
 		ret += refill_inactive(gfp_mask, user);
 	} else {
 		/*
 		 * Reclaim unused slab cache memory.
 		 */
-		kmem_cache_reap(gfp_mask);
+		kmem_cache_reap(gfp_mask); // 释放slab缓存
 		ret = 1;
 	}
 
@@ -984,7 +984,7 @@ int kswapd(void *unused)
 	 * us from recursively trying to free more memory as we're
 	 * trying to free the first piece of memory in the first place).
 	 */
-	tsk->flags |= PF_MEMALLOC;
+	tsk->flags |= PF_MEMALLOC; // 设置PF_MEMALLOC标志位, 表示本进程属于回收进程
 
 	/*
 	 * Kswapd main loop.
@@ -1033,8 +1033,8 @@ int kswapd(void *unused)
 		 * We go to sleep for one second, but if it's needed
 		 * we'll be woken up earlier...
 		 */
-		if (!free_shortage() || !inactive_shortage()) { // 如果可用内存页足够, 那么休眠kswapd内核线程
-			interruptible_sleep_on_timeout(&kswapd_wait, HZ);
+		if (!free_shortage() || !inactive_shortage()) {       // 如果可用内存页足够, 那么休眠kswapd内核线程
+			interruptible_sleep_on_timeout(&kswapd_wait, HZ); // 每秒唤醒一次
 		/*
 		 * If we couldn't free enough memory, we see if it was
 		 * due to the system just not having enough memory.
@@ -1152,8 +1152,8 @@ static int __init kswapd_init(void)
 {
 	printk("Starting kswapd v1.8\n");
 	swap_setup();
-	kernel_thread(kswapd, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);
-	kernel_thread(kreclaimd, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);
+	kernel_thread(kswapd, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGNAL);    // 创建kswapd内核线程
+	kernel_thread(kreclaimd, NULL, CLONE_FS | CLONE_FILES | CLONE_SIGNAL); // 创建kreclaimd内核线程
 	return 0;
 }
 

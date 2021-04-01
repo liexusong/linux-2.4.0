@@ -37,9 +37,9 @@
  *  Vectors 0xf0-0xfa are free (reserved for future Linux use).
  */
 #define SPURIOUS_APIC_VECTOR	0xff
-#define ERROR_APIC_VECTOR	0xfe
+#define ERROR_APIC_VECTOR	    0xfe
 #define INVALIDATE_TLB_VECTOR	0xfd
-#define RESCHEDULE_VECTOR	0xfc
+#define RESCHEDULE_VECTOR	    0xfc
 #define CALL_FUNCTION_VECTOR	0xfb
 
 /*
@@ -159,7 +159,7 @@ __asm__( \
 	SYMBOL_NAME_STR(call_do_IRQ)":\n\t" \
 	"jmp "SYMBOL_NAME_STR(do_IRQ));
 
-/* 
+/*
  * subtle. orig_eax is used by the signal code to distinct between
  * system calls and interrupted 'random user-space'. Thus we have
  * to put a negative value into orig_eax here. (the problem is that

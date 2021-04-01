@@ -35,7 +35,7 @@
 int sysctl_tcp_tw_recycle = 0;
 int sysctl_tcp_max_tw_buckets = NR_FILE*2;
 
-int sysctl_tcp_syncookies = SYNC_INIT; 
+int sysctl_tcp_syncookies = SYNC_INIT;
 int sysctl_tcp_abort_on_overflow = 0;
 
 static __inline__ int tcp_in_window(u32 seq, u32 end_seq, u32 s_win, u32 e_win)
@@ -97,7 +97,7 @@ void tcp_timewait_kill(struct tcp_tw_bucket *tw)
 	tcp_tw_put(tw);
 }
 
-/* 
+/*
  * * Main purpose of TIME-WAIT state is to close connection gracefully,
  *   when one of ends sits in LAST-ACK or CLOSING retransmitting FIN
  *   (and, probably, tail of data) and one or more our ACKs are lost.
@@ -127,7 +127,7 @@ void tcp_timewait_kill(struct tcp_tw_bucket *tw)
  */
 enum tcp_tw_status
 tcp_timewait_state_process(struct tcp_tw_bucket *tw, struct sk_buff *skb,
-			   struct tcphdr *th, unsigned len)
+						   struct tcphdr *th, unsigned len)
 {
 	struct tcp_opt tp;
 	int paws_reject = 0;
@@ -205,13 +205,13 @@ kill_with_rst:
 	 *	"When a connection is [...] on TIME-WAIT state [...]
 	 *	[a TCP] MAY accept a new SYN from the remote TCP to
 	 *	reopen the connection directly, if it:
-	 *	
+	 *
 	 *	(1)  assigns its initial sequence number for the new
 	 *	connection to be larger than the largest sequence
 	 *	number it used on the previous connection incarnation,
 	 *	and
 	 *
-	 *	(2)  returns to TIME-WAIT state if the SYN turns out 
+	 *	(2)  returns to TIME-WAIT state if the SYN turns out
 	 *	to be an old duplicate".
 	 */
 
@@ -341,9 +341,9 @@ static void __tcp_tw_hashdance(struct sock *sk, struct tcp_tw_bucket *tw)
 	spin_unlock(&bhead->lock);
 }
 
-/* 
+/*
  * Move a socket to time-wait or dead fin-wait-2 state.
- */ 
+ */
 void tcp_time_wait(struct sock *sk, int state, int timeo)
 {
 	struct tcp_tw_bucket *tw = NULL;
@@ -639,7 +639,9 @@ SMP_TIMER_DEFINE(tcp_twcal_tick, tcp_twcal_tasklet);
  * Actually, we could lots of memory writes here. tp of listening
  * socket contains all necessary default parameters.
  */
-struct sock *tcp_create_openreq_child(struct sock *sk, struct open_request *req, struct sk_buff *skb)
+struct sock *
+tcp_create_openreq_child(struct sock *sk, struct open_request *req,
+						 struct sk_buff *skb)
 {
 	struct sock *newsk = sk_alloc(PF_INET, GFP_ATOMIC, 0);
 
@@ -791,14 +793,14 @@ struct sock *tcp_create_openreq_child(struct sock *sk, struct open_request *req,
 	return newsk;
 }
 
-/* 
+/*
  *	Process an incoming packet for SYN_RECV sockets represented
  *	as an open_request.
  */
 
-struct sock *tcp_check_req(struct sock *sk,struct sk_buff *skb,
-			   struct open_request *req,
-			   struct open_request **prev)
+struct sock *
+tcp_check_req(struct sock *sk, struct sk_buff *skb, struct open_request *req,
+			  struct open_request **prev)
 {
 	struct tcphdr *th = skb->h.th;
 	struct tcp_opt *tp = &(sk->tp_pinfo.af_tcp);
@@ -817,15 +819,16 @@ struct sock *tcp_check_req(struct sock *sk,struct sk_buff *skb,
 			 * it can be estimated (approximately)
 			 * from another data.
 			 */
-			ttp.ts_recent_stamp = xtime.tv_sec - ((TCP_TIMEOUT_INIT/HZ)<<req->retrans);
+			ttp.ts_recent_stamp = xtime.tv_sec
+									- ((TCP_TIMEOUT_INIT/HZ)<<req->retrans);
 			paws_reject = tcp_paws_check(&ttp, th->rst);
 		}
 	}
 
 	/* Check for pure retransmited SYN. */
-	if (TCP_SKB_CB(skb)->seq == req->rcv_isn &&
-	    flg == TCP_FLAG_SYN &&
-	    !paws_reject) {
+	if (TCP_SKB_CB(skb)->seq == req->rcv_isn
+	    && flg == TCP_FLAG_SYN
+	    && !paws_reject) {
 		/*
 		 * RFC793 draws (Incorrectly! It was fixed in RFC1122)
 		 * this case on figure 6 and figure 8, but formal
@@ -865,8 +868,10 @@ struct sock *tcp_check_req(struct sock *sk,struct sk_buff *skb,
 
 	/* RFC793: "first check sequence number". */
 
-	if (paws_reject || !tcp_in_window(TCP_SKB_CB(skb)->seq, TCP_SKB_CB(skb)->end_seq,
-					  req->rcv_isn+1, req->rcv_isn+1+req->rcv_wnd)) {
+	if (paws_reject ||
+		!tcp_in_window(TCP_SKB_CB(skb)->seq, TCP_SKB_CB(skb)->end_seq,
+					   req->rcv_isn+1, req->rcv_isn+1+req->rcv_wnd))
+	{
 		/* Out of window: send ACK and drop. */
 		if (!(flg & TCP_FLAG_RST))
 			req->class->send_ack(skb, req);
@@ -949,7 +954,7 @@ embryonic_reset:
  */
 
 int tcp_child_process(struct sock *parent, struct sock *child,
-		      struct sk_buff *skb)
+					  struct sk_buff *skb)
 {
 	int ret = 0;
 	int state = child->state;

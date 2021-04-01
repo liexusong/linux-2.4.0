@@ -819,7 +819,7 @@ int sock_create(int family, int type, int protocol, struct socket **res)
 	/*
 	 *	Check protocol is in range
 	 */
-	if(family<0 || family>=NPROTO)
+	if (family < 0 || family >= NPROTO)
 		return -EAFNOSUPPORT;
 
 	/* Compatibility.
@@ -843,8 +843,7 @@ int sock_create(int family, int type, int protocol, struct socket **res)
 	 * requested real, full-featured networking support upon configuration.
 	 * Otherwise module support will break!
 	 */
-	if (net_families[family]==NULL)
-	{
+	if (net_families[family] == NULL) {
 		char module_name[30];
 		sprintf(module_name,"net-pf-%d",family);
 		request_module(module_name);
@@ -863,8 +862,7 @@ int sock_create(int family, int type, int protocol, struct socket **res)
  *	default.
  */
 
-	if (!(sock = sock_alloc()))
-	{
+	if (!(sock = sock_alloc())) {
 		printk(KERN_WARNING "socket: no more sockets\n");
 		i = -ENFILE;		/* Not exactly a match, but its the
 					   closest posix thing */
@@ -988,9 +986,8 @@ asmlinkage long sys_bind(int fd, struct sockaddr *umyaddr, int addrlen)
 	char address[MAX_SOCK_ADDR];
 	int err;
 
-	if((sock = sockfd_lookup(fd,&err))!=NULL)
-	{
-		if((err=move_addr_to_kernel(umyaddr,addrlen,address))>=0)
+	if ((sock = sockfd_lookup(fd, &err)) != NULL) {
+		if ((err = move_addr_to_kernel(umyaddr, addrlen, address)) >= 0)
 			err = sock->ops->bind(sock, (struct sockaddr *)address, addrlen);
 		sockfd_put(sock);
 	}
@@ -1099,11 +1096,16 @@ asmlinkage long sys_connect(int fd, struct sockaddr *uservaddr, int addrlen)
 	sock = sockfd_lookup(fd, &err);
 	if (!sock)
 		goto out;
+
 	err = move_addr_to_kernel(uservaddr, addrlen, address);
 	if (err < 0)
 		goto out_put;
+
+	// 调用协议栈对应connect()函数
+	// 如 inet_stream_connect() 函数
 	err = sock->ops->connect(sock, (struct sockaddr *) address, addrlen,
-				 sock->file->f_flags);
+							 sock->file->f_flags);
+
 out_put:
 	sockfd_put(sock);
 out:
@@ -1174,6 +1176,7 @@ asmlinkage long sys_sendto(int fd, void * buff, size_t len, unsigned flags,
 	sock = sockfd_lookup(fd, &err);
 	if (!sock)
 		goto out;
+
 	iov.iov_base=buff;
 	iov.iov_len=len;
 	msg.msg_name=NULL;
@@ -1182,16 +1185,19 @@ asmlinkage long sys_sendto(int fd, void * buff, size_t len, unsigned flags,
 	msg.msg_control=NULL;
 	msg.msg_controllen=0;
 	msg.msg_namelen=addr_len;
-	if(addr)
-	{
+
+	if(addr) {
 		err = move_addr_to_kernel(addr, addr_len, address);
 		if (err < 0)
 			goto out_put;
 		msg.msg_name=address;
 	}
+
 	if (sock->file->f_flags & O_NONBLOCK)
 		flags |= MSG_DONTWAIT;
+
 	msg.msg_flags = flags;
+
 	err = sock_sendmsg(sock, &msg, len);
 
 out_put:
@@ -1216,7 +1222,7 @@ asmlinkage long sys_send(int fd, void * buff, size_t len, unsigned flags)
  */
 
 asmlinkage long sys_recvfrom(int fd, void * ubuf, size_t size, unsigned flags,
-			     struct sockaddr *addr, int *addr_len)
+							 struct sockaddr *addr, int *addr_len)
 {
 	struct socket *sock;
 	struct iovec iov;
@@ -1236,16 +1242,17 @@ asmlinkage long sys_recvfrom(int fd, void * ubuf, size_t size, unsigned flags,
 	iov.iov_base=ubuf;
 	msg.msg_name=address;
 	msg.msg_namelen=MAX_SOCK_ADDR;
+
 	if (sock->file->f_flags & O_NONBLOCK)
 		flags |= MSG_DONTWAIT;
-	err=sock_recvmsg(sock, &msg, size, flags);
 
-	if(err >= 0 && addr != NULL && msg.msg_namelen)
-	{
-		err2=move_addr_to_user(address, msg.msg_namelen, addr, addr_len);
-		if(err2<0)
-			err=err2;
+	err = sock_recvmsg(sock, &msg, size, flags);
+	if (err >= 0 && addr != NULL && msg.msg_namelen) {
+		err2 = move_addr_to_user(address, msg.msg_namelen, addr, addr_len);
+		if (err2 < 0)
+			err = err2;
 	}
+
 	sockfd_put(sock);
 out:
 	return err;
@@ -1255,7 +1262,7 @@ out:
  *	Receive a datagram from a socket.
  */
 
-asmlinkage long sys_recv(int fd, void * ubuf, size_t size, unsigned flags)
+asmlinkage long sys_recv(int fd, void *ubuf, size_t size, unsigned flags)
 {
 	return sys_recvfrom(fd, ubuf, size, flags, NULL, NULL);
 }
@@ -1614,7 +1621,7 @@ int sock_register(struct net_proto_family *ops)
 	net_family_write_lock();
 	err = -EEXIST;
 	if (net_families[ops->family] == NULL) {
-		net_families[ops->family]=ops;
+		net_families[ops->family] = ops;
 		err = 0;
 	}
 	net_family_write_unlock();
@@ -1633,7 +1640,7 @@ int sock_unregister(int family)
 		return -1;
 
 	net_family_write_lock();
-	net_families[family]=NULL;
+	net_families[family] = NULL;
 	net_family_write_unlock();
 	return 0;
 }

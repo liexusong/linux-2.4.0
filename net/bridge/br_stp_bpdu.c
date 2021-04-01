@@ -80,8 +80,7 @@ void br_send_config_bpdu(struct net_bridge_port *p, struct br_config_bpdu *bpdu)
 	buf[4] = 0;
 	buf[5] = 0;
 	buf[6] = BPDU_TYPE_CONFIG;
-	buf[7] = (bpdu->topology_change ? 0x01 : 0) |
-		(bpdu->topology_change_ack ? 0x80 : 0);
+	buf[7] = (bpdu->topology_change ? 0x01 : 0) | (bpdu->topology_change_ack ? 0x80 : 0);
 	buf[8] = bpdu->root.prio[0];
 	buf[9] = bpdu->root.prio[1];
 	buf[10] = bpdu->root.addr[0];
@@ -156,11 +155,7 @@ void br_stp_handle_bpdu(struct sk_buff *skb)
 		bpdu.root.addr[3] = buf[13];
 		bpdu.root.addr[4] = buf[14];
 		bpdu.root.addr[5] = buf[15];
-		bpdu.root_path_cost =
-			(buf[16] << 24) |
-			(buf[17] << 16) |
-			(buf[18] << 8) |
-			buf[19];
+		bpdu.root_path_cost = (buf[16] << 24) | (buf[17] << 16) | (buf[18] << 8) | buf[19];
 		bpdu.bridge_id.prio[0] = buf[20];
 		bpdu.bridge_id.prio[1] = buf[21];
 		bpdu.bridge_id.addr[0] = buf[22];

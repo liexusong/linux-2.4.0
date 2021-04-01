@@ -36,9 +36,15 @@ struct kern_rta
 
 struct fib_nh
 {
+<<<<<<< HEAD
 	struct net_device	*nh_dev;
 	unsigned			nh_flags;
 	unsigned char		nh_scope;
+=======
+	struct net_device	*nh_dev;   // 下一跳的出口设备
+	unsigned			nh_flags;  // 标志位
+	unsigned char		nh_scope;  // 范围
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 	int					nh_weight;
 	int					nh_power;
@@ -46,8 +52,13 @@ struct fib_nh
 #ifdef CONFIG_NET_CLS_ROUTE
 	__u32				nh_tclassid;
 #endif
+<<<<<<< HEAD
 	int					nh_oif;
 	u32					nh_gw;
+=======
+	int					nh_oif;   // 出口设备索引
+	u32					nh_gw;    // 网关IP地址
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 };
 
 /*
@@ -56,6 +67,7 @@ struct fib_nh
 
 struct fib_info
 {
+	// 连接所有fib_info的链表
 	struct fib_info		*fib_next;
 	struct fib_info		*fib_prev;
 
@@ -73,14 +85,21 @@ struct fib_info
 #define fib_rtt			fib_metrics[RTAX_RTT-1]
 #define fib_advmss		fib_metrics[RTAX_ADVMSS-1]
 
+<<<<<<< HEAD
 	int					fib_nhs;
 #ifdef CONFIG_IP_ROUTE_MULTIPATH
 	int					fib_power;
 #endif
 	struct fib_nh		fib_nh[0];
+=======
+	int					fib_nhs;     // 下一跳列表大小
+#ifdef CONFIG_IP_ROUTE_MULTIPATH
+	int					fib_power;
+#endif
+	struct fib_nh		fib_nh[0];   // 下一跳列表(一般只有一个)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 #define fib_dev			fib_nh[0].nh_dev
 };
-
 
 #ifdef CONFIG_IP_MULTIPLE_TABLES
 struct fib_rule;
@@ -111,15 +130,26 @@ struct fib_result
 
 #endif /* CONFIG_IP_ROUTE_MULTIPATH */
 
+<<<<<<< HEAD
 #define FIB_RES_PREFSRC(res)	((res).fi->fib_prefsrc ?: __fib_res_prefsrc(&res))
 #define FIB_RES_GW(res)			(FIB_RES_NH(res).nh_gw)
 #define FIB_RES_DEV(res)		(FIB_RES_NH(res).nh_dev)
 #define FIB_RES_OIF(res)		(FIB_RES_NH(res).nh_oif)
+=======
+#define FIB_RES_PREFSRC(res) ((res).fi->fib_prefsrc ? : __fib_res_prefsrc(&res))
+#define FIB_RES_GW(res)      (FIB_RES_NH(res).nh_gw)
+#define FIB_RES_DEV(res)     (FIB_RES_NH(res).nh_dev)
+#define FIB_RES_OIF(res)     (FIB_RES_NH(res).nh_oif)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 struct fib_table
 {
 	unsigned char	tb_id;
 	unsigned		tb_stamp;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	int		(*tb_lookup)(struct fib_table *tb, const struct rt_key *key,
 						 struct fib_result *res);
 	int		(*tb_insert)(struct fib_table *table, struct rtmsg *r,
@@ -161,7 +191,7 @@ static inline int
 fib_lookup(const struct rt_key *key, struct fib_result *res)
 {
 	if (local_table->tb_lookup(local_table, key, res) &&
-	    main_table->tb_lookup(main_table, key, res))
+		main_table->tb_lookup(main_table, key, res))
 		return -ENETUNREACH;
 	return 0;
 }
@@ -210,7 +240,12 @@ extern int inet_rtm_newroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *ar
 extern int inet_rtm_getroute(struct sk_buff *skb, struct nlmsghdr* nlh, void *arg);
 extern int inet_dump_fib(struct sk_buff *skb, struct netlink_callback *cb);
 extern int fib_validate_source(u32 src, u32 dst, u8 tos, int oif,
+<<<<<<< HEAD
 							   struct net_device *dev, u32 *spec_dst, u32 *itag);
+=======
+							   struct net_device *dev, u32 *spec_dst,
+							   u32 *itag);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 extern void fib_select_multipath(const struct rt_key *key, struct fib_result *res);
 
 /* Exported by fib_semantics.c */
@@ -227,7 +262,7 @@ extern int fib_dump_info(struct sk_buff *skb, u32 pid, u32 seq, int event,
 extern int fib_sync_down(u32 local, struct net_device *dev, int force);
 extern int fib_sync_up(struct net_device *dev);
 extern int fib_convert_rtentry(int cmd, struct nlmsghdr *nl, struct rtmsg *rtm,
-			       struct kern_rta *rta, struct rtentry *r);
+				   struct kern_rta *rta, struct rtentry *r);
 extern void fib_node_get_info(int type, int dead, struct fib_info *fi, u32 prefix, u32 mask, char *buffer);
 extern u32  __fib_res_prefsrc(struct fib_result *res);
 

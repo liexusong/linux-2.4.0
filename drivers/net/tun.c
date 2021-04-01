@@ -47,8 +47,13 @@
 #include <asm/system.h>
 #include <asm/uaccess.h>
 
+<<<<<<< HEAD
 #if 0
 static int debug=0;
+=======
+#ifdef TUN_DEBUG
+static int debug = 0;
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 #endif
 
 /* Network device part of the driver */
@@ -56,41 +61,48 @@ static int debug=0;
 /* Net device open. */
 static int tun_net_open(struct net_device *dev)
 {
+<<<<<<< HEAD
 #if 0
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
 	DBG(KERN_INFO "%s: tun_net_open\n", tun->name);
 #endif
 
+=======
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	netif_start_queue(dev);
-
 	return 0;
 }
 
 /* Net device close. */
 static int tun_net_close(struct net_device *dev)
 {
+<<<<<<< HEAD
 #if 0
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
 	DBG(KERN_INFO "%s: tun_net_close\n", tun->name);
 #endif
 
+=======
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	netif_stop_queue(dev);
-
 	return 0;
 }
 
 /* Net device start xmit */
+<<<<<<< HEAD
 // 数据传输方法
+=======
+// 当使用TUN设备发送数据时, 会调用这个函数处理数据包
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 static int tun_net_xmit(struct sk_buff *skb, struct net_device *dev)
 {
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
-	DBG(KERN_INFO "%s: tun_net_xmit %d\n", tun->name, skb->len);
-
-	/* Queue frame */
+	// 将发送的数据包添加到txq队列中, 可见当使用TUN设备发送数据时并不是发送出去, 而是添加到TUN设备的txq队列中
 	skb_queue_tail(&tun->txq, skb);
+
 	if (skb_queue_len(&tun->txq) >= TUN_TXQ_SIZE)
 		netif_stop_queue(dev);
 
@@ -105,12 +117,15 @@ static int tun_net_xmit(struct sk_buff *skb, struct net_device *dev)
 
 static void tun_net_mclist(struct net_device *dev)
 {
+<<<<<<< HEAD
 #if 0
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
 
 	DBG(KERN_INFO "%s: tun_net_mclist\n", tun->name);
 #endif
 
+=======
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	/* Nothing to do for multicast filters.
 	 * We always accept all frames.
 	 */
@@ -128,10 +143,14 @@ static struct net_device_stats *tun_net_stats(struct net_device *dev)
 int tun_net_init(struct net_device *dev)
 {
 	struct tun_struct *tun = (struct tun_struct *)dev->priv;
+<<<<<<< HEAD
 
 	DBG(KERN_INFO "%s: tun_net_init\n", tun->name);
+=======
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	SET_MODULE_OWNER(dev);
+
 	dev->open = tun_net_open;
 	dev->hard_start_xmit = tun_net_xmit;
 	dev->stop = tun_net_close;
@@ -139,21 +158,25 @@ int tun_net_init(struct net_device *dev)
 
 	switch (tun->flags & TUN_TYPE_MASK) {
 	case TUN_TUN_DEV:
-		/* Point-to-Point TUN Device */
+		/* Point-to-Point TUN Device */ // 点对点设备
 		dev->hard_header_len = 0;
 		dev->addr_len = 0;
 		dev->mtu = 1500;
 
 		/* Type PPP seems most suitable */
 		dev->type = ARPHRD_PPP;
+<<<<<<< HEAD
 		dev->flags = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
+=======
+		dev->flags = IFF_POINTOPOINT|IFF_NOARP|IFF_MULTICAST;
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 		dev->tx_queue_len = 10;
 
 		dev_init_buffers(dev);
 		break;
 
 	case TUN_TAP_DEV:
-		/* Ethernet TAP Device */
+		/* Ethernet TAP Device */ // 以太网设备
 		dev->set_multicast_list = tun_net_mclist;
 
 		/* Generate random Ethernet address.  */
@@ -169,23 +192,27 @@ int tun_net_init(struct net_device *dev)
 
 /* Character device part */
 
+<<<<<<< HEAD
 /* Poll */
 static unsigned int tun_chr_poll(struct file *file, poll_table * wait)
+=======
+// 判断tun设备是否有数据可读? 使用 poll() 函数监控 TUN/TAP 设备句柄时会触发调用这个函数
+static unsigned int tun_chr_poll(struct file *file, poll_table *wait)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
-
-	DBG(KERN_INFO "%s: tun_chr_poll\n", tun->name);
 
 	poll_wait(file, &tun->read_wait, wait);
 
 	if (skb_queue_len(&tun->txq))
-		return POLLIN | POLLRDNORM;
+		return POLLIN|POLLRDNORM;
 
-	return POLLOUT | POLLWRNORM;
+	return POLLOUT|POLLWRNORM;
 }
 
 /* Get packet from user space buffer(already verified) */
-static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, size_t count)
+static __inline__ ssize_t
+tun_get_user(struct tun_struct *tun, const char *buf, size_t count)
 {
 	struct tun_pi pi = { 0, __constant_htons(ETH_P_IP) };
 	register const char *ptr = buf;
@@ -210,8 +237,12 @@ static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, 
 
 	skb_reserve(skb, 2);
 	copy_from_user(skb_put(skb, len), ptr, len);
+<<<<<<< HEAD
+=======
 
-	skb->dev = &tun->dev;
+	skb->dev = &tun->dev; // 设置数据包的接收设备为tun设备
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
+
 	switch (tun->flags & TUN_TYPE_MASK) {
 	case TUN_TUN_DEV:
 		skb->mac.raw = skb->data;
@@ -225,7 +256,11 @@ static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, 
 	if (tun->flags & TUN_NOCHECKSUM)
 		skb->ip_summed = CHECKSUM_UNNECESSARY;
 
+<<<<<<< HEAD
 	netif_rx(skb);
+=======
+	netif_rx(skb); // 上送给内核协议栈
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	tun->stats.rx_packets++;
 	tun->stats.rx_bytes += len;
@@ -233,13 +268,17 @@ static __inline__ ssize_t tun_get_user(struct tun_struct *tun, const char *buf, 
 	return count;
 }
 
+<<<<<<< HEAD
 /* Write */
 static ssize_t tun_chr_write(struct file * file, const char * buf,
 			     size_t count, loff_t *pos)
+=======
+// 对 TUN/TAP 设备句柄进行 write() 操作时会触发调用这个函数
+static ssize_t
+tun_chr_write(struct file *file, const char *buf, size_t count, loff_t *pos)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
-
-	DBG(KERN_INFO "%s: tun_chr_write %d\n", tun->name, count);
 
 	if (!(tun->flags & TUN_IFF_SET))
 		return -EBUSY;
@@ -251,9 +290,8 @@ static ssize_t tun_chr_write(struct file * file, const char * buf,
 }
 
 /* Put packet to user space buffer(already verified) */
-static __inline__ ssize_t tun_put_user(struct tun_struct *tun,
-				       struct sk_buff *skb,
-				       char *buf, int count)
+static __inline__ ssize_t
+tun_put_user(struct tun_struct *tun, struct sk_buff *skb, char *buf, int count)
 {
 	struct tun_pi pi = { 0, skb->protocol };
 	int len = count, total = 0;
@@ -284,23 +322,27 @@ static __inline__ ssize_t tun_put_user(struct tun_struct *tun,
 	return total;
 }
 
+<<<<<<< HEAD
 /* Read */
 static ssize_t tun_chr_read(struct file * file, char * buf,
 			    size_t count, loff_t *pos)
+=======
+// 当调用 read() 函数读取 TUN/TAP 设备句柄时会触发调用这个函数
+static ssize_t
+tun_chr_read(struct file *file, char *buf, size_t count, loff_t *pos)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
 	DECLARE_WAITQUEUE(wait, current);
 	struct sk_buff *skb;
 	ssize_t ret = 0;
 
-	DBG(KERN_INFO "%s: tun_chr_read\n", tun->name);
-
 	add_wait_queue(&tun->read_wait, &wait);
 	while (count) {
 		current->state = TASK_INTERRUPTIBLE;
 
 		/* Read frames from device queue */
-		if (!(skb=skb_dequeue(&tun->txq))) {
+		if (!(skb = skb_dequeue(&tun->txq))) { // 从txq队列中获取一个skb对象
 			if (file->f_flags & O_NONBLOCK) {
 				ret = -EAGAIN;
 				break;
@@ -314,6 +356,7 @@ static ssize_t tun_chr_read(struct file * file, char * buf,
 			schedule();
 			continue;
 		}
+
 		netif_start_queue(&tun->dev);
 
 		if (!verify_area(VERIFY_WRITE, buf, count))
@@ -382,12 +425,16 @@ static int tun_set_iff(struct tun_struct *tun, unsigned long arg)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int tun_chr_ioctl(struct inode *inode, struct file *file,
 			 unsigned int cmd, unsigned long arg)
+=======
+static int
+tun_chr_ioctl(struct inode *inode, struct file *file, unsigned int cmd,
+			  unsigned long arg)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
-
-	DBG(KERN_INFO "%s: tun_chr_ioctl\n", tun->name);
 
 	switch (cmd) {
 	case TUNSETIFF:
@@ -399,9 +446,6 @@ static int tun_chr_ioctl(struct inode *inode, struct file *file,
 			tun->flags |= TUN_NOCHECKSUM;
 		else
 			tun->flags &= ~TUN_NOCHECKSUM;
-
-		DBG(KERN_INFO "%s: checksum %s\n",
-		    tun->name, arg ? "disabled" : "enabled");
 		break;
 
 #if 0
@@ -422,8 +466,6 @@ static int tun_chr_fasync(int fd, struct file *file, int on)
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
 	int ret;
 
-	DBG(KERN_INFO "%s: tun_chr_fasync %d\n", tun->name, on);
-
 	if ((ret = fasync_helper(fd, file, on, &tun->fasync)) < 0)
 		return ret;
 
@@ -435,13 +477,16 @@ static int tun_chr_fasync(int fd, struct file *file, int on)
 	return 0;
 }
 
-static int tun_chr_open(struct inode *inode, struct file * file)
+static int tun_chr_open(struct inode *inode, struct file *file)
 {
 	struct tun_struct *tun = NULL;
+<<<<<<< HEAD
 
 	DBG1(KERN_INFO "tunX: tun_chr_open\n");
+=======
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
-	tun = kmalloc(sizeof(struct tun_struct), GFP_KERNEL);
+	tun = kmalloc(sizeof(struct tun_struct), GFP_KERNEL); // 申请一个TUN对象
 	if (tun == NULL)
 		return -ENOMEM;
 
@@ -462,8 +507,6 @@ static int tun_chr_open(struct inode *inode, struct file * file)
 static int tun_chr_close(struct inode *inode, struct file *file)
 {
 	struct tun_struct *tun = (struct tun_struct *)file->private_data;
-
-	DBG(KERN_INFO "%s: tun_chr_close\n", tun->name);
 
 	if (tun->flags & TUN_IFF_SET) {
 		rtnl_lock();
@@ -494,17 +537,23 @@ static struct file_operations tun_fops = {
 	fasync:	tun_chr_fasync
 };
 
-static struct miscdevice tun_miscdev=
-{
-        TUN_MINOR,
-        "net/tun",
-        &tun_fops
+static struct miscdevice tun_miscdev = {
+	TUN_MINOR,
+	"net/tun",
+	&tun_fops
 };
 
 int __init tun_init(void)
 {
+<<<<<<< HEAD
 	printk(KERN_INFO "Universal TUN/TAP device driver %s "
 	       "(C)1999-2000 Maxim Krasnyansky\n", TUN_VER);
+=======
+	printk(KERN_INFO
+		   "Universal TUN/TAP device driver %s "
+		   "(C)1999-2000 Maxim Krasnyansky\n",
+		   TUN_VER);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	if (misc_register(&tun_miscdev)) {
 		printk(KERN_ERR "tun: Can't register misc device %d\n", TUN_MINOR);

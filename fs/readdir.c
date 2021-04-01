@@ -15,7 +15,7 @@
 
 int vfs_readdir(struct file *file, filldir_t filler, void *buf)
 {
-	struct inode *inode = file->f_dentry->d_inode;
+	struct inode *inode = file->f_dentry->d_inode; // 文件对应的inode对象
 	int res = -ENOTDIR;
 	if (!file->f_op || !file->f_op->readdir)
 		goto out;
@@ -76,7 +76,7 @@ int dcache_readdir(struct file * filp, void * dirent, filldir_t filldir)
 				list = list->next;
 			}
 
-			while(1) {
+			while (1) {
 				struct dentry *de = list_entry(list, struct dentry, d_child);
 
 				if (!list_empty(&de->d_hash) && de->d_inode) {
@@ -167,18 +167,18 @@ out:
 
 /*
  * New, all-improved, singing, dancing, iBCS2-compliant getdents()
- * interface. 
+ * interface.
  */
 struct linux_dirent {
 	unsigned long	d_ino;
 	unsigned long	d_off;
 	unsigned short	d_reclen;
-	char		d_name[1];
+	char			d_name[1];
 };
 
 struct getdents_callback {
-	struct linux_dirent * current_dir;
-	struct linux_dirent * previous;
+	struct linux_dirent *current_dir;
+	struct linux_dirent *previous;
 	int count;
 	int error;
 };
@@ -216,7 +216,7 @@ asmlinkage long sys_getdents(unsigned int fd, void * dirent, unsigned int count)
 	int error;
 
 	error = -EBADF;
-	file = fget(fd);
+	file = fget(fd); // 查找到fd对应的file对象
 	if (!file)
 		goto out;
 

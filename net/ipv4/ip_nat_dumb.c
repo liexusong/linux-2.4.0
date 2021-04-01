@@ -67,14 +67,15 @@ ip_do_nat(struct sk_buff *skb)
 
 		switch(iph->protocol) {
 		case IPPROTO_TCP:
-			cksum  = (u16*)&((struct tcphdr*)(((char*)iph) + (iph->ihl<<2)))->check;
+			cksum = (u16*)&((struct tcphdr*)(((char*)iph) + (iph->ihl<<2)))->check;
 			if ((u8*)(cksum+1) > skb->tail)
 				goto truncated;
-			check  = csum_tcpudp_magic(iph->saddr, iph->daddr, 0, 0, ~(*cksum));
+			check = csum_tcpudp_magic(iph->saddr, iph->daddr, 0, 0, ~(*cksum));
 			*cksum = csum_tcpudp_magic(~osaddr, ~odaddr, 0, 0, ~check);
 			break;
+
 		case IPPROTO_UDP:
-			cksum  = (u16*)&((struct udphdr*)(((char*)iph) + (iph->ihl<<2)))->check;
+			cksum = (u16*)&((struct udphdr*)(((char*)iph) + (iph->ihl<<2)))->check;
 			if ((u8*)(cksum+1) > skb->tail)
 				goto truncated;
 			if ((check = *cksum) != 0) {
@@ -83,6 +84,7 @@ ip_do_nat(struct sk_buff *skb)
 				*cksum = check ? : 0xFFFF;
 			}
 			break;
+
 		case IPPROTO_ICMP:
 		{
 			struct icmphdr *icmph = (struct icmphdr*)((char*)iph + (iph->ihl<<2));

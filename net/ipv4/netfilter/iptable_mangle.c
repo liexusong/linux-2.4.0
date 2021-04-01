@@ -39,55 +39,100 @@ static struct
 	struct ipt_standard entries[2];
 	struct ipt_error term;
 } initial_table __initdata
-= { { "mangle", MANGLE_VALID_HOOKS, 3,
-      sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
-      { [NF_IP_PRE_ROUTING] 0,
-	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) },
-      { [NF_IP_PRE_ROUTING] 0,
-	[NF_IP_LOCAL_OUT] sizeof(struct ipt_standard) },
-      0, NULL, { } },
-    {
-	    /* PRE_ROUTING */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { sizeof(struct ipt_standard_target), "" } }, { } },
-		-NF_ACCEPT - 1 } },
-	    /* LOCAL_OUT */
-	    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-		0,
-		sizeof(struct ipt_entry),
-		sizeof(struct ipt_standard),
-		0, { 0, 0 }, { } },
-	      { { { { sizeof(struct ipt_standard_target), "" } }, { } },
-		-NF_ACCEPT - 1 } }
-    },
-    /* ERROR */
-    { { { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
-	0,
-	sizeof(struct ipt_entry),
-	sizeof(struct ipt_error),
-	0, { 0, 0 }, { } },
-      { { { { sizeof(struct ipt_error_target), IPT_ERROR_TARGET } },
-	  { } },
-	"ERROR"
-      }
-    }
+= {
+	{
+		"mangle",                                                    // name
+		MANGLE_VALID_HOOKS,                                          // valid_hooks
+		3,                                                           // num_entries
+		sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),  // size
+		                                                             // hook_entry
+		{
+			[NF_IP_PRE_ROUTING] 0,
+			[NF_IP_LOCAL_OUT]   sizeof(struct ipt_standard)
+		},
+		                                                             // underflow
+		{
+			[NF_IP_PRE_ROUTING] 0,
+			[NF_IP_LOCAL_OUT]   sizeof(struct ipt_standard)
+		},
+		0,                                                           // num_counters
+		NULL,                                                        // counters
+		{ }                                                          // entries
+  	},
+	{
+		/* PRE_ROUTING */
+		{
+			{ { { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{ }
+			},
+			{
+				{
+					{ { sizeof(struct ipt_standard_target), "" } },
+					{ }
+				},
+				-NF_ACCEPT - 1,
+			}
+		},
+		/* LOCAL_OUT */
+		{
+			{
+				{ { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+				0,
+				sizeof(struct ipt_entry),
+				sizeof(struct ipt_standard),
+				0,
+				{ 0, 0 },
+				{ }
+			},
+			{
+				{ { { sizeof(struct ipt_standard_target), "" } }, { } },
+				-NF_ACCEPT - 1,
+			}
+		}
+	},
+	/* ERROR */
+	{
+		{
+			{ { 0 }, { 0 }, { 0 }, { 0 }, "", "", { 0 }, { 0 }, 0, 0, 0 },
+			0,
+			sizeof(struct ipt_entry),
+			sizeof(struct ipt_error),
+			0,
+			{ 0, 0 },
+			{ }
+		},
+		{
+			{
+				{ { sizeof(struct ipt_error_target), IPT_ERROR_TARGET } },
+				{ }
+			},
+			"ERROR"
+		}
+	}
 };
 
-static struct ipt_table packet_mangler
-= { { NULL, NULL }, "mangle", &initial_table.repl,
-    MANGLE_VALID_HOOKS, RW_LOCK_UNLOCKED, NULL };
+static struct ipt_table packet_mangler =
+{
+	{ NULL, NULL },
+	"mangle",
+	&initial_table.repl,
+	MANGLE_VALID_HOOKS,
+	RW_LOCK_UNLOCKED,
+	NULL,
+};
 
 /* The work comes in here from netfilter.c. */
 static unsigned int
 ipt_hook(unsigned int hook,
-	 struct sk_buff **pskb,
-	 const struct net_device *in,
-	 const struct net_device *out,
-	 int (*okfn)(struct sk_buff *))
+		 struct sk_buff **pskb,
+		 const struct net_device *in,
+		 const struct net_device *out,
+		 int (*okfn)(struct sk_buff *))
 {
 	return ipt_do_table(pskb, hook, in, out, &packet_mangler, NULL);
 }
@@ -100,13 +145,13 @@ route_me_harder(struct sk_buff *skb)
 	struct iphdr *iph = skb->nh.iph;
 	struct rtable *rt;
 	struct rt_key key = { dst:iph->daddr,
-			      src:iph->saddr,
-			      oif:skb->sk ? skb->sk->bound_dev_if : 0,
-			      tos:RT_TOS(iph->tos)|RTO_CONN,
+				  src:iph->saddr,
+				  oif:skb->sk ? skb->sk->bound_dev_if : 0,
+				  tos:RT_TOS(iph->tos)|RTO_CONN,
 #ifdef CONFIG_IP_ROUTE_FWMARK
-			      fwmark:skb->nfmark
+				  fwmark:skb->nfmark
 #endif
-			    };
+				};
 
 	if (ip_route_output_key(&rt, &key) != 0) {
 		printk("route_me_harder: No more route.\n");
@@ -122,10 +167,10 @@ route_me_harder(struct sk_buff *skb)
 
 static unsigned int
 ipt_local_out_hook(unsigned int hook,
-		   struct sk_buff **pskb,
-		   const struct net_device *in,
-		   const struct net_device *out,
-		   int (*okfn)(struct sk_buff *))
+				   struct sk_buff **pskb,
+				   const struct net_device *in,
+				   const struct net_device *out,
+				   int (*okfn)(struct sk_buff *))
 {
 	unsigned int ret;
 	u_int8_t tos;
@@ -134,7 +179,7 @@ ipt_local_out_hook(unsigned int hook,
 
 	/* root is playing with raw sockets. */
 	if ((*pskb)->len < sizeof(struct iphdr)
-	    || (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr)) {
+		|| (*pskb)->nh.iph->ihl * 4 < sizeof(struct iphdr)) {
 		if (net_ratelimit())
 			printk("ipt_hook: happy cracking.\n");
 		return NF_ACCEPT;
@@ -149,7 +194,7 @@ ipt_local_out_hook(unsigned int hook,
 	ret = ipt_do_table(pskb, hook, in, out, &packet_mangler, NULL);
 	/* Reroute for ANY change. */
 	if (ret != NF_DROP && ret != NF_STOLEN
-	    && ((*pskb)->nh.iph->saddr != saddr
+		&& ((*pskb)->nh.iph->saddr != saddr
 		|| (*pskb)->nh.iph->daddr != daddr
 		|| (*pskb)->nfmark != nfmark
 		|| (*pskb)->nh.iph->tos != tos))
@@ -158,10 +203,21 @@ ipt_local_out_hook(unsigned int hook,
 	return ret;
 }
 
-static struct nf_hook_ops ipt_ops[]
-= { { { NULL, NULL }, ipt_hook, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_MANGLE },
-    { { NULL, NULL }, ipt_local_out_hook, PF_INET, NF_IP_LOCAL_OUT,
-		NF_IP_PRI_MANGLE }
+static struct nf_hook_ops ipt_ops[] = {
+	{
+		{ NULL, NULL },
+		ipt_hook,
+		PF_INET,
+		NF_IP_PRE_ROUTING,
+		NF_IP_PRI_MANGLE
+	},
+	{
+		{ NULL, NULL },
+		ipt_local_out_hook,
+		PF_INET,
+		NF_IP_LOCAL_OUT,
+		NF_IP_PRI_MANGLE
+	}
 };
 
 static int __init init(void)

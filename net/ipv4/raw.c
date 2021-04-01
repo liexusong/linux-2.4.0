@@ -101,8 +101,8 @@ struct sock *__raw_v4_lookup(struct sock *sk, unsigned short num,
 	struct sock *s = sk;
 
 	for(s = sk; s; s = s->next) {
-		if((s->num == num) 				&&
-		   !(s->daddr && s->daddr != raddr) 		&&
+		if((s->num == num) &&
+		   !(s->daddr && s->daddr != raddr) &&
 		   !(s->rcv_saddr && s->rcv_saddr != laddr)	&&
 		   !(s->bound_dev_if && s->bound_dev_if != dif))
 			break; /* gotcha */
@@ -419,7 +419,7 @@ back_from_confirm:
 	rfh.dst = &rt->u.dst;
 	if (!ipc.addr)
 		ipc.addr = rt->rt_dst;
-	err=ip_build_xmit(sk, sk->protinfo.af_inet.hdrincl ? raw_getrawfrag : raw_getfrag,
+	err = ip_build_xmit(sk, sk->protinfo.af_inet.hdrincl ? raw_getrawfrag : raw_getfrag,
 			  &rfh, len, &ipc, rt, msg->msg_flags);
 
 done:

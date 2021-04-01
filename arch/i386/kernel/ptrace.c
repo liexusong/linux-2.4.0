@@ -39,11 +39,11 @@
 #define EFL_OFFSET ((EFL-2)*4-sizeof(struct pt_regs))
 
 /*
- * this routine will get a word off of the processes privileged stack. 
- * the offset is how far from the base addr as stored in the TSS.  
+ * this routine will get a word off of the processes privileged stack.
+ * the offset is how far from the base addr as stored in the TSS.
  * this routine assumes that all the privileged stacks are in our
  * data space.
- */   
+ */
 static inline int get_stack_long(struct task_struct *task, int offset)
 {
 	unsigned char *stack;
@@ -54,8 +54,8 @@ static inline int get_stack_long(struct task_struct *task, int offset)
 }
 
 /*
- * this routine will put a word on the processes privileged stack. 
- * the offset is how far from the base addr as stored in the TSS.  
+ * this routine will put a word on the processes privileged stack.
+ * the offset is how far from the base addr as stored in the TSS.
  * this routine assumes that all the privileged stacks are in our
  * data space.
  */
@@ -142,18 +142,18 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 
 	lock_kernel();
 	ret = -EPERM;
-	if (request == PTRACE_TRACEME) {
+	if (request == PTRACE_TRACEME) { // 如果希望别的进程跟踪自己
 		/* are we already being traced? */
 		if (current->ptrace & PT_PTRACED)
 			goto out;
 		/* set the ptrace bit in the process flags. */
-		current->ptrace |= PT_PTRACED;
+		current->ptrace |= PT_PTRACED; // 设置跟踪标志位
 		ret = 0;
 		goto out;
 	}
 	ret = -ESRCH;
 	read_lock(&tasklist_lock);
-	child = find_task_by_pid(pid);
+	child = find_task_by_pid(pid); // 找到pid对应的进程描述符
 	if (child)
 		get_task_struct(child);
 	read_unlock(&tasklist_lock);
@@ -164,7 +164,7 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 	if (pid == 1)		/* you may not mess with init */
 		goto out_tsk;
 
-	if (request == PTRACE_ATTACH) {
+	if (request == PTRACE_ATTACH) { // 如果要跟踪其他进程
 		if (child == current)
 			goto out_tsk;
 		if ((!child->dumpable ||
@@ -189,7 +189,7 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 		}
 		write_unlock_irq(&tasklist_lock);
 
-		send_sig(SIGSTOP, child, 1);
+		send_sig(SIGSTOP, child, 1); // 把被跟踪进程设置为stop状态
 		ret = 0;
 		goto out_tsk;
 	}
@@ -204,7 +204,7 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 		goto out_tsk;
 	switch (request) {
 	/* when I and D space are separate, these will need to be fixed. */
-	case PTRACE_PEEKTEXT: /* read word at location addr. */ 
+	case PTRACE_PEEKTEXT: /* read word at location addr. */
 	case PTRACE_PEEKDATA: {
 		unsigned long tmp;
 		int copied;
@@ -222,7 +222,7 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 		unsigned long tmp;
 
 		ret = -EIO;
-		if ((addr & 3) || addr < 0 || 
+		if ((addr & 3) || addr < 0 ||
 		    addr > sizeof(struct user) - 3)
 			break;
 
@@ -250,7 +250,7 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 
 	case PTRACE_POKEUSR: /* write the word at location addr in the USER area */
 		ret = -EIO;
-		if ((addr & 3) || addr < 0 || 
+		if ((addr & 3) || addr < 0 ||
 		    addr > sizeof(struct user) - 3)
 			break;
 
@@ -271,7 +271,7 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 			  if(addr == (long) &dummy->u_debugreg[5]) break;
 			  if(addr < (long) &dummy->u_debugreg[4] &&
 			     ((unsigned long) data) >= TASK_SIZE-3) break;
-			  
+
 			  if(addr == (long) &dummy->u_debugreg[7]) {
 				  data &= ~DR_CONTROL_RESERVED;
 				  for(i=0; i<4; i++)
@@ -307,8 +307,8 @@ asmlinkage int sys_ptrace(long request, long pid, long addr, long data)
 	}
 
 /*
- * make the child exit.  Best I can do is send it a sigkill. 
- * perhaps it should be put in the status that it wants to 
+ * make the child exit.  Best I can do is send it a sigkill.
+ * perhaps it should be put in the status that it wants to
  * exit.
  */
 	case PTRACE_KILL: {

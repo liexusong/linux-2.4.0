@@ -101,8 +101,8 @@ fw_in(unsigned int hooknum,
 	case NF_IP_PRE_ROUTING:
 		if (fwops->fw_acct_in)
 			fwops->fw_acct_in(fwops, PF_INET,
-					  (struct net_device *)in,
-					  (*pskb)->nh.raw, &redirpt, pskb);
+							  (struct net_device *)in,
+							  (*pskb)->nh.raw, &redirpt, pskb);
 
 		if ((*pskb)->nh.iph->frag_off & htons(IP_MF|IP_OFFSET)) {
 			*pskb = ip_ct_gather_frags(*pskb);
@@ -112,7 +112,7 @@ fw_in(unsigned int hooknum,
 		}
 
 		ret = fwops->fw_input(fwops, PF_INET, (struct net_device *)in,
-				      (*pskb)->nh.raw, &redirpt, pskb);
+							  (*pskb)->nh.raw, &redirpt, pskb);
 		break;
 
 	case NF_IP_FORWARD:
@@ -121,20 +121,20 @@ fw_in(unsigned int hooknum,
 		if ((*pskb)->nfct)
 			ret = FW_ACCEPT;
 		else ret = fwops->fw_forward(fwops, PF_INET,
-					     (struct net_device *)out,
-					     (*pskb)->nh.raw, &redirpt, pskb);
+								     (struct net_device *)out,
+								     (*pskb)->nh.raw, &redirpt, pskb);
 		break;
 
 	case NF_IP_POST_ROUTING:
 		ret = fwops->fw_output(fwops, PF_INET,
-				       (struct net_device *)out,
-				       (*pskb)->nh.raw, &redirpt, pskb);
+						       (struct net_device *)out,
+						       (*pskb)->nh.raw, &redirpt, pskb);
 		if (ret == FW_ACCEPT || ret == FW_SKIP) {
 			if (fwops->fw_acct_out)
 				fwops->fw_acct_out(fwops, PF_INET,
-						   (struct net_device *)in,
-						   (*pskb)->nh.raw, &redirpt,
-						   pskb);
+								   (struct net_device *)in,
+								   (*pskb)->nh.raw, &redirpt,
+								   pskb);
 			confirm_connection(*pskb);
 		}
 		break;
@@ -207,21 +207,20 @@ static int sock_fn(struct sock *sk, int optval, void *user, unsigned int len)
 	return -ip_fw_ctl(optval, user, len);
 }
 
-static struct nf_hook_ops preroute_ops
-= { { NULL, NULL }, fw_in, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_FILTER };
+static struct nf_hook_ops preroute_ops =
+{ { NULL, NULL }, fw_in, PF_INET, NF_IP_PRE_ROUTING, NF_IP_PRI_FILTER };
 
-static struct nf_hook_ops postroute_ops
-= { { NULL, NULL }, fw_in, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_FILTER };
+static struct nf_hook_ops postroute_ops =
+{ { NULL, NULL }, fw_in, PF_INET, NF_IP_POST_ROUTING, NF_IP_PRI_FILTER };
 
-static struct nf_hook_ops forward_ops
-= { { NULL, NULL }, fw_in, PF_INET, NF_IP_FORWARD, NF_IP_PRI_FILTER };
+static struct nf_hook_ops forward_ops =
+{ { NULL, NULL }, fw_in, PF_INET, NF_IP_FORWARD, NF_IP_PRI_FILTER };
 
-static struct nf_hook_ops local_in_ops
-= { { NULL, NULL }, fw_confirm, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_LAST - 1 };
+static struct nf_hook_ops local_in_ops =
+{ { NULL, NULL }, fw_confirm, PF_INET, NF_IP_LOCAL_IN, NF_IP_PRI_LAST - 1 };
 
-static struct nf_sockopt_ops sock_ops
-= { { NULL, NULL }, PF_INET, 64, 64 + 1024 + 1, &sock_fn, 0, 0, NULL,
-    0, NULL };
+static struct nf_sockopt_ops sock_ops =
+{ { NULL, NULL }, PF_INET, 64, 64 + 1024 + 1, &sock_fn, 0, 0, NULL, 0, NULL };
 
 extern int ipfw_init_or_cleanup(int init);
 

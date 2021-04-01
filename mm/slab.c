@@ -566,7 +566,7 @@ static void kmem_slab_destroy (kmem_cache_t *cachep, slab_t *slabp)
 #if DEBUG
 			if (cachep->flags & SLAB_RED_ZONE) {
 				objp -= BYTES_PER_WORD;
-			}	
+			}
 			if ((cachep->flags & SLAB_POISON)  &&
 				kmem_check_poison_obj(cachep, objp))
 				BUG();
@@ -674,7 +674,7 @@ kmem_cache_create (const char *name, size_t size, size_t offset,
 		size &= ~(BYTES_PER_WORD-1);
 		printk("%sForcing size word alignment - %s\n", func_nm, name);
 	}
-	
+
 #if DEBUG
 	if (flags & SLAB_RED_ZONE) {
 		/*
@@ -859,7 +859,7 @@ static void do_ccupdate_local(void *info)
 {
 	ccupdate_struct_t *new = (ccupdate_struct_t *)info;
 	cpucache_t *old = cc_data(new->cachep);
-	
+
 	cc_data(new->cachep) = new->new[smp_processor_id()];
 	new->new[smp_processor_id()] = old;
 }
@@ -998,7 +998,7 @@ static inline slab_t * kmem_cache_slabmgmt (kmem_cache_t *cachep,
 			void *objp, int colour_off, int local_flags)
 {
 	slab_t *slabp;
-	
+
 	if (OFF_SLAB(cachep)) {
 		/* Slab management obj is off-slab. */
 		slabp = kmem_cache_alloc(cachep->slabp_cache, local_flags);
@@ -1407,7 +1407,7 @@ static inline void kmem_cache_free_one(kmem_cache_t *cachep, void *objp)
 		slabp->free = objnr;
 	}
 	STATS_DEC_ACTIVE(cachep);
-	
+
 	/* fixup slab chain */
 	if (slabp->inuse-- == cachep->num)
 		goto moveslab_partial;
@@ -1503,7 +1503,7 @@ static inline void __kmem_cache_free (kmem_cache_t *cachep, void* objp)
  * Allocate an object from this cache.  The flags are only relevant
  * if the cache has no available objects.
  */
-void * kmem_cache_alloc (kmem_cache_t *cachep, int flags)
+void * kmem_cache_alloc(kmem_cache_t *cachep, int flags)
 {
 	return __kmem_cache_alloc(cachep, flags);
 }
@@ -1984,7 +1984,7 @@ int slabinfo_write_proc (struct file *file, const char *buffer,
 	char kbuf[MAX_SLABINFO_WRITE], *tmp;
 	int limit, batchcount, res;
 	struct list_head *p;
-	
+
 	if (count > MAX_SLABINFO_WRITE)
 		return -EINVAL;
 	if (copy_from_user(&kbuf, buffer, count))

@@ -95,7 +95,7 @@ static int ext2_alloc_block (struct inode * inode, unsigned long goal, int *err)
 	if (inode->u.ext2_i.i_prealloc_count &&
 	    (goal == inode->u.ext2_i.i_prealloc_block ||
 	     goal + 1 == inode->u.ext2_i.i_prealloc_block))
-	{		
+	{
 		result = inode->u.ext2_i.i_prealloc_block++;
 		inode->u.ext2_i.i_prealloc_count--;
 		/* Writer: end */
@@ -110,7 +110,7 @@ static int ext2_alloc_block (struct inode * inode, unsigned long goal, int *err)
 			    alloc_hits, ++alloc_attempts);
 #endif
 		if (S_ISREG(inode->i_mode))
-			result = ext2_new_block (inode, goal, 
+			result = ext2_new_block (inode, goal,
 				 &inode->u.ext2_i.i_prealloc_count,
 				 &inode->u.ext2_i.i_prealloc_block, err);
 		else
@@ -301,7 +301,7 @@ static inline unsigned long ext2_find_near(struct inode *inode, Indirect *ind)
 	 * It is going to be refered from inode itself? OK, just put it into
 	 * the same cylinder group then.
 	 */
-	return (inode->u.ext2_i.i_block_group * 
+	return (inode->u.ext2_i.i_block_group *
 		EXT2_BLOCKS_PER_GROUP(inode->i_sb)) +
 	       le32_to_cpu(inode->i_sb->u.ext2_sb.s_es->s_first_data_block);
 }
@@ -329,7 +329,7 @@ static inline int ext2_find_goal(struct inode *inode,
 	if (block == inode->u.ext2_i.i_next_alloc_block + 1) {
 		inode->u.ext2_i.i_next_alloc_block++;
 		inode->u.ext2_i.i_next_alloc_goal++;
-	} 
+	}
 	/* Writer: end */
 	/* Reader: pointers, ->i_next_alloc* */
 	if (verify_chain(chain, partial)) {
@@ -393,7 +393,7 @@ static int ext2_alloc_branch(struct inode *inode,
 			break;
 		branch[n].key = cpu_to_le32(nr);
 		/*
-		 * Get buffer_head for parent block, zero it out and set 
+		 * Get buffer_head for parent block, zero it out and set
 		 * the pointer to new one, then send parent to disk.
 		 */
 		bh = getblk(inode->i_dev, parent, blocksize);
@@ -598,35 +598,35 @@ struct buffer_head * ext2_getblk(struct inode * inode, long block, int create, i
 	return NULL;
 }
 
-struct buffer_head * ext2_bread (struct inode * inode, int block, 
+struct buffer_head * ext2_bread (struct inode * inode, int block,
 				 int create, int *err)
 {
 	struct buffer_head * bh;
 	int prev_blocks;
-	
+
 	prev_blocks = inode->i_blocks;
-	
+
 	bh = ext2_getblk (inode, block, create, err);
 	if (!bh)
 		return bh;
-	
+
 	/*
 	 * If the inode has grown, and this is a directory, then perform
 	 * preallocation of a few more blocks to try to keep directory
 	 * fragmentation down.
 	 */
-	if (create && 
-	    S_ISDIR(inode->i_mode) && 
+	if (create &&
+	    S_ISDIR(inode->i_mode) &&
 	    inode->i_blocks > prev_blocks &&
 	    EXT2_HAS_COMPAT_FEATURE(inode->i_sb,
 				    EXT2_FEATURE_COMPAT_DIR_PREALLOC)) {
 		int i;
 		struct buffer_head *tmp_bh;
-		
+
 		for (i = 1;
 		     i < EXT2_SB(inode->i_sb)->s_es->s_prealloc_dir_blocks;
 		     i++) {
-			/* 
+			/*
 			 * ext2_getblk will zero out the contents of the
 			 * directory for us
 			 */
@@ -638,7 +638,7 @@ struct buffer_head * ext2_bread (struct inode * inode, int block,
 			brelse (tmp_bh);
 		}
 	}
-	
+
 	if (buffer_uptodate(bh))
 		return bh;
 	ll_rw_block (READ, 1, &bh);
@@ -843,7 +843,7 @@ static void ext2_free_branches(struct inode *inode, u32 *p, u32 *q, int depth)
 			/*
 			 * A read failure? Report error and clear slot
 			 * (should be rare).
-			 */ 
+			 */
 			if (!bh) {
 				ext2_error(inode->i_sb, "ext2_free_branches",
 					"Read failure, inode=%ld, block=%ld",
@@ -969,22 +969,24 @@ void ext2_read_inode (struct inode * inode)
 	unsigned long offset;
 	struct ext2_group_desc * gdp;
 
-	if ((inode->i_ino != EXT2_ROOT_INO && inode->i_ino != EXT2_ACL_IDX_INO &&
-	     inode->i_ino != EXT2_ACL_DATA_INO &&
-	     inode->i_ino < EXT2_FIRST_INO(inode->i_sb)) ||
-	    inode->i_ino > le32_to_cpu(inode->i_sb->u.ext2_sb.s_es->s_inodes_count)) {
+	// 检测inode是否合法
+	if ((inode->i_ino != EXT2_ROOT_INO &&
+		 inode->i_ino != EXT2_ACL_IDX_INO &&
+		 inode->i_ino != EXT2_ACL_DATA_INO &&
+		 inode->i_ino < EXT2_FIRST_INO(inode->i_sb)) ||
+		 inode->i_ino > le32_to_cpu(inode->i_sb->u.ext2_sb.s_es->s_inodes_count)) {
 		ext2_error (inode->i_sb, "ext2_read_inode",
 			    "bad inode number: %lu", inode->i_ino);
 		goto bad_inode;
 	}
-	block_group = (inode->i_ino - 1) / EXT2_INODES_PER_GROUP(inode->i_sb);
-	if (block_group >= inode->i_sb->u.ext2_sb.s_groups_count) {
+	block_group = (inode->i_ino - 1) / EXT2_INODES_PER_GROUP(inode->i_sb); // inode号 / 每个组拥有的inode数量 = inode所在的组
+	if (block_group >= inode->i_sb->u.ext2_sb.s_groups_count) { // 如果所在的组超过了文件系统的组数量, 说明是无效的组
 		ext2_error (inode->i_sb, "ext2_read_inode",
 			    "group >= groups count");
 		goto bad_inode;
 	}
-	group_desc = block_group >> EXT2_DESC_PER_BLOCK_BITS(inode->i_sb);
-	desc = block_group & (EXT2_DESC_PER_BLOCK(inode->i_sb) - 1);
+	group_desc = block_group >> EXT2_DESC_PER_BLOCK_BITS(inode->i_sb); // 组描述符所在块的索引
+	desc = block_group & (EXT2_DESC_PER_BLOCK(inode->i_sb) - 1);       // 组描述符所在块的偏移量
 	bh = inode->i_sb->u.ext2_sb.s_group_desc[group_desc];
 	if (!bh) {
 		ext2_error (inode->i_sb, "ext2_read_inode",
@@ -996,23 +998,25 @@ void ext2_read_inode (struct inode * inode)
 	/*
 	 * Figure out the offset within the block group inode table
 	 */
-	offset = ((inode->i_ino - 1) % EXT2_INODES_PER_GROUP(inode->i_sb)) *
-		EXT2_INODE_SIZE(inode->i_sb);
-	block = le32_to_cpu(gdp[desc].bg_inode_table) +
-		(offset >> EXT2_BLOCK_SIZE_BITS(inode->i_sb));
-	if (!(bh = bread (inode->i_dev, block, inode->i_sb->s_blocksize))) {
+	// 计算inode所在块偏移量
+	offset = ((inode->i_ino - 1) % EXT2_INODES_PER_GROUP(inode->i_sb)) * EXT2_INODE_SIZE(inode->i_sb);
+	// 计算inode所在块的块索引
+	block = le32_to_cpu(gdp[desc].bg_inode_table) + (offset >> EXT2_BLOCK_SIZE_BITS(inode->i_sb));
+	// 从磁盘中读取数据块的内容
+	if (!(bh = bread(inode->i_dev, block, inode->i_sb->s_blocksize))) {
 		ext2_error (inode->i_sb, "ext2_read_inode",
 			    "unable to read inode block - "
 			    "inode=%lu, block=%lu", inode->i_ino, block);
 		goto bad_inode;
 	}
 	offset &= (EXT2_BLOCK_SIZE(inode->i_sb) - 1);
-	raw_inode = (struct ext2_inode *) (bh->b_data + offset);
+	raw_inode = (struct ext2_inode *)(bh->b_data + offset); // ext2_inode的真实内容
 
+	// 把ext2_inode的内容复制到inode节点中
 	inode->i_mode = le16_to_cpu(raw_inode->i_mode);
 	inode->i_uid = (uid_t)le16_to_cpu(raw_inode->i_uid_low);
 	inode->i_gid = (gid_t)le16_to_cpu(raw_inode->i_gid_low);
-	if(!(test_opt (inode->i_sb, NO_UID32))) {
+	if(!(test_opt(inode->i_sb, NO_UID32))) {
 		inode->i_uid |= le16_to_cpu(raw_inode->i_uid_high) << 16;
 		inode->i_gid |= le16_to_cpu(raw_inode->i_gid_high) << 16;
 	}
@@ -1029,7 +1033,7 @@ void ext2_read_inode (struct inode * inode)
 	 */
 	if (inode->i_nlink == 0 && (inode->i_mode == 0 || inode->u.ext2_i.i_dtime)) {
 		/* this inode is deleted */
-		brelse (bh);
+		brelse(bh);
 		goto bad_inode;
 	}
 	inode->i_blksize = PAGE_SIZE;	/* This is the optimal IO size (for stat), not the fs block size */
@@ -1058,7 +1062,7 @@ void ext2_read_inode (struct inode * inode)
 
 	if (inode->i_ino == EXT2_ACL_IDX_INO ||
 	    inode->i_ino == EXT2_ACL_DATA_INO)
-		/* Nothing to do */ ;
+		/* Nothing to do */ ; // 特殊inode不需要任何操作
 	else if (S_ISREG(inode->i_mode)) {
 		inode->i_op = &ext2_file_inode_operations;
 		inode->i_fop = &ext2_file_operations;
@@ -1073,7 +1077,7 @@ void ext2_read_inode (struct inode * inode)
 			inode->i_op = &page_symlink_inode_operations;
 			inode->i_mapping->a_ops = &ext2_aops;
 		}
-	} else 
+	} else
 		init_special_inode(inode, inode->i_mode,
 				   le32_to_cpu(raw_inode->i_block[0]));
 	brelse (bh);
@@ -1095,7 +1099,7 @@ void ext2_read_inode (struct inode * inode)
 		inode->i_flags |= S_NOATIME;
 	}
 	return;
-	
+
 bad_inode:
 	make_bad_inode(inode);
 	return;
@@ -1206,7 +1210,7 @@ static int ext2_update_inode(struct inode * inode, int do_sync)
 			}
 		}
 	}
-	
+
 	raw_inode->i_generation = cpu_to_le32(inode->i_generation);
 	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
 		raw_inode->i_block[0] = cpu_to_le32(kdev_t_to_nr(inode->i_rdev));
@@ -1244,7 +1248,7 @@ int ext2_notify_change(struct dentry *dentry, struct iattr *iattr)
 	struct inode *inode = dentry->d_inode;
 	int		retval;
 	unsigned int	flags;
-	
+
 	retval = -EPERM;
 	if (iattr->ia_valid & ATTR_ATTR_FLAG &&
 	    ((!(iattr->ia_attr_flags & ATTR_FLAG_APPEND) !=
@@ -1261,7 +1265,7 @@ int ext2_notify_change(struct dentry *dentry, struct iattr *iattr)
 		goto out;
 
 	inode_setattr(inode, iattr);
-	
+
 	flags = iattr->ia_attr_flags;
 	if (flags & ATTR_FLAG_SYNCRONOUS) {
 		inode->i_flags |= S_SYNC;

@@ -60,7 +60,7 @@ static int __br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 		return 0;
 	}
 
-	if ((dst = br_fdb_get(br, dest)) != NULL) {
+	if ((dst = br_fdb_get(br, dest)) != NULL) { // 是否发送到指定的设备?
 		br_forward(dst->dst, skb);
 		br_fdb_put(dst);
 		return 0;

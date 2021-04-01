@@ -19,11 +19,12 @@
 #include <asm/uaccess.h>
 #include "br_private.h"
 
-static int br_ioctl_device(struct net_bridge *br,
-			   unsigned int cmd,
-			   unsigned long arg0,
-			   unsigned long arg1,
-			   unsigned long arg2)
+static int
+br_ioctl_device(struct net_bridge *br,
+				unsigned int cmd,
+				unsigned long arg0,
+				unsigned long arg1,
+				unsigned long arg2)
 {
 	if (br == NULL)
 		return -EINVAL;
@@ -184,9 +185,8 @@ static int br_ioctl_device(struct net_bridge *br,
 	return -EOPNOTSUPP;
 }
 
-static int br_ioctl_deviceless(unsigned int cmd,
-			       unsigned long arg0,
-			       unsigned long arg1)
+static int
+br_ioctl_deviceless(unsigned int cmd, unsigned long arg0, unsigned long arg1)
 {
 	switch (cmd)
 	{
@@ -250,7 +250,8 @@ int br_ioctl_deviceless_stub(unsigned long arg)
 	return err;
 }
 
-int br_ioctl(struct net_bridge *br, unsigned int cmd, unsigned long arg0, unsigned long arg1, unsigned long arg2)
+int br_ioctl(struct net_bridge *br, unsigned int cmd, unsigned long arg0,
+			 unsigned long arg1, unsigned long arg2)
 {
 	int err;
 

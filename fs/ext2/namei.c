@@ -57,12 +57,12 @@ static inline int ext2_match (int len, const char * const name,
  * itself (as a parameter - res_dir). It does NOT read the inode of the
  * entry - you'll have to do that yourself if you want to.
  */
-static struct buffer_head * ext2_find_entry(struct inode * dir,
-					     const char * const name, int namelen,
-					     struct ext2_dir_entry_2 ** res_dir)
+static struct buffer_head * ext2_find_entry(
+	struct inode * dir, const char * const name,
+	int namelen, struct ext2_dir_entry_2 ** res_dir)
 {
 	struct super_block * sb;
-	struct buffer_head * bh_use[NAMEI_RA_SIZE];   // NAMEI_RA_SIZE == 8
+	struct buffer_head * bh_use[NAMEI_RA_SIZE]; // 8 items
 	struct buffer_head * bh_read[NAMEI_RA_SIZE];
 	unsigned long offset;
 	int block, toread, i, err;
@@ -93,7 +93,7 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 		char * dlimit;
 
 		if ((block % NAMEI_RA_BLOCKS) == 0 && toread) {
-			ll_rw_block (READ, toread, bh_read);
+			ll_rw_block(READ, toread, bh_read); // 从磁盘中读取数据块
 			toread = 0;
 		}
 		bh = bh_use[block % NAMEI_RA_SIZE];
@@ -106,7 +106,7 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 			offset += sb->s_blocksize;
 			continue;
 		}
-		wait_on_buffer (bh);
+		wait_on_buffer(bh); // 等待数据块从磁盘中读入到内存中
 		if (!buffer_uptodate(bh)) {
 			/*
 			 * read error: all bets are off
@@ -114,6 +114,7 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 			break;
 		}
 
+		// 搜索目录项
 		de = (struct ext2_dir_entry_2 *) bh->b_data;
 		dlimit = bh->b_data + sb->s_blocksize;
 		while ((char *) de < dlimit) {
@@ -121,8 +122,8 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 			/* do minimal checking `by hand' */
 			int de_len;
 
-			if ((char *) de + namelen <= dlimit &&
-			    ext2_match (namelen, name, de)) {
+			if ((char *)de + namelen <= dlimit
+			    && ext2_match(namelen, name, de)) { // 找到了目录项
 				/* found a match -
 				   just to be sure, do a full check */
 				if (!ext2_check_dir_entry("ext2_find_entry",
@@ -130,7 +131,7 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 					goto failure;
 				for (i = 0; i < NAMEI_RA_SIZE; ++i) {
 					if (bh_use[i] != bh)
-						brelse (bh_use[i]);
+						brelse(bh_use[i]);
 				}
 				*res_dir = de;
 				return bh;
@@ -140,16 +141,15 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 			if (de_len <= 0)
 				goto failure;
 			offset += de_len;
-			de = (struct ext2_dir_entry_2 *)
-				((char *) de + de_len);
+			de = (struct ext2_dir_entry_2 *)((char *)de + de_len);
 		}
 
-		brelse (bh);
-		if (((block + NAMEI_RA_SIZE) << EXT2_BLOCK_SIZE_BITS (sb)) >=
+		brelse(bh); // 如果要查找的目录项不在数据块中, 那么就可以释放这个数据块
+		if (((block + NAMEI_RA_SIZE) << EXT2_BLOCK_SIZE_BITS(sb)) >=
 		    dir->i_size)
 			bh = NULL;
 		else
-			bh = ext2_getblk (dir, block + NAMEI_RA_SIZE, 0, &err);
+			bh = ext2_getblk(dir, block + NAMEI_RA_SIZE, 0, &err);
 		bh_use[block % NAMEI_RA_SIZE] = bh;
 		if (bh && !buffer_uptodate(bh))
 			bh_read[toread++] = bh;
@@ -157,7 +157,7 @@ static struct buffer_head * ext2_find_entry(struct inode * dir,
 
 failure:
 	for (i = 0; i < NAMEI_RA_SIZE; ++i)
-		brelse (bh_use[i]);
+		brelse(bh_use[i]);
 	return NULL;
 }
 
@@ -175,13 +175,13 @@ static struct dentry *ext2_lookup(struct inode * dir, struct dentry *dentry)
 	inode = NULL;
 	if (bh) {
 		unsigned long ino = le32_to_cpu(de->inode); // 找到的只是文件的inode号
-		brelse (bh);
+		brelse(bh);
 		inode = iget(dir->i_sb, ino); // 所以这里还要把inode从磁盘读取到内存中
 
 		if (!inode)
 			return ERR_PTR(-EACCES);
 	}
-	d_add(dentry, inode);
+	d_add(dentry, inode); // 把dentry添加到inode的i_dentry列表中和添加到dentry_hashtable哈希表中
 	return NULL;
 }
 
@@ -328,7 +328,7 @@ static int ext2_delete_entry (struct inode * dir,
 	pde = NULL;
 	de = (struct ext2_dir_entry_2 *) bh->b_data;
 	while (i < bh->b_size) {
-		if (!ext2_check_dir_entry ("ext2_delete_entry", NULL, 
+		if (!ext2_check_dir_entry ("ext2_delete_entry", NULL,
 					   de, bh, i))
 			return -EIO;
 		if (de == de_del)  {
@@ -359,7 +359,7 @@ static int ext2_delete_entry (struct inode * dir,
  * is so far negative - it has no inode.
  *
  * If the create succeeds, we fill in the inode information
- * with d_instantiate(). 
+ * with d_instantiate().
  */
 static int ext2_create (struct inode * dir, struct dentry * dentry, int mode)
 {
@@ -373,7 +373,7 @@ static int ext2_create (struct inode * dir, struct dentry * dentry, int mode)
 	inode->i_mapping->a_ops = &ext2_aops;
 	inode->i_mode = mode;
 	mark_inode_dirty(inode);
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len, 
+	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len,
 			     inode);
 	if (err) {
 		inode->i_nlink--;
@@ -395,7 +395,7 @@ static int ext2_mknod (struct inode * dir, struct dentry *dentry, int mode, int 
 
 	inode->i_uid = current->fsuid;
 	init_special_inode(inode, mode, rdev);
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len, 
+	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len,
 			     inode);
 	if (err)
 		goto out_no_entry;
@@ -428,7 +428,7 @@ static int ext2_mkdir(struct inode * dir, struct dentry * dentry, int mode)
 	inode->i_op = &ext2_dir_inode_operations;
 	inode->i_fop = &ext2_dir_operations;
 	inode->i_size = inode->i_sb->s_blocksize;
-	inode->i_blocks = 0;	
+	inode->i_blocks = 0;
 	dir_block = ext2_bread (inode, 0, 1, &err);
 	if (!dir_block) {
 		inode->i_nlink--; /* is this nlink == 0? */
@@ -455,8 +455,7 @@ static int ext2_mkdir(struct inode * dir, struct dentry * dentry, int mode)
 	if (dir->i_mode & S_ISGID)
 		inode->i_mode |= S_ISGID;
 	mark_inode_dirty(inode);
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len, 
-			     inode);
+	err = ext2_add_entry(dir, dentry->d_name.name, dentry->d_name.len, inode);
 	if (err)
 		goto out_no_entry;
 	dir->i_nlink++;
@@ -493,7 +492,7 @@ static int empty_dir (struct inode * inode)
 	}
 	de = (struct ext2_dir_entry_2 *) bh->b_data;
 	de1 = (struct ext2_dir_entry_2 *) ((char *) de + le16_to_cpu(de->rec_len));
-	if (le32_to_cpu(de->inode) != inode->i_ino || !le32_to_cpu(de1->inode) || 
+	if (le32_to_cpu(de->inode) != inode->i_ino || !le32_to_cpu(de1->inode) ||
 	    strcmp (".", de->name) || strcmp ("..", de1->name)) {
 	    	ext2_warning (inode->i_sb, "empty_dir",
 			      "bad directory (dir #%lu) - no `.' or `..'",
@@ -596,7 +595,7 @@ static int ext2_unlink(struct inode * dir, struct dentry *dentry)
 	retval = -EIO;
 	if (le32_to_cpu(de->inode) != inode->i_ino)
 		goto end_unlink;
-	
+
 	if (!inode->i_nlink) {
 		ext2_warning (inode->i_sb, "ext2_unlink",
 			      "Deleting nonexistent file (%lu), %d",
@@ -619,7 +618,7 @@ end_unlink:
 	return retval;
 }
 
-static int ext2_symlink (struct inode * dir, struct dentry *dentry, const char * symname)
+static int ext2_symlink(struct inode * dir, struct dentry *dentry, const char * symname)
 {
 	struct inode * inode;
 	int l, err;
@@ -628,14 +627,14 @@ static int ext2_symlink (struct inode * dir, struct dentry *dentry, const char *
 	if (l > dir->i_sb->s_blocksize)
 		return -ENAMETOOLONG;
 
-	inode = ext2_new_inode (dir, S_IFLNK);
+	inode = ext2_new_inode(dir, S_IFLNK);
 	err = PTR_ERR(inode);
 	if (IS_ERR(inode))
 		return err;
 
 	inode->i_mode = S_IFLNK | S_IRWXUGO;
 
-	if (l > sizeof (inode->u.ext2_i.i_data)) {
+	if (l > sizeof(inode->u.ext2_i.i_data)) {
 		inode->i_op = &page_symlink_inode_operations;
 		inode->i_mapping->a_ops = &ext2_aops;
 		err = block_symlink(inode, symname, l);
@@ -648,7 +647,7 @@ static int ext2_symlink (struct inode * dir, struct dentry *dentry, const char *
 	}
 	mark_inode_dirty(inode);
 
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len, 
+	err = ext2_add_entry(dir, dentry->d_name.name, dentry->d_name.len,
 			     inode);
 	if (err)
 		goto out_no_entry;
@@ -673,8 +672,8 @@ static int ext2_link (struct dentry * old_dentry,
 
 	if (inode->i_nlink >= EXT2_LINK_MAX)
 		return -EMLINK;
-	
-	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len, 
+
+	err = ext2_add_entry (dir, dentry->d_name.name, dentry->d_name.len,
 			     inode);
 	if (err)
 		return err;
@@ -765,7 +764,7 @@ static int ext2_rename (struct inode * old_dir, struct dentry *old_dentry,
 		brelse(new_bh);
 		new_bh = NULL;
 	}
-	
+
 	/*
 	 * Like most other Unix systems, set the ctime for inodes on a
 	 * rename.

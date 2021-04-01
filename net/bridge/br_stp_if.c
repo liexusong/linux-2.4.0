@@ -162,8 +162,7 @@ void br_stp_recalculate_bridge_id(struct net_bridge *br)
 
 	p = br->port_list;
 	while (p != NULL) {
-		if (addr == br_mac_zero ||
-		    memcmp(p->dev->dev_addr, addr, ETH_ALEN) < 0)
+		if (addr == br_mac_zero || memcmp(p->dev->dev_addr, addr, ETH_ALEN) < 0)
 			addr = p->dev->dev_addr;
 
 		p = p->next;

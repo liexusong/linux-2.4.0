@@ -172,7 +172,11 @@ static struct file_operations misc_fops = {
  *	failure.
  */
 
+<<<<<<< HEAD
 int misc_register(struct miscdevice * misc)
+=======
+int misc_register(struct miscdevice *misc)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	static devfs_handle_t devfs_handle;
 
@@ -195,10 +199,21 @@ int misc_register(struct miscdevice * misc)
 		misc_minors[misc->minor >> 3] |= 1 << (misc->minor & 7);
 	if (!devfs_handle)
 		devfs_handle = devfs_mk_dir(NULL, "misc", NULL);
+<<<<<<< HEAD
 	misc->devfs_handle = devfs_register(devfs_handle, misc->name,
 									    DEVFS_FL_NONE, MISC_MAJOR, misc->minor,
 									    S_IFCHR|S_IRUSR|S_IWUSR|S_IRGRP,
 									    misc->fops, NULL);
+=======
+	misc->devfs_handle = devfs_register(devfs_handle,
+										misc->name,
+										DEVFS_FL_NONE,
+										MISC_MAJOR,
+										misc->minor,
+										S_IFCHR|S_IRUSR|S_IWUSR|S_IRGRP,
+										misc->fops,
+										NULL);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	/*
 	 * Add it to the front, so that later devices can "override"

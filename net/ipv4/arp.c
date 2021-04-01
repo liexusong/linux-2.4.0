@@ -15,9 +15,9 @@
  * 2 of the License, or (at your option) any later version.
  *
  * Fixes:
- *		Alan Cox	:	Removed the Ethernet assumptions in 
+ *		Alan Cox	:	Removed the Ethernet assumptions in
  *					Florian's code
- *		Alan Cox	:	Fixed some small errors in the ARP 
+ *		Alan Cox	:	Fixed some small errors in the ARP
  *					logic
  *		Alan Cox	:	Allow >4K in /proc
  *		Alan Cox	:	Make ARP add its own protocol entry
@@ -39,18 +39,18 @@
  *		Jonathan Naylor :	Only lookup the hardware address for
  *					the correct hardware type.
  *		Germano Caronni	:	Assorted subtle races.
- *		Craig Schlenter :	Don't modify permanent entry 
+ *		Craig Schlenter :	Don't modify permanent entry
  *					during arp_rcv.
  *		Russ Nelson	:	Tidied up a few bits.
  *		Alexey Kuznetsov:	Major changes to caching and behaviour,
- *					eg intelligent arp probing and 
+ *					eg intelligent arp probing and
  *					generation
  *					of host down events.
  *		Alan Cox	:	Missing unlock in device events.
  *		Eckes		:	ARP ioctl control errors.
  *		Alexey Kuznetsov:	Arp free fix.
  *		Manuel Rodriguez:	Gratuitous ARP.
- *              Jonathan Layes  :       Added arpd support through kerneld 
+ *              Jonathan Layes  :       Added arpd support through kerneld
  *                                      message queue (960314)
  *		Mike Shaver	:	/proc/sys/net/ipv4/arp_* support
  *		Mike McLagan    :	Routing by source
@@ -77,7 +77,7 @@
        unresolved IP address.  (OK)
    950727 -- MS
 */
-      
+
 #include <linux/types.h>
 #include <linux/string.h>
 #include <linux/kernel.h>
@@ -181,8 +181,7 @@ struct neigh_ops arp_broken_ops =
 	dev_queue_xmit,
 };
 
-struct neigh_table arp_tbl =
-{
+struct neigh_table arp_tbl = {
 	NULL,
 	AF_INET,
 	sizeof(struct neighbour) + 4,
@@ -193,9 +192,31 @@ struct neigh_table arp_tbl =
 	NULL,
 	parp_redo,
 	"arp_cache",
-        { NULL, NULL, &arp_tbl, 0, NULL, NULL,
-		  30*HZ, 1*HZ, 60*HZ, 30*HZ, 5*HZ, 3, 3, 0, 3, 1*HZ, (8*HZ)/10, 64, 1*HZ },
-	30*HZ, 128, 512, 1024,
+	{
+		NULL,
+		NULL,
+		&arp_tbl,
+		0,
+		NULL,
+		NULL,
+		30*HZ,
+		1*HZ,
+		60*HZ,
+		30*HZ,
+		5*HZ,
+		3,
+		3,
+		0,
+		3,
+		1*HZ,
+		(8*HZ)/10,
+		64,
+		1*HZ
+	},
+	30*HZ,
+	128,
+	512,
+	1024,
 };
 
 int arp_mc_map(u32 addr, u8 *haddr, struct net_device *dev, int dir)
@@ -204,10 +225,10 @@ int arp_mc_map(u32 addr, u8 *haddr, struct net_device *dev, int dir)
 	case ARPHRD_ETHER:
 	case ARPHRD_FDDI:
 	case ARPHRD_IEEE802:
-		ip_eth_mc_map(addr, haddr) ; 
-		return 0 ; 
+		ip_eth_mc_map(addr, haddr) ;
+		return 0 ;
 	case ARPHRD_IEEE802_TR:
-		ip_tr_mc_map(addr, haddr) ; 
+		ip_tr_mc_map(addr, haddr) ;
 		return 0;
 	default:
 		if (dir) {
@@ -282,7 +303,7 @@ static int arp_constructor(struct neighbour *neigh)
 		switch (dev->type) {
 		default:
 			break;
-		case ARPHRD_ROSE:	
+		case ARPHRD_ROSE:
 #if defined(CONFIG_AX25) || defined(CONFIG_AX25_MODULE)
 		case ARPHRD_AX25:
 #if defined(CONFIG_NETROM) || defined(CONFIG_NETROM_MODULE)
@@ -294,6 +315,7 @@ static int arp_constructor(struct neighbour *neigh)
 #endif
 		;}
 #endif
+
 		if (neigh->type == RTN_MULTICAST) {
 			neigh->nud_state = NUD_NOARP;
 			arp_mc_map(addr, neigh->ha, dev, 1);
@@ -304,15 +326,18 @@ static int arp_constructor(struct neighbour *neigh)
 			neigh->nud_state = NUD_NOARP;
 			memcpy(neigh->ha, dev->broadcast, dev->addr_len);
 		}
+
 		if (dev->hard_header_cache)
 			neigh->ops = &arp_hh_ops;
 		else
 			neigh->ops = &arp_generic_ops;
+
 		if (neigh->nud_state&NUD_VALID)
 			neigh->output = neigh->ops->connected_output;
 		else
 			neigh->output = neigh->ops->output;
 	}
+
 	return 0;
 }
 
@@ -338,7 +363,9 @@ static void arp_solicit(struct neighbour *neigh, struct sk_buff *skb)
 	if ((probes -= neigh->parms->ucast_probes) < 0) {
 		if (!(neigh->nud_state&NUD_VALID))
 			printk(KERN_DEBUG "trying to ucast probe in NUD_INVALID\n");
+
 		dst_ha = neigh->ha;
+
 		read_lock_bh(&neigh->lock);
 	} else if ((probes -= neigh->parms->app_probes) < 0) {
 #ifdef CONFIG_ARPD
@@ -348,7 +375,8 @@ static void arp_solicit(struct neighbour *neigh, struct sk_buff *skb)
 	}
 
 	arp_send(ARPOP_REQUEST, ETH_P_ARP, target, dev, saddr,
-		 dst_ha, dev->dev_addr, NULL);
+			 dst_ha, dev->dev_addr, NULL);
+
 	if (dst_ha)
 		read_unlock_bh(&neigh->lock);
 }
@@ -450,10 +478,10 @@ int arp_bind_neighbour(struct dst_entry *dst)
  *	message.
  */
 
-void arp_send(int type, int ptype, u32 dest_ip, 
-	      struct net_device *dev, u32 src_ip, 
-	      unsigned char *dest_hw, unsigned char *src_hw,
-	      unsigned char *target_hw)
+void arp_send(int type, int ptype, u32 dest_ip,
+			  struct net_device *dev, u32 src_ip,
+			  unsigned char *dest_hw, unsigned char *src_hw,
+			  unsigned char *target_hw)
 {
 	struct sk_buff *skb;
 	struct arphdr *arp;
@@ -462,24 +490,27 @@ void arp_send(int type, int ptype, u32 dest_ip,
 	/*
 	 *	No arp on this interface.
 	 */
-	
-	if (dev->flags&IFF_NOARP)
+
+	if (dev->flags & IFF_NOARP)
 		return;
 
 	/*
 	 *	Allocate a buffer
 	 */
-	
-	skb = alloc_skb(sizeof(struct arphdr)+ 2*(dev->addr_len+4)
-				+ dev->hard_header_len + 15, GFP_ATOMIC);
+
+	skb = alloc_skb(sizeof(struct arphdr) + 2*(dev->addr_len+4)
+						+ dev->hard_header_len + 15, GFP_ATOMIC);
 	if (skb == NULL)
 		return;
 
 	skb_reserve(skb, (dev->hard_header_len+15)&~15);
 	skb->nh.raw = skb->data;
-	arp = (struct arphdr *) skb_put(skb,sizeof(struct arphdr) + 2*(dev->addr_len+4));
+
+	arp = (struct arphdr *)skb_put(skb, sizeof(struct arphdr) + 2*(dev->addr_len+4));
+
 	skb->dev = dev;
-	skb->protocol = __constant_htons (ETH_P_ARP);
+	skb->protocol = __constant_htons(ETH_P_ARP);
+
 	if (src_hw == NULL)
 		src_hw = dev->dev_addr;
 	if (dest_hw == NULL)
@@ -540,18 +571,22 @@ void arp_send(int type, int ptype, u32 dest_ip,
 	arp->ar_pln = 4;
 	arp->ar_op = htons(type);
 
-	arp_ptr=(unsigned char *)(arp+1);
+	arp_ptr = (unsigned char *)(arp+1);
 
 	memcpy(arp_ptr, src_hw, dev->addr_len);
-	arp_ptr+=dev->addr_len;
+
+	arp_ptr += dev->addr_len;
 	memcpy(arp_ptr, &src_ip,4);
-	arp_ptr+=4;
+
+	arp_ptr += 4;
 	if (target_hw != NULL)
 		memcpy(arp_ptr, target_hw, dev->addr_len);
 	else
 		memset(arp_ptr, 0, dev->addr_len);
-	arp_ptr+=dev->addr_len;
+
+	arp_ptr += dev->addr_len;
 	memcpy(arp_ptr, &dest_ip, 4);
+
 	skb->dev = dev;
 
 	dev_queue_xmit(skb);
@@ -587,10 +622,10 @@ int arp_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
  *	of the device.  Similarly, the hardware types should match.  The
  *	device should be ARP-able.  Also, if pln is not 4, then the lookup
  *	is not from an IP number.  We can't currently handle this, so toss
- *	it. 
- */  
+ *	it.
+ */
 	if (in_dev == NULL ||
-	    arp->ar_hln != dev->addr_len    || 
+	    arp->ar_hln != dev->addr_len    ||
 	    dev->flags & IFF_NOARP ||
 	    skb->pkt_type == PACKET_OTHERHOST ||
 	    skb->pkt_type == PACKET_LOOPBACK ||
@@ -601,7 +636,7 @@ int arp_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 		goto out_of_mem;
 
 	switch (dev_type) {
-	default:	
+	default:
 		if (arp->ar_pro != __constant_htons(ETH_P_IP))
 			goto out;
 		if (htons(dev_type) != arp->ar_hrd)
@@ -681,7 +716,7 @@ int arp_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	tha=arp_ptr;
 	arp_ptr += dev->addr_len;
 	memcpy(&tip, arp_ptr, 4);
-/* 
+/*
  *	Check for bad requests for 127.x.x.x and requests for multicast
  *	addresses.  If this is one such, delete it.
  */
@@ -692,16 +727,16 @@ int arp_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
  *  Process entry.  The idea here is we want to send a reply if it is a
  *  request for us or if it is a request for someone else that we hold
  *  a proxy for.  We want to add an entry to our cache if it is a reply
- *  to us or if it is a request for our address.  
- *  (The assumption for this last is that if someone is requesting our 
- *  address, they are probably intending to talk to us, so it saves time 
- *  if we cache their address.  Their address is also probably not in 
+ *  to us or if it is a request for our address.
+ *  (The assumption for this last is that if someone is requesting our
+ *  address, they are probably intending to talk to us, so it saves time
+ *  if we cache their address.  Their address is also probably not in
  *  our cache, since ours is not in their cache.)
- * 
+ *
  *  Putting this another way, we only care about replies if they are to
  *  us, in which case we add them to the cache.  For requests, we care
  *  about those for us and those for our proxies.  We reply to both,
- *  and in the case of requests for us we add the requester to the arp 
+ *  and in the case of requests for us we add the requester to the arp
  *  cache.
  */
 
@@ -845,7 +880,7 @@ int arp_req_set(struct arpreq *r, struct net_device * dev)
 		if (!dev)
 			return -EINVAL;
 	}
-	if (r->arp_ha.sa_family != dev->type)	
+	if (r->arp_ha.sa_family != dev->type)
 		return -EINVAL;
 
 	neigh = __neigh_lookup_errno(&arp_tbl, &ip, dev);
@@ -1070,7 +1105,7 @@ static int arp_get_info(char *buffer, char **start, off_t offset, int length)
 							"     *        %s\n",
 					tbuf,
 					hatype,
-					arp_state_to_flags(n), 
+					arp_state_to_flags(n),
 					hbuffer,
 					dev->name);
 			}
@@ -1079,7 +1114,7 @@ static int arp_get_info(char *buffer, char **start, off_t offset, int length)
 
 			len += size;
 			pos += size;
-		  
+
 			if (pos <= offset)
 				len=0;
 			if (pos >= offset+length) {
@@ -1110,7 +1145,7 @@ static int arp_get_info(char *buffer, char **start, off_t offset, int length)
 
 			len += size;
 			pos += size;
-		  
+
 			if (pos <= offset)
 				len=0;
 			if (pos >= offset+length)
@@ -1119,7 +1154,7 @@ static int arp_get_info(char *buffer, char **start, off_t offset, int length)
 	}
 
 done:
-  
+
 	*start = buffer+len-(pos-offset);	/* Start of wanted data */
 	len = pos-offset;			/* Start slop */
 	if (len>length)
@@ -1159,7 +1194,7 @@ void __init arp_init (void)
 
 	dev_add_pack(&arp_packet_type);
 
-	proc_net_create ("arp", 0, arp_get_info);
+	proc_net_create("arp", 0, arp_get_info);
 
 #ifdef CONFIG_SYSCTL
 	neigh_sysctl_register(NULL, &arp_tbl.parms, NET_IPV4, NET_IPV4_NEIGH, "ipv4");
@@ -1183,14 +1218,14 @@ char *ax2asc2(ax25_address *a, char *buf)
 
 		if (c != ' ') *s++ = c;
 	}
-	
+
 	*s++ = '-';
 
 	if ((n = ((a->ax25_call[6] >> 1) & 0x0F)) > 9) {
 		*s++ = '1';
 		n -= 10;
 	}
-	
+
 	*s++ = n + '0';
 	*s++ = '\0';
 

@@ -70,7 +70,7 @@ static struct neigh_table *neigh_tables;
      cache.
    - If the entry requires some non-trivial actions, increase
      its reference count and release table lock.
- 
+
    Neighbour entries are protected:
    - with reference count.
    - with rwlock neigh->lock
@@ -149,7 +149,7 @@ static int neigh_forced_gc(struct neigh_table *tbl)
 		}
 		write_unlock_bh(&tbl->lock);
 	}
-	
+
 	tbl->last_flush = jiffies;
 	return shrunk;
 }
@@ -232,9 +232,10 @@ static struct neighbour *neigh_alloc(struct neigh_table *tbl)
 	struct neighbour *n;
 	unsigned long now = jiffies;
 
-	if (tbl->entries > tbl->gc_thresh3 ||
-	    (tbl->entries > tbl->gc_thresh2 &&
-	     now - tbl->last_flush > 5*HZ)) {
+	if (tbl->entries > tbl->gc_thresh3
+	    || (tbl->entries > tbl->gc_thresh2
+	    && now - tbl->last_flush > 5*HZ))
+	{
 		if (neigh_forced_gc(tbl) == 0 &&
 		    tbl->entries > tbl->gc_thresh3)
 			return NULL;
@@ -265,7 +266,7 @@ static struct neighbour *neigh_alloc(struct neigh_table *tbl)
 }
 
 struct neighbour *neigh_lookup(struct neigh_table *tbl, const void *pkey,
-			       struct net_device *dev)
+							   struct net_device *dev)
 {
 	struct neighbour *n;
 	u32 hash_val;
@@ -285,8 +286,8 @@ struct neighbour *neigh_lookup(struct neigh_table *tbl, const void *pkey,
 	return n;
 }
 
-struct neighbour * neigh_create(struct neigh_table *tbl, const void *pkey,
-				struct net_device *dev)
+struct neighbour *
+neigh_create(struct neigh_table *tbl, const void *pkey, struct net_device *dev)
 {
 	struct neighbour *n, *n1;
 	u32 hash_val;
@@ -338,8 +339,8 @@ struct neighbour * neigh_create(struct neigh_table *tbl, const void *pkey,
 	return n;
 }
 
-struct pneigh_entry * pneigh_lookup(struct neigh_table *tbl, const void *pkey,
-				    struct net_device *dev, int creat)
+struct pneigh_entry *pneigh_lookup(struct neigh_table *tbl, const void *pkey,
+								   struct net_device *dev, int creat)
 {
 	struct pneigh_entry *n;
 	u32 hash_val;
@@ -360,7 +361,9 @@ struct pneigh_entry * pneigh_lookup(struct neigh_table *tbl, const void *pkey,
 			return n;
 		}
 	}
+
 	read_unlock_bh(&tbl->lock);
+
 	if (!creat)
 		return NULL;
 
@@ -380,6 +383,7 @@ struct pneigh_entry * pneigh_lookup(struct neigh_table *tbl, const void *pkey,
 	n->next = tbl->phash_buckets[hash_val];
 	tbl->phash_buckets[hash_val] = n;
 	write_unlock_bh(&tbl->lock);
+
 	return n;
 }
 
@@ -415,8 +419,8 @@ static int pneigh_ifdown(struct neigh_table *tbl, struct net_device *dev)
 	struct pneigh_entry *n, **np;
 	u32 h;
 
-	for (h=0; h<=PNEIGH_HASHMASK; h++) {
-		np = &tbl->phash_buckets[h]; 
+	for (h = 0; h <= PNEIGH_HASHMASK; h++) {
+		np = &tbl->phash_buckets[h];
 		while ((n=*np) != NULL) {
 			if (n->dev == dev || dev == NULL) {
 				*np = n->next;
@@ -437,7 +441,7 @@ static int pneigh_ifdown(struct neigh_table *tbl, struct net_device *dev)
  *
  */
 void neigh_destroy(struct neighbour *neigh)
-{	
+{
 	struct hh_cache *hh;
 
 	if (!neigh->dead) {
@@ -558,7 +562,7 @@ static void SMP_TIMER_NAME(neigh_periodic_timer)(unsigned long arg)
 	/*
 	 *	periodicly recompute ReachableTime from random function
 	 */
-	
+
 	if (now - tbl->last_rand > 300*HZ) {
 		struct neigh_parms *p;
 		tbl->last_rand = now;
@@ -613,7 +617,7 @@ next_elt:
 static void neigh_periodic_timer(unsigned long arg)
 {
 	struct neigh_table *tbl = (struct neigh_table*)arg;
-	
+
 	tasklet_schedule(&tbl->gc_task);
 }
 #endif
@@ -627,7 +631,7 @@ static __inline__ int neigh_max_probes(struct neighbour *n)
 
 /* Called when a timer expires for a neighbour entry. */
 
-static void neigh_timer_handler(unsigned long arg) 
+static void neigh_timer_handler(unsigned long arg)
 {
 	unsigned long now = jiffies;
 	struct neighbour *neigh = (struct neighbour*)arg;
@@ -668,7 +672,7 @@ static void neigh_timer_handler(unsigned long arg)
 
 		/* It is very thin place. report_unreachable is very complicated
 		   routine. Particularly, it can hit the same neighbour entry!
-		   
+
 		   So that, we try to be accurate and avoid dead loop. --ANK
 		 */
 		while(neigh->nud_state==NUD_FAILED && (skb=__skb_dequeue(&neigh->arp_queue)) != NULL) {
@@ -723,7 +727,8 @@ int __neigh_event_send(struct neighbour *neigh, struct sk_buff *skb)
 		}
 		if (neigh->nud_state == NUD_INCOMPLETE) {
 			if (skb) {
-				if (skb_queue_len(&neigh->arp_queue) >= neigh->parms->queue_len) {
+				if (skb_queue_len(&neigh->arp_queue) >= neigh->parms->queue_len)
+				{
 					struct sk_buff *buff;
 					buff = neigh->arp_queue.prev;
 					__skb_unlink(buff, &neigh->arp_queue);
@@ -880,7 +885,7 @@ out:
 	return err;
 }
 
-struct neighbour * neigh_event_ns(struct neigh_table *tbl,
+struct neighbour *neigh_event_ns(struct neigh_table *tbl,
 				  u8 *lladdr, void *saddr,
 				  struct net_device *dev)
 {
@@ -960,26 +965,40 @@ int neigh_resolve_output(struct sk_buff *skb)
 	if (neigh_event_send(neigh, skb) == 0) {
 		int err;
 		struct net_device *dev = neigh->dev;
+
 		if (dev->hard_header_cache && dst->hh == NULL) {
 			write_lock_bh(&neigh->lock);
+
 			if (dst->hh == NULL)
 				neigh_hh_init(neigh, dst, dst->ops->protocol);
-			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha, NULL, skb->len);
+
+			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha,
+								   NULL, skb->len);
+
 			write_unlock_bh(&neigh->lock);
+
 		} else {
 			read_lock_bh(&neigh->lock);
-			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha, NULL, skb->len);
+
+			err = dev->hard_header(skb, dev, ntohs(skb->protocol), neigh->ha,
+								   NULL, skb->len);
+
 			read_unlock_bh(&neigh->lock);
 		}
+
 		if (err >= 0)
-			return neigh->ops->queue_xmit(skb);
+			return neigh->ops->queue_xmit(skb); // 一般调用 dev_queue_xmit()
+
 		kfree_skb(skb);
+
 		return -EINVAL;
 	}
+
 	return 0;
 
 discard:
-	NEIGH_PRINTK1("neigh_resolve_output: dst=%p neigh=%p\n", dst, dst ? dst->neighbour : NULL);
+	NEIGH_PRINTK1("neigh_resolve_output: dst=%p neigh=%p\n",
+				  dst, dst ? dst->neighbour : NULL);
 	kfree_skb(skb);
 	return -EINVAL;
 }
@@ -1066,7 +1085,8 @@ void pneigh_enqueue(struct neigh_table *tbl, struct neigh_parms *p,
 }
 
 
-struct neigh_parms *neigh_parms_alloc(struct net_device *dev, struct neigh_table *tbl)
+struct neigh_parms *
+neigh_parms_alloc(struct net_device *dev, struct neigh_table *tbl)
 {
 	struct neigh_parms *p;
 	p = kmalloc(sizeof(*p), GFP_KERNEL);
@@ -1091,7 +1111,7 @@ struct neigh_parms *neigh_parms_alloc(struct net_device *dev, struct neigh_table
 void neigh_parms_release(struct neigh_table *tbl, struct neigh_parms *parms)
 {
 	struct neigh_parms **p;
-	
+
 	if (parms == NULL || parms == &tbl->parms)
 		return;
 	write_lock_bh(&tbl->lock);
@@ -1115,17 +1135,18 @@ void neigh_table_init(struct neigh_table *tbl)
 {
 	unsigned long now = jiffies;
 
-	tbl->parms.reachable_time = neigh_rand_reach_time(tbl->parms.base_reachable_time);
+	tbl->parms.reachable_time =
+			neigh_rand_reach_time(tbl->parms.base_reachable_time);
 
 	if (tbl->kmem_cachep == NULL)
-		tbl->kmem_cachep = kmem_cache_create(tbl->id,
-						     (tbl->entry_size+15)&~15,
-						     0, SLAB_HWCACHE_ALIGN,
-						     NULL, NULL);
+		tbl->kmem_cachep = kmem_cache_create(tbl->id, (tbl->entry_size+15)&~15,
+											 0, SLAB_HWCACHE_ALIGN, NULL, NULL);
 
 #ifdef CONFIG_SMP
-	tasklet_init(&tbl->gc_task, SMP_TIMER_NAME(neigh_periodic_timer), (unsigned long)tbl);
+	tasklet_init(&tbl->gc_task, SMP_TIMER_NAME(neigh_periodic_timer),
+				(unsigned long)tbl);
 #endif
+
 	init_timer(&tbl->gc_timer);
 	tbl->lock = RW_LOCK_UNLOCKED;
 	tbl->gc_timer.data = (unsigned long)tbl;
@@ -1156,19 +1177,25 @@ int neigh_table_clear(struct neigh_table *tbl)
 	del_timer_sync(&tbl->proxy_timer);
 	pneigh_queue_purge(&tbl->proxy_queue);
 	neigh_ifdown(tbl, NULL);
+
 	if (tbl->entries)
 		printk(KERN_CRIT "neighbour leakage\n");
+
 	write_lock(&neigh_tbl_lock);
+
 	for (tp = &neigh_tables; *tp; tp = &(*tp)->next) {
 		if (*tp == tbl) {
 			*tp = tbl->next;
 			break;
 		}
 	}
+
 	write_unlock(&neigh_tbl_lock);
+
 #ifdef CONFIG_SYSCTL
 	neigh_sysctl_unregister(&tbl->parms);
 #endif
+
 	return 0;
 }
 
@@ -1189,7 +1216,7 @@ int neigh_delete(struct sk_buff *skb, struct nlmsghdr *nlh, void *arg)
 	}
 
 	read_lock(&neigh_tbl_lock);
-	for (tbl=neigh_tables; tbl; tbl = tbl->next) {
+	for (tbl = neigh_tables; tbl; tbl = tbl->next) {
 		struct neighbour *n;
 
 		if (tbl->family != ndm->ndm_family)
@@ -1240,31 +1267,38 @@ int neigh_add(struct sk_buff *skb, struct nlmsghdr *nlh, void *arg)
 	}
 
 	read_lock(&neigh_tbl_lock);
-	for (tbl=neigh_tables; tbl; tbl = tbl->next) {
+	for (tbl = neigh_tables; tbl; tbl = tbl->next) {
 		int err = 0;
 		struct neighbour *n;
 
 		if (tbl->family != ndm->ndm_family)
 			continue;
+
 		read_unlock(&neigh_tbl_lock);
 
 		err = -EINVAL;
-		if (nda[NDA_DST-1] == NULL ||
-		    nda[NDA_DST-1]->rta_len != RTA_LENGTH(tbl->key_len))
+		if (nda[NDA_DST-1] == NULL
+		    || nda[NDA_DST-1]->rta_len != RTA_LENGTH(tbl->key_len))
 			goto out;
-		if (ndm->ndm_flags&NTF_PROXY) {
+
+		if (ndm->ndm_flags & NTF_PROXY) {
 			err = -ENOBUFS;
 			if (pneigh_lookup(tbl, RTA_DATA(nda[NDA_DST-1]), dev, 1))
 				err = 0;
 			goto out;
 		}
+
 		if (dev == NULL)
 			return -EINVAL;
+
 		err = -EINVAL;
-		if (nda[NDA_LLADDR-1] != NULL &&
-		    nda[NDA_LLADDR-1]->rta_len != RTA_LENGTH(dev->addr_len))
+
+		if (nda[NDA_LLADDR-1] != NULL
+		    && nda[NDA_LLADDR-1]->rta_len != RTA_LENGTH(dev->addr_len))
 			goto out;
+
 		err = 0;
+
 		n = neigh_lookup(tbl, RTA_DATA(nda[NDA_DST-1]), dev);
 		if (n) {
 			if (nlh->nlmsg_flags&NLM_F_EXCL)
@@ -1278,11 +1312,15 @@ int neigh_add(struct sk_buff *skb, struct nlmsghdr *nlh, void *arg)
 				n = NULL;
 			}
 		}
+
 		if (err == 0) {
-			err = neigh_update(n, nda[NDA_LLADDR-1] ? RTA_DATA(nda[NDA_LLADDR-1]) : NULL,
-					   ndm->ndm_state,
-					   nlh->nlmsg_flags&NLM_F_REPLACE, 0);
+			err = neigh_update(n, nda[NDA_LLADDR-1]
+									? RTA_DATA(nda[NDA_LLADDR-1])
+									: NULL,
+							   ndm->ndm_state,
+							   nlh->nlmsg_flags&NLM_F_REPLACE, 0);
 		}
+
 		if (n)
 			neigh_release(n);
 out:
@@ -1299,7 +1337,7 @@ out:
 
 
 static int neigh_fill_info(struct sk_buff *skb, struct neighbour *n,
-			   u32 pid, u32 seq, int event)
+						   u32 pid, u32 seq, int event)
 {
 	unsigned long now = jiffies;
 	struct ndmsg *ndm;
@@ -1318,8 +1356,10 @@ static int neigh_fill_info(struct sk_buff *skb, struct neighbour *n,
 	read_lock_bh(&n->lock);
 	locked=1;
 	ndm->ndm_state = n->nud_state;
+
 	if (n->nud_state&NUD_VALID)
 		RTA_PUT(skb, NDA_LLADDR, n->dev->addr_len, n->ha);
+
 	ci.ndm_used = now - n->used;
 	ci.ndm_confirmed = now - n->confirmed;
 	ci.ndm_updated = now - n->updated;
@@ -1328,6 +1368,7 @@ static int neigh_fill_info(struct sk_buff *skb, struct neighbour *n,
 	locked=0;
 	RTA_PUT(skb, NDA_CACHEINFO, sizeof(ci), &ci);
 	nlh->nlmsg_len = skb->tail - b;
+
 	return skb->len;
 
 nlmsg_failure:
@@ -1339,7 +1380,8 @@ rtattr_failure:
 }
 
 
-static int neigh_dump_table(struct neigh_table *tbl, struct sk_buff *skb, struct netlink_callback *cb)
+static int neigh_dump_table(struct neigh_table *tbl, struct sk_buff *skb,
+							struct netlink_callback *cb)
 {
 	struct neighbour *n;
 	int h, s_h;
@@ -1382,13 +1424,13 @@ int neigh_dump_info(struct sk_buff *skb, struct netlink_callback *cb)
 	s_t = cb->args[0];
 
 	read_lock(&neigh_tbl_lock);
-	for (tbl=neigh_tables, t=0; tbl; tbl = tbl->next, t++) {
+	for (tbl = neigh_tables, t = 0; tbl; tbl = tbl->next, t++) {
 		if (t < s_t) continue;
 		if (family && tbl->family != family)
 			continue;
 		if (t > s_t)
 			memset(&cb->args[1], 0, sizeof(cb->args)-sizeof(cb->args[0]));
-		if (neigh_dump_table(tbl, skb, cb) < 0) 
+		if (neigh_dump_table(tbl, skb, cb) < 0)
 			break;
 	}
 	read_unlock(&neigh_tbl_lock);
@@ -1438,11 +1480,7 @@ static void neigh_app_notify(struct neighbour *n)
 	netlink_broadcast(rtnl, skb, 0, RTMGRP_NEIGH, GFP_ATOMIC);
 }
 
-
-
 #endif
-
-
 #endif
 
 #ifdef CONFIG_SYSCTL
@@ -1521,6 +1559,7 @@ int neigh_sysctl_register(struct net_device *dev, struct neigh_parms *p,
 	t = kmalloc(sizeof(*t), GFP_KERNEL);
 	if (t == NULL)
 		return -ENOBUFS;
+
 	memcpy(t, &neigh_sysctl_template, sizeof(*t));
 	t->neigh_vars[0].data = &p->mcast_probes;
 	t->neigh_vars[1].data = &p->ucast_probes;
@@ -1534,6 +1573,7 @@ int neigh_sysctl_register(struct net_device *dev, struct neigh_parms *p,
 	t->neigh_vars[9].data = &p->anycast_delay;
 	t->neigh_vars[10].data = &p->proxy_delay;
 	t->neigh_vars[11].data = &p->locktime;
+
 	if (dev) {
 		t->neigh_dev[0].procname = dev->name;
 		t->neigh_dev[0].ctl_name = dev->ifindex;
@@ -1544,6 +1584,7 @@ int neigh_sysctl_register(struct net_device *dev, struct neigh_parms *p,
 		t->neigh_vars[14].data = (int*)(p+1) + 2;
 		t->neigh_vars[15].data = (int*)(p+1) + 3;
 	}
+
 	t->neigh_neigh_dir[0].ctl_name = pdev_id;
 
 	t->neigh_proto_dir[0].procname = p_name;
@@ -1559,7 +1600,9 @@ int neigh_sysctl_register(struct net_device *dev, struct neigh_parms *p,
 		kfree(t);
 		return -ENOBUFS;
 	}
+
 	p->sysctl_table = t;
+
 	return 0;
 }
 

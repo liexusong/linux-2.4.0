@@ -662,7 +662,7 @@ static struct inode * get_new_inode(struct super_block *sb, unsigned long ino, s
 
 		spin_lock(&inode_lock);
 		/* We released the lock, so.. */
-		old = find_inode(sb, ino, head, find_actor, opaque);
+		old = find_inode(sb, ino, head, find_actor, opaque); // 如果在申请inode的时候, 其他进程也申请了
 		if (!old) {
 			inodes_stat.nr_inodes++;
 			list_add(&inode->i_list, &inode_in_use);

@@ -211,7 +211,7 @@ static struct page * rmqueue(zone_t *zone, unsigned long order)
 			return page;
 		}
 		// 如果在当前空闲链表中没有空闲的内存块, 那么向空间更大的的空闲内存块链表中申请
-		curr_order++; 
+		curr_order++;
 		area++;
 	} while (curr_order < MAX_ORDER);
 	spin_unlock_irqrestore(&zone->lock, flags);
@@ -304,9 +304,8 @@ struct page * __alloc_pages(zonelist_t *zonelist, unsigned long order)
 	 * Can we take pages directly from the inactive_clean
 	 * list?
 	 */
-	if (order == 0 && (gfp_mask & __GFP_WAIT) &&
-			!(current->flags & PF_MEMALLOC))
-		direct_reclaim = 1;  // 是否申请单个内存页
+	if (order == 0 && (gfp_mask & __GFP_WAIT) && !(current->flags & PF_MEMALLOC))
+		direct_reclaim = 1;  // 是否申请单个内存页并且可以阻塞
 
 	/*
 	 * If we are about to get low on free pages and we also have
@@ -483,7 +482,6 @@ try_again:
 			if (!order)
 				goto try_again;
 		}
-
 	}
 
 	/*

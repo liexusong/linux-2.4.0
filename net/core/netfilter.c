@@ -1,4 +1,4 @@
-/* netfilter.c: look after the filters for various protocols. 
+/* netfilter.c: look after the filters for various protocols.
  * Heavily influenced by the old firewall.c by David Bonn and Alan Cox.
  *
  * Thanks to Rob `CmdrTaco' Malda for not influencing this code in any
@@ -40,10 +40,13 @@
    sleep. */
 static DECLARE_MUTEX(nf_sockopt_mutex);
 
+/*
+ * nf_hooks[协议][钩子列表]
+ */
 struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 static LIST_HEAD(nf_sockopts);
 
-/* 
+/*
  * A queue handler may be registered for each protocol.  Each is protected by
  * long term mutex.  The handler must provide an an outfn() to accept packets
  * for queueing and must reinject all packets it receives, no matter what.
@@ -53,19 +56,27 @@ static struct nf_queue_handler_t {
 	void *data;
 } queue_handler[NPROTO];
 
+/*
+ * 注册过滤钩子
+ */
 int nf_register_hook(struct nf_hook_ops *reg)
 {
 	struct list_head *i;
 
 	br_write_lock_bh(BR_NETPROTO_LOCK);
-	for (i = nf_hooks[reg->pf][reg->hooknum].next; 
-	     i != &nf_hooks[reg->pf][reg->hooknum]; 
-	     i = i->next) {
+
+	for (i = nf_hooks[reg->pf][reg->hooknum].next;
+		 i != &nf_hooks[reg->pf][reg->hooknum];
+		 i = i->next)
+	{
 		if (reg->priority < ((struct nf_hook_ops *)i)->priority)
 			break;
 	}
+
 	list_add(&reg->list, i->prev);
+
 	br_write_unlock_bh(BR_NETPROTO_LOCK);
+
 	return 0;
 }
 
@@ -79,8 +90,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
 /* Do exclusive ranges overlap? */
 static inline int overlap(int min1, int max1, int min2, int max2)
 {
-	return (min1 >= min2 && min1 < max2)
-		|| (max1 > min2 && max1 <= max2);
+	return (min1 >= min2 && min1 < max2) || (max1 > min2 && max1 <= max2);
 }
 
 /* Functions to register sockopt ranges (exclusive). */
@@ -95,13 +105,12 @@ int nf_register_sockopt(struct nf_sockopt_ops *reg)
 	for (i = nf_sockopts.next; i != &nf_sockopts; i = i->next) {
 		struct nf_sockopt_ops *ops = (struct nf_sockopt_ops *)i;
 		if (ops->pf == reg->pf
-		    && (overlap(ops->set_optmin, ops->set_optmax, 
-				reg->set_optmin, reg->set_optmax)
-			|| overlap(ops->get_optmin, ops->get_optmax, 
-				   reg->get_optmin, reg->get_optmax))) {
+			&& (overlap(ops->set_optmin, ops->set_optmax, reg->set_optmin, reg->set_optmax)
+			 || overlap(ops->get_optmin, ops->get_optmax, reg->get_optmin, reg->get_optmax)))
+		{
 			NFDEBUG("nf_sock overlap: %u-%u/%u-%u v %u-%u/%u-%u\n",
-				ops->set_optmin, ops->set_optmax, 
-				ops->get_optmin, ops->get_optmax, 
+				ops->set_optmin, ops->set_optmax,
+				ops->get_optmin, ops->get_optmax,
 				reg->set_optmin, reg->set_optmax,
 				reg->get_optmin, reg->get_optmax);
 			ret = -EBUSY;
@@ -167,37 +176,36 @@ static void debug_print_hooks_ip(unsigned int nf_debug)
 
 void nf_dump_skb(int pf, struct sk_buff *skb)
 {
-	printk("skb: pf=%i %s dev=%s len=%u\n", 
-	       pf,
-	       skb->sk ? "(owned)" : "(unowned)",
-	       skb->dev ? skb->dev->name : "(no dev)",
-	       skb->len);
+	printk("skb: pf=%i %s dev=%s len=%u\n",
+		   pf,
+		   skb->sk ? "(owned)" : "(unowned)",
+		   skb->dev ? skb->dev->name : "(no dev)",
+		   skb->len);
 	switch (pf) {
-	case PF_INET: {
+	case PF_INET:
 		const struct iphdr *ip = skb->nh.iph;
 		__u32 *opt = (__u32 *) (ip + 1);
 		int opti;
 		__u16 src_port = 0, dst_port = 0;
 
 		if (ip->protocol == IPPROTO_TCP
-		    || ip->protocol == IPPROTO_UDP) {
+			|| ip->protocol == IPPROTO_UDP) {
 			struct tcphdr *tcp=(struct tcphdr *)((__u32 *)ip+ip->ihl);
 			src_port = ntohs(tcp->source);
 			dst_port = ntohs(tcp->dest);
 		}
-	
+
 		printk("PROTO=%d %u.%u.%u.%u:%hu %u.%u.%u.%u:%hu"
-		       " L=%hu S=0x%2.2hX I=%hu F=0x%4.4hX T=%hu",
-		       ip->protocol, NIPQUAD(ip->saddr),
-		       src_port, NIPQUAD(ip->daddr),
-		       dst_port,
-		       ntohs(ip->tot_len), ip->tos, ntohs(ip->id),
-		       ntohs(ip->frag_off), ip->ttl);
+			   " L=%hu S=0x%2.2hX I=%hu F=0x%4.4hX T=%hu",
+			   ip->protocol, NIPQUAD(ip->saddr),
+			   src_port, NIPQUAD(ip->daddr),
+			   dst_port,
+			   ntohs(ip->tot_len), ip->tos, ntohs(ip->id),
+			   ntohs(ip->frag_off), ip->ttl);
 
 		for (opti = 0; opti < (ip->ihl - sizeof(struct iphdr) / 4); opti++)
 			printk(" O=0x%8.8X", *opt++);
 		printk("\n");
-	}
 	}
 }
 
@@ -212,9 +220,10 @@ void nf_debug_ip_local_deliver(struct sk_buff *skb)
 	}
 	else if (strcmp(skb->dev->name, "lo") == 0) {
 		if (skb->nf_debug != ((1 << NF_IP_LOCAL_OUT)
-				      | (1 << NF_IP_POST_ROUTING)
-				      | (1 << NF_IP_PRE_ROUTING)
-				      | (1 << NF_IP_LOCAL_IN))) {
+						  | (1 << NF_IP_POST_ROUTING)
+						  | (1 << NF_IP_PRE_ROUTING)
+						  | (1 << NF_IP_LOCAL_IN)))
+		{
 			printk("ip_local_deliver: bad loopback skb: ");
 			debug_print_hooks_ip(skb->nf_debug);
 			nf_dump_skb(PF_INET, skb);
@@ -222,7 +231,7 @@ void nf_debug_ip_local_deliver(struct sk_buff *skb)
 	}
 	else {
 		if (skb->nf_debug != ((1<<NF_IP_PRE_ROUTING)
-				      | (1<<NF_IP_LOCAL_IN))) {
+					  | (1<<NF_IP_LOCAL_IN))) {
 			printk("ip_local_deliver: bad non-lo skb: ");
 			debug_print_hooks_ip(skb->nf_debug);
 			nf_dump_skb(PF_INET, skb);
@@ -234,8 +243,8 @@ void nf_debug_ip_loopback_xmit(struct sk_buff *newskb)
 {
 	if (newskb->nf_debug != ((1 << NF_IP_LOCAL_OUT)
 				 | (1 << NF_IP_POST_ROUTING))) {
-		printk("ip_dev_loopback_xmit: bad owned skb = %p: ", 
-		       newskb);
+		printk("ip_dev_loopback_xmit: bad owned skb = %p: ",
+			   newskb);
 		debug_print_hooks_ip(newskb->nf_debug);
 		nf_dump_skb(PF_INET, newskb);
 	}
@@ -252,22 +261,22 @@ void nf_debug_ip_finish_output2(struct sk_buff *skb)
 	 */
 	if (skb->sk) {
 		if (skb->nf_debug != ((1 << NF_IP_LOCAL_OUT)
-				      | (1 << NF_IP_POST_ROUTING))) {
+					  | (1 << NF_IP_POST_ROUTING))) {
 			printk("ip_finish_output: bad owned skb = %p: ", skb);
 			debug_print_hooks_ip(skb->nf_debug);
 			nf_dump_skb(PF_INET, skb);
 		}
 	} else {
 		if (skb->nf_debug != ((1 << NF_IP_PRE_ROUTING)
-				      | (1 << NF_IP_FORWARD)
-				      | (1 << NF_IP_POST_ROUTING))) {
+					  | (1 << NF_IP_FORWARD)
+					  | (1 << NF_IP_POST_ROUTING))) {
 			/* Fragments, entunnelled packets, TCP RSTs
-                           generated by ipt_REJECT will have no
-                           owners, but still may be local */
+						   generated by ipt_REJECT will have no
+						   owners, but still may be local */
 			if (skb->nf_debug != ((1 << NF_IP_LOCAL_OUT)
-					      | (1 << NF_IP_POST_ROUTING))){
+						  | (1 << NF_IP_POST_ROUTING))){
 				printk("ip_finish_output:"
-				       " bad unowned skb = %p: ",skb);
+					   " bad unowned skb = %p: ",skb);
 				debug_print_hooks_ip(skb->nf_debug);
 				nf_dump_skb(PF_INET, skb);
 			}
@@ -277,8 +286,8 @@ void nf_debug_ip_finish_output2(struct sk_buff *skb)
 #endif /*CONFIG_NETFILTER_DEBUG*/
 
 /* Call get/setsockopt() */
-static int nf_sockopt(struct sock *sk, int pf, int val, 
-		      char *opt, int *len, int get)
+static int nf_sockopt(struct sock *sk, int pf, int val,
+					  char *opt, int *len, int get)
 {
 	struct list_head *i;
 	struct nf_sockopt_ops *ops;
@@ -292,7 +301,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
 		if (ops->pf == pf) {
 			if (get) {
 				if (val >= ops->get_optmin
-				    && val < ops->get_optmax) {
+					&& val < ops->get_optmax) {
 					ops->use++;
 					up(&nf_sockopt_mutex);
 					ret = ops->get(sk, val, opt, len);
@@ -300,7 +309,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
 				}
 			} else {
 				if (val >= ops->set_optmin
-				    && val < ops->set_optmax) {
+					&& val < ops->set_optmax) {
 					ops->use++;
 					up(&nf_sockopt_mutex);
 					ret = ops->set(sk, val, opt, *len);
@@ -311,7 +320,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
 	}
 	up(&nf_sockopt_mutex);
 	return -ENOPROTOOPT;
-	
+
  out:
 	down(&nf_sockopt_mutex);
 	ops->use--;
@@ -321,8 +330,7 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
 	return ret;
 }
 
-int nf_setsockopt(struct sock *sk, int pf, int val, char *opt,
-		  int len)
+int nf_setsockopt(struct sock *sk, int pf, int val, char *opt, int len)
 {
 	return nf_sockopt(sk, pf, val, opt, &len, 0);
 }
@@ -333,12 +341,12 @@ int nf_getsockopt(struct sock *sk, int pf, int val, char *opt, int *len)
 }
 
 static unsigned int nf_iterate(struct list_head *head,
-			       struct sk_buff **skb,
-			       int hook,
-			       const struct net_device *indev,
-			       const struct net_device *outdev,
-			       struct list_head **i,
-			       int (*okfn)(struct sk_buff *))
+							   struct sk_buff **skb,
+							   int hook,
+							   const struct net_device *indev,
+							   const struct net_device *outdev,
+							   struct list_head **i,
+							   int (*okfn)(struct sk_buff *))
 {
 	for (*i = (*i)->next; *i != head; *i = (*i)->next) {
 		struct nf_hook_ops *elem = (struct nf_hook_ops *)*i;
@@ -361,7 +369,7 @@ static unsigned int nf_iterate(struct list_head *head,
 			break;
 
 		default:
-			NFDEBUG("Evil return from %p(%u).\n", 
+			NFDEBUG("Evil return from %p(%u).\n",
 				elem->hook, hook);
 #endif
 		}
@@ -370,7 +378,7 @@ static unsigned int nf_iterate(struct list_head *head,
 }
 
 int nf_register_queue_handler(int pf, nf_queue_outfn_t outfn, void *data)
-{      
+{
 	int ret;
 
 	br_write_lock_bh(BR_NETPROTO_LOCK);
@@ -396,16 +404,16 @@ int nf_unregister_queue_handler(int pf)
 	return 0;
 }
 
-/* 
- * Any packet that leaves via this function must come back 
+/*
+ * Any packet that leaves via this function must come back
  * through nf_reinject().
  */
-static void nf_queue(struct sk_buff *skb, 
-		     struct list_head *elem, 
-		     int pf, unsigned int hook,
-		     struct net_device *indev,
-		     struct net_device *outdev,
-		     int (*okfn)(struct sk_buff *))
+static void nf_queue(struct sk_buff *skb,
+					 struct list_head *elem,
+					 int pf, unsigned int hook,
+					 struct net_device *indev,
+					 struct net_device *outdev,
+					 int (*okfn)(struct sk_buff *))
 {
 	int status;
 	struct nf_info *info;
@@ -419,12 +427,12 @@ static void nf_queue(struct sk_buff *skb,
 	if (!info) {
 		if (net_ratelimit())
 			printk(KERN_ERR "OOM queueing packet %p\n",
-			       skb);
+				   skb);
 		kfree_skb(skb);
 		return;
 	}
 
-	*info = (struct nf_info) { 
+	*info = (struct nf_info) {
 		(struct nf_hook_ops *)elem, pf, hook, indev, outdev, okfn };
 
 	/* Bump dev refs so they don't vanish while packet is out */
@@ -443,26 +451,21 @@ static void nf_queue(struct sk_buff *skb,
 }
 
 /* We have BR_NETPROTO_LOCK here */
-int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
-		 struct net_device *indev,
-		 struct net_device *outdev,
-		 int (*okfn)(struct sk_buff *))
+int nf_hook_slow(int pf,
+				 unsigned int hook,
+				 struct sk_buff *skb,
+				 struct net_device *indev,
+				 struct net_device *outdev,
+				 int (*okfn)(struct sk_buff *))
 {
 	struct list_head *elem;
 	unsigned int verdict;
 	int ret = 0;
 
-#ifdef CONFIG_NETFILTER_DEBUG
-	if (skb->nf_debug & (1 << hook)) {
-		printk("nf_hook: hook %i already set.\n", hook);
-		nf_dump_skb(pf, skb);
-	}
-	skb->nf_debug |= (1 << hook);
-#endif
-
 	elem = &nf_hooks[pf][hook];
-	verdict = nf_iterate(&nf_hooks[pf][hook], &skb, hook, indev,
-			     outdev, &elem, okfn);
+
+	verdict = nf_iterate(&nf_hooks[pf][hook], &skb,
+						 hook, indev, outdev, &elem, okfn);
 	if (verdict == NF_QUEUE) {
 		NFDEBUG("nf_hook: Verdict = QUEUE.\n");
 		nf_queue(skb, elem, pf, hook, indev, outdev, okfn);
@@ -482,19 +485,20 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
 	return ret;
 }
 
-void nf_reinject(struct sk_buff *skb, struct nf_info *info,
-		 unsigned int verdict)
+void
+nf_reinject(struct sk_buff *skb, struct nf_info *info, unsigned int verdict)
 {
 	struct list_head *elem = &info->elem->list;
 	struct list_head *i;
 
 	/* We don't have BR_NETPROTO_LOCK here */
 	br_read_lock_bh(BR_NETPROTO_LOCK);
+
 	for (i = nf_hooks[info->pf][info->hook].next; i != elem; i = i->next) {
 		if (i == &nf_hooks[info->pf][info->hook]) {
 			/* The module which sent it to userspace is gone. */
 			NFDEBUG("%s: module disappeared, dropping packet.\n",
-			         __FUNCTION__);
+					 __FUNCTION__);
 			verdict = NF_DROP;
 			break;
 		}
@@ -508,9 +512,9 @@ void nf_reinject(struct sk_buff *skb, struct nf_info *info,
 
 	if (verdict == NF_ACCEPT) {
 		verdict = nf_iterate(&nf_hooks[info->pf][info->hook],
-				     &skb, info->hook, 
-				     info->indev, info->outdev, &elem,
-				     info->okfn);
+					 &skb, info->hook,
+					 info->indev, info->outdev, &elem,
+					 info->okfn);
 	}
 
 	switch (verdict) {
@@ -519,7 +523,7 @@ void nf_reinject(struct sk_buff *skb, struct nf_info *info,
 		break;
 
 	case NF_QUEUE:
-		nf_queue(skb, elem, info->pf, info->hook, 
+		nf_queue(skb, elem, info->pf, info->hook,
 			 info->indev, info->outdev, info->okfn);
 		break;
 
@@ -527,12 +531,13 @@ void nf_reinject(struct sk_buff *skb, struct nf_info *info,
 		kfree_skb(skb);
 		break;
 	}
+
 	br_read_unlock_bh(BR_NETPROTO_LOCK);
 
 	/* Release those devices we held, or Alexey will kill me. */
 	if (info->indev) dev_put(info->indev);
 	if (info->outdev) dev_put(info->outdev);
-	
+
 	kfree(info);
 	return;
 }

@@ -31,7 +31,7 @@
 #define SCSI_DISK0_MAJOR 8
 #define SCSI_TAPE_MAJOR	9
 #define MD_MAJOR        9
-#define MISC_MAJOR	10
+#define MISC_MAJOR	     10
 #define SCSI_CDROM_MAJOR 11
 #define QIC02_TAPE_MAJOR 12
 #define XT_DISK_MAJOR	13
@@ -162,7 +162,7 @@
 
 #define SCSI_DISK_MAJOR(M) ((M) == SCSI_DISK0_MAJOR || \
   ((M) >= SCSI_DISK1_MAJOR && (M) <= SCSI_DISK7_MAJOR))
-  
+
 #define SCSI_BLK_MAJOR(M) \
   (SCSI_DISK_MAJOR(M)	\
    || (M) == SCSI_CDROM_MAJOR)

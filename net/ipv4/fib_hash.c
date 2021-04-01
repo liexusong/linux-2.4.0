@@ -43,11 +43,6 @@
 #include <net/sock.h>
 #include <net/ip_fib.h>
 
-#define FTprint(a...)
-/*
-   printk(KERN_DEBUG a)
- */
-
 static kmem_cache_t * fn_hash_kmem;
 
 /*
@@ -86,6 +81,7 @@ static int fib_hash_zombies;
 
 struct fn_zone
 {
+<<<<<<< HEAD
 	struct fn_zone		*fz_next;	/* Next not empty zone	*/
 	struct fib_node		**fz_hash;	/* Hash table pointer	*/
 	int					fz_nent;	/* Number of entries	*/
@@ -99,6 +95,20 @@ struct fn_zone
 
 	u32					fz_mask;
 #define FZ_MASK(fz)		((fz)->fz_mask)
+=======
+	struct fn_zone	*fz_next;	/* Next not empty zone	*/
+	struct fib_node	**fz_hash;	/* Hash table pointer	*/
+	int				fz_nent;	/* Number of entries	*/
+	int				fz_divisor;	/* Hash divisor		*/
+
+	u32				fz_hashmask;	/* (1<<fz_divisor) - 1	*/
+#define FZ_HASHMASK(fz)	((fz)->fz_hashmask)
+
+	int				fz_order;	/* Zone order		*/
+
+	u32				fz_mask;
+#define FZ_MASK(fz)	((fz)->fz_mask)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 };
 
 /* NOTE. On fast computers evaluation of fz_hashmask and fz_mask
@@ -164,14 +174,18 @@ static rwlock_t fib_hash_lock = RW_LOCK_UNLOCKED;
 #ifdef CONFIG_IP_ROUTE_LARGE_TABLES
 
 /* The fib hash lock must be held when this is called. */
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 static __inline__ void
 fn_rebuild_zone(struct fn_zone *fz, struct fib_node **old_ht, int old_divisor)
 {
 	int i;
 	struct fib_node *f, **fp, *next;
 
-	for (i=0; i<old_divisor; i++) {
-		for (f=old_ht[i]; f; f=next) {
+	for (i = 0; i < old_divisor; i++) {
+		for (f = old_ht[i]; f; f=next) {
 			next = f->fn_next;
 			for (fp = fz_chain_p(f->fn_key, fz);
 				 *fp && fn_key_leq((*fp)->fn_key, f->fn_key);
@@ -236,6 +250,7 @@ fn_new_zone(struct fn_hash *table, int z)
 		return NULL;
 
 	memset(fz, 0, sizeof(struct fn_zone));
+
 	if (z) {
 		fz->fz_divisor = 16;
 		fz->fz_hashmask = 0xF;
@@ -243,21 +258,24 @@ fn_new_zone(struct fn_hash *table, int z)
 		fz->fz_divisor = 1;
 		fz->fz_hashmask = 0;
 	}
+
 	fz->fz_hash = kmalloc(fz->fz_divisor*sizeof(struct fib_node*), GFP_KERNEL);
 	if (!fz->fz_hash) {
 		kfree(fz);
 		return NULL;
 	}
+
 	memset(fz->fz_hash, 0, fz->fz_divisor*sizeof(struct fib_node*));
 	fz->fz_order = z;
 	fz->fz_mask = inet_make_mask(z);
 
 	/* Find the first not empty zone with more specific mask */
-	for (i=z+1; i<=32; i++)
+	for (i = z+1; i <= 32; i++)
 		if (table->fn_zones[i])
 			break;
+
 	write_lock_bh(&fib_hash_lock);
-	if (i>32) {
+	if (i > 32) {
 		/* No more specific masks, we are the first. */
 		fz->fz_next = table->fn_zone_list;
 		table->fn_zone_list = fz;
@@ -267,6 +285,7 @@ fn_new_zone(struct fn_hash *table, int z)
 	}
 	table->fn_zones[z] = fz;
 	write_unlock_bh(&fib_hash_lock);
+
 	return fz;
 }
 
@@ -321,7 +340,12 @@ out:
 static int fn_hash_last_dflt=-1;
 
 static int fib_detect_death(struct fib_info *fi, int order,
+<<<<<<< HEAD
 							struct fib_info **last_resort, int *last_idx)
+=======
+							struct fib_info **last_resort,
+							int *last_idx)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct neighbour *n;
 	int state = NUD_NONE;
@@ -390,6 +414,7 @@ fn_hash_select_default(struct fib_table *tb, const struct rt_key *key,
 			fn_hash_last_dflt = order;
 			goto out;
 		}
+
 		fi = next_fi;
 		order++;
 	}
@@ -420,25 +445,36 @@ out:
 	read_unlock(&fib_hash_lock);
 }
 
-#define FIB_SCAN(f, fp) \
-for ( ; ((f) = *(fp)) != NULL; (fp) = &(f)->fn_next)
+#define FIB_SCAN(f, fp)													\
+	for ( ; ((f) = *(fp)) != NULL; (fp) = &(f)->fn_next)
 
-#define FIB_SCAN_KEY(f, fp, key) \
-for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key)); (fp) = &(f)->fn_next)
+#define FIB_SCAN_KEY(f, fp, key)										\
+	for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key));		\
+		 (fp) = &(f)->fn_next)
 
 #ifndef CONFIG_IP_ROUTE_TOS
 #define FIB_SCAN_TOS(f, fp, key, tos) FIB_SCAN_KEY(f, fp, key)
 #else
+<<<<<<< HEAD
 #define FIB_SCAN_TOS(f, fp, key, tos) \
 for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key)) && \
 	 (f)->fn_tos == (tos) ; (fp) = &(f)->fn_next)
+=======
+#define FIB_SCAN_TOS(f, fp, key, tos)									\
+	for ( ; ((f) = *(fp)) != NULL && fn_key_eq((f)->fn_key, (key)) &&	\
+		 (f)->fn_tos == (tos) ; (fp) = &(f)->fn_next)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 #endif
 
 
 #ifdef CONFIG_RTNETLINK
 static void rtmsg_fib(int, struct fib_node*, int, int,
+<<<<<<< HEAD
 			  struct nlmsghdr *n,
 			  struct netlink_skb_parms *);
+=======
+					  struct nlmsghdr *n, struct netlink_skb_parms *);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 #else
 #define rtmsg_fib(a, b, c, d, e, f)
 #endif
@@ -463,6 +499,7 @@ fn_hash_insert(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 
 	if (z > 32)
 		return -EINVAL;
+
 	fz = table->fn_zones[z];
 	if (!fz && !(fz = fn_new_zone(table, z)))
 		return -ENOBUFS;
@@ -509,11 +546,19 @@ fn_hash_insert(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 
 	del_fp = NULL;
 
-	if (f && (f->fn_state&FN_S_ZOMBIE) &&
+	if (f
+		&& (f->fn_state&FN_S_ZOMBIE)
 #ifdef CONFIG_IP_ROUTE_TOS
+<<<<<<< HEAD
 		f->fn_tos == tos &&
 #endif
 		fn_key_eq(f->fn_key, key)) {
+=======
+		&& f->fn_tos == tos
+#endif
+		&& fn_key_eq(f->fn_key, key))
+	{
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 		del_fp = fp;
 		fp = &f->fn_next;
 		f = *fp;
@@ -638,6 +683,7 @@ fn_hash_delete(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 
 	if (z > 32)
 		return -EINVAL;
+
 	if ((fz  = table->fn_zones[z]) == NULL)
 		return -ESRCH;
 
@@ -682,7 +728,12 @@ fn_hash_delete(struct fib_table *tb, struct rtmsg *r, struct kern_rta *rta,
 			&& (r->rtm_scope == RT_SCOPE_NOWHERE || f->fn_scope == r->rtm_scope)
 			&& (!r->rtm_protocol || fi->fib_protocol == r->rtm_protocol)
 			&& fib_nh_match(r, n, rta, fi) == 0)
+<<<<<<< HEAD
+=======
+		{
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 			del_fp = fp;
+		}
 	}
 
 	if (del_fp) {
@@ -814,7 +865,9 @@ fn_hash_dump_bucket(struct sk_buff *skb,
 	int i, s_i;
 
 	s_i = cb->args[3];
+
 	for (i=0; f; i++, f=f->fn_next) {
+<<<<<<< HEAD
 		if (i < s_i) continue;
 		if (f->fn_state&FN_S_ZOMBIE) continue;
 		if (fib_dump_info(skb, NETLINK_CB(cb->skb).pid,
@@ -826,12 +879,25 @@ fn_hash_dump_bucket(struct sk_buff *skb,
 						  &f->fn_key,
 						  fz->fz_order,
 						  f->fn_tos,
+=======
+		if (i < s_i)
+			continue;
+
+		if (f->fn_state & FN_S_ZOMBIE)
+			continue;
+
+		if (fib_dump_info(skb, NETLINK_CB(cb->skb).pid, cb->nlh->nlmsg_seq,
+						  RTM_NEWROUTE, tb->tb_id,
+						  (f->fn_state & FN_S_ZOMBIE) ? 0 : f->fn_type,
+						  f->fn_scope, &f->fn_key, fz->fz_order, f->fn_tos,
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 						  f->fn_info) < 0)
 		{
 			cb->args[3] = i;
 			return -1;
 		}
 	}
+
 	cb->args[3] = i;
 	return skb->len;
 }
@@ -843,7 +909,7 @@ fn_hash_dump_zone(struct sk_buff *skb, struct netlink_callback *cb,
 	int h, s_h;
 
 	s_h = cb->args[2];
-	for (h=0; h < fz->fz_divisor; h++) {
+	for (h = 0; h < fz->fz_divisor; h++) {
 		if (h < s_h) continue;
 		if (h > s_h)
 			memset(&cb->args[3], 0, sizeof(cb->args) - 3*sizeof(cb->args[0]));
@@ -858,9 +924,14 @@ fn_hash_dump_zone(struct sk_buff *skb, struct netlink_callback *cb,
 	return skb->len;
 }
 
+<<<<<<< HEAD
 static int
 fn_hash_dump(struct fib_table *tb, struct sk_buff *skb,
 			 struct netlink_callback *cb)
+=======
+static int fn_hash_dump(struct fib_table *tb, struct sk_buff *skb,
+						struct netlink_callback *cb)
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	int m, s_m;
 	struct fn_zone *fz;
@@ -895,15 +966,20 @@ static void rtmsg_fib(int event, struct fib_node* f, int z, int tb_id,
 		return;
 
 	if (fib_dump_info(skb, pid, n->nlmsg_seq, event, tb_id,
-			  f->fn_type, f->fn_scope, &f->fn_key, z, f->fn_tos,
-			  FIB_INFO(f)) < 0) {
+					  f->fn_type, f->fn_scope, &f->fn_key,
+					  z, f->fn_tos, FIB_INFO(f)) < 0)
+	{
 		kfree_skb(skb);
 		return;
 	}
+
 	NETLINK_CB(skb).dst_groups = RTMGRP_IPV4_ROUTE;
+
 	if (n->nlmsg_flags&NLM_F_ECHO)
 		atomic_inc(&skb->users);
+
 	netlink_broadcast(rtnl, skb, pid, RTMGRP_IPV4_ROUTE, GFP_KERNEL);
+
 	if (n->nlmsg_flags&NLM_F_ECHO)
 		netlink_unicast(rtnl, skb, pid, MSG_DONTWAIT);
 }
@@ -919,8 +995,15 @@ struct fib_table * __init fib_hash_init(int id)
 	struct fib_table *tb;
 
 	if (fn_hash_kmem == NULL)
+<<<<<<< HEAD
 		fn_hash_kmem = kmem_cache_create("ip_fib_hash", sizeof(struct fib_node),
 										 0, SLAB_HWCACHE_ALIGN, NULL, NULL);
+=======
+		fn_hash_kmem = kmem_cache_create("ip_fib_hash",
+										 sizeof(struct fib_node),
+										 0, SLAB_HWCACHE_ALIGN,
+										 NULL, NULL);
+>>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	tb = kmalloc(sizeof(struct fib_table) + sizeof(struct fn_hash), GFP_KERNEL);
 	if (tb == NULL)

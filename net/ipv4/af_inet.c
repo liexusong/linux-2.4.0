@@ -23,10 +23,10 @@
  *					when accept() ed
  *		Alan Cox	:	Semantics of SO_LINGER aren't state moved
  *					to close when you look carefully. With
- *					this fixed and the accept bug fixed 
+ *					this fixed and the accept bug fixed
  *					some RPC stuff seems happier.
  *		Niibe Yutaka	:	4.4BSD style write async I/O
- *		Alan Cox, 
+ *		Alan Cox,
  *		Tony Gale 	:	Fixed reuse semantics.
  *		Alan Cox	:	bind() shouldn't abort existing but dead
  *					sockets. Stops FTP netin:.. I hope.
@@ -217,12 +217,12 @@ void inet_sock_release(struct sock *sk)
  *	socket object. Mostly it punts to the subprotocols of IP to do
  *	the work.
  */
- 
+
 
 /*
  *	Set socket options on an inet socket.
  */
- 
+
 int inet_setsockopt(struct socket *sock, int level, int optname,
 		    char *optval, int optlen)
 {
@@ -269,7 +269,7 @@ static int inet_autobind(struct sock *sk)
 /*
  *	Move a socket into listening state.
  */
- 
+
 int inet_listen(struct socket *sock, int backlog)
 {
 	struct sock *sk = sock->sk;
@@ -313,7 +313,7 @@ static int inet_create(struct socket *sock, int protocol)
 
 	sock->state = SS_UNCONNECTED;
 	sk = sk_alloc(PF_INET, GFP_KERNEL, 1);
-	if (sk == NULL) 
+	if (sk == NULL)
 		goto do_oom;
 
 	switch (sock->type) {
@@ -420,7 +420,7 @@ do_oom:
  *	function we are destroying the object and from then on nobody
  *	should refer to it.
  */
- 
+
 int inet_release(struct socket *sock)
 {
 	struct sock *sk = sock->sk;
@@ -452,14 +452,14 @@ int sysctl_ip_nonlocal_bind;
 
 static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 {
-	struct sockaddr_in *addr=(struct sockaddr_in *)uaddr;
-	struct sock *sk=sock->sk;
+	struct sockaddr_in *addr = (struct sockaddr_in *)uaddr;
+	struct sock *sk = sock->sk;
 	unsigned short snum;
 	int chk_addr_ret;
 	int err;
 
 	/* If the socket has its own bind function then use it. (RAW) */
-	if(sk->prot->bind)
+	if (sk->prot->bind)
 		return sk->prot->bind(sk, uaddr, addr_len);
 
 	if (addr_len < sizeof(struct sockaddr_in))
@@ -474,12 +474,12 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 	 * (ie. your servers still start up even if your ISDN link
 	 *  is temporarily down)
 	 */
-	if (sysctl_ip_nonlocal_bind == 0 && 
-	    sk->protinfo.af_inet.freebind == 0 &&
-	    addr->sin_addr.s_addr != INADDR_ANY &&
-	    chk_addr_ret != RTN_LOCAL &&
-	    chk_addr_ret != RTN_MULTICAST &&
-	    chk_addr_ret != RTN_BROADCAST)
+	if (sysctl_ip_nonlocal_bind == 0
+	    && sk->protinfo.af_inet.freebind == 0
+	    && addr->sin_addr.s_addr != INADDR_ANY
+	    && chk_addr_ret != RTN_LOCAL
+	    && chk_addr_ret != RTN_MULTICAST
+	    && chk_addr_ret != RTN_BROADCAST)
 		return -EADDRNOTAVAIL;
 
 	snum = ntohs(addr->sin_port);
@@ -497,11 +497,11 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 
 	/* Check these errors (active socket, double bind). */
 	err = -EINVAL;
-	if ((sk->state != TCP_CLOSE)			||
-	    (sk->num != 0))
+	if ((sk->state != TCP_CLOSE) || (sk->num != 0))
 		goto out;
 
 	sk->rcv_saddr = sk->saddr = addr->sin_addr.s_addr;
+
 	if (chk_addr_ret == RTN_MULTICAST || chk_addr_ret == RTN_BROADCAST)
 		sk->saddr = 0;  /* Use device */
 
@@ -516,6 +516,7 @@ static int inet_bind(struct socket *sock, struct sockaddr *uaddr, int addr_len)
 		sk->userlocks |= SOCK_BINDADDR_LOCK;
 	if (snum)
 		sk->userlocks |= SOCK_BINDPORT_LOCK;
+
 	sk->sport = htons(sk->num);
 	sk->daddr = 0;
 	sk->dport = 0;
@@ -568,11 +569,11 @@ static long inet_wait_for_connect(struct sock *sk, long timeo)
  *	Connect to a remote host. There is regrettably still a little
  *	TCP 'magic' in here.
  */
- 
+
 int inet_stream_connect(struct socket *sock, struct sockaddr * uaddr,
-			int addr_len, int flags)
+						int addr_len, int flags)
 {
-	struct sock *sk=sock->sk;
+	struct sock *sk = sock->sk;
 	int err;
 	long timeo;
 
@@ -597,16 +598,18 @@ int inet_stream_connect(struct socket *sock, struct sockaddr * uaddr,
 		break;
 	case SS_UNCONNECTED:
 		err = -EISCONN;
-		if (sk->state != TCP_CLOSE) 
+		if (sk->state != TCP_CLOSE)
 			goto out;
 
 		err = -EAGAIN;
-		if (sk->num == 0) {
+		if (sk->num == 0) { // 如果没有指定端口, 那么自动申请一个端口
 			if (sk->prot->get_port(sk, 0) != 0)
 				goto out;
 			sk->sport = htons(sk->num);
 		}
 
+		// 调用传输层的 connect() 函数
+		// 如 tcp_v4_connect() 函数
 		err = sk->prot->connect(sk, uaddr, addr_len);
 		if (err < 0)
 			goto out;
@@ -621,7 +624,7 @@ int inet_stream_connect(struct socket *sock, struct sockaddr * uaddr,
 		break;
 	}
 
-	timeo = sock_sndtimeo(sk, flags&O_NONBLOCK);
+	timeo = sock_sndtimeo(sk, flags & O_NONBLOCK);
 
 	if ((1<<sk->state)&(TCPF_SYN_SENT|TCPF_SYN_RECV)) {
 		/* Error code is set above */
@@ -689,13 +692,13 @@ do_err:
 /*
  *	This does both peername and sockname.
  */
- 
+
 static int inet_getname(struct socket *sock, struct sockaddr *uaddr,
 		 int *uaddr_len, int peer)
 {
 	struct sock *sk		= sock->sk;
 	struct sockaddr_in *sin	= (struct sockaddr_in *)uaddr;
-  
+
 	sin->sin_family = AF_INET;
 	if (peer) {
 		if (!sk->dport)
@@ -813,14 +816,14 @@ static int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 	int err;
 	int pid;
 
-	switch(cmd) 
+	switch(cmd)
 	{
 		case FIOSETOWN:
 		case SIOCSPGRP:
 			err = get_user(pid, (int *) arg);
 			if (err)
-				return err; 
-			if (current->pid != pid && current->pgrp != -pid && 
+				return err;
+			if (current->pid != pid && current->pgrp != -pid &&
 			    !capable(CAP_NET_ADMIN))
 				return -EPERM;
 			sk->proc = pid;
@@ -851,8 +854,8 @@ static int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 		case SIOCSIFNETMASK:
 		case SIOCGIFDSTADDR:
 		case SIOCSIFDSTADDR:
-		case SIOCSIFPFLAGS:	
-		case SIOCGIFPFLAGS:	
+		case SIOCSIFPFLAGS:
+		case SIOCGIFPFLAGS:
 		case SIOCSIFFLAGS:
 			return(devinet_ioctl(cmd,(void *) arg));
 		case SIOCGIFBR:
@@ -873,7 +876,7 @@ static int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 			return -ENOPKG;
 #endif	/* CONFIG_NET_DIVERT */
 			return -ENOPKG;
-			
+
 		case SIOCADDDLCI:
 		case SIOCDELDLCI:
 #ifdef CONFIG_DLCI
@@ -910,7 +913,7 @@ static int inet_ioctl(struct socket *sock, unsigned int cmd, unsigned long arg)
 #endif	/* WIRELESS_EXT */
 
 			if (sk->prot->ioctl==NULL || (err=sk->prot->ioctl(sk, cmd, arg))==-ENOIOCTLCMD)
-				return(dev_ioctl(cmd,(void *) arg));		
+				return(dev_ioctl(cmd,(void *) arg));
 			return err;
 	}
 	/*NOTREACHED*/
@@ -925,7 +928,7 @@ struct proto_ops inet_stream_ops = {
 	connect:	inet_stream_connect,
 	socketpair:	sock_no_socketpair,
 	accept:		inet_accept,
-	getname:	inet_getname, 
+	getname:	inet_getname,
 	poll:		tcp_poll,
 	ioctl:		inet_ioctl,
 	listen:		inet_listen,
@@ -945,7 +948,7 @@ struct proto_ops inet_dgram_ops = {
 	connect:	inet_dgram_connect,
 	socketpair:	sock_no_socketpair,
 	accept:		sock_no_accept,
-	getname:	inet_getname, 
+	getname:	inet_getname,
 	poll:		datagram_poll,
 	ioctl:		inet_ioctl,
 	listen:		sock_no_listen,
@@ -968,9 +971,9 @@ extern void tcp_v4_init(struct net_proto_family *);
 
 
 /*
- *	Called by socket.c on kernel startup.  
+ *	Called by socket.c on kernel startup.
  */
- 
+
 static int __init inet_init(void)
 {
 	struct sk_buff *dummy_skb;
@@ -985,19 +988,20 @@ static int __init inet_init(void)
 	}
 
 	/*
-	 *	Tell SOCKET that we are alive... 
+	 *	Tell SOCKET that we are alive...
 	 */
-   
-  	(void) sock_register(&inet_family_ops);
+
+  	(void) sock_register(&inet_family_ops); // 注册 BSD socket 层操作
 
 	/*
-	 *	Add all the protocols. 
+	 *	Add all the protocols.
 	 */
 
 	printk(KERN_INFO "IP Protocols: ");
-	for(p = inet_protocol_base; p != NULL;) 
-	{
-		struct inet_protocol *tmp = (struct inet_protocol *) p->next;
+
+	// 注册传输层协议处理对象
+	for (p = inet_protocol_base; p != NULL;) {
+		struct inet_protocol *tmp = (struct inet_protocol *)p->next;
 		inet_add_protocol(p);
 		printk("%s%s",p->name,tmp?", ":"\n");
 		p = tmp;
@@ -1006,20 +1010,20 @@ static int __init inet_init(void)
 	/*
 	 *	Set the ARP module up
 	 */
-
+	// 初始化 ARP 协议模块
 	arp_init();
 
   	/*
   	 *	Set the IP module up
   	 */
-
+	// 初始化 IP 协议模块
 	ip_init();
 
+	// 初始化 TCP 协议模块
 	tcp_v4_init(&inet_family_ops);
 
 	/* Setup TCP slab cache for open requests. */
 	tcp_init();
-
 
 	/*
 	 *	Set the ICMP layer up
@@ -1048,12 +1052,12 @@ static int __init inet_init(void)
 	 *	Create all the /proc entries.
 	 */
 #ifdef CONFIG_PROC_FS
-	proc_net_create ("raw", 0, raw_get_info);
-	proc_net_create ("netstat", 0, netstat_get_info);
-	proc_net_create ("snmp", 0, snmp_get_info);
-	proc_net_create ("sockstat", 0, afinet_get_info);
-	proc_net_create ("tcp", 0, tcp_get_info);
-	proc_net_create ("udp", 0, udp_get_info);
+	proc_net_create("raw", 0, raw_get_info);
+	proc_net_create("netstat", 0, netstat_get_info);
+	proc_net_create("snmp", 0, snmp_get_info);
+	proc_net_create("sockstat", 0, afinet_get_info);
+	proc_net_create("tcp", 0, tcp_get_info);
+	proc_net_create("udp", 0, udp_get_info);
 #endif		/* CONFIG_PROC_FS */
 	return 0;
 }

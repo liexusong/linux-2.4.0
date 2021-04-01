@@ -55,31 +55,31 @@ struct minix_inode {
  * now 16-bit. The inode is now 64 bytes instead of 32.
  */
 struct minix2_inode {
-	__u16 i_mode;
-	__u16 i_nlinks;
-	__u16 i_uid;
-	__u16 i_gid;
-	__u32 i_size;
-	__u32 i_atime;
-	__u32 i_mtime;
-	__u32 i_ctime;
-	__u32 i_zone[10];
+	__u16 i_mode;     // 文件模式
+	__u16 i_nlinks;   // 链接数
+	__u16 i_uid;      // 所属用户ID
+	__u16 i_gid;      // 所属组ID
+	__u32 i_size;     // 文件大小
+	__u32 i_atime;    // 访问时间
+	__u32 i_mtime;    // 修改时间
+	__u32 i_ctime;    // 创建时间
+	__u32 i_zone[10]; // 文件数据存储的逻辑数据块
 };
 
 /*
  * minix super-block data on disk
  */
 struct minix_super_block {
-	__u16 s_ninodes;
-	__u16 s_nzones;
-	__u16 s_imap_blocks;
-	__u16 s_zmap_blocks;
-	__u16 s_firstdatazone;
-	__u16 s_log_zone_size;
-	__u32 s_max_size;
-	__u16 s_magic;
-	__u16 s_state;
-	__u32 s_zones;
+	__u16 s_ninodes;       // inode的个数
+	__u16 s_nzones;        // 逻辑数据块个数(v1版)
+	__u16 s_imap_blocks;   // inode位图占用的数据块数量
+	__u16 s_zmap_blocks;   // 数据块位图占用的数据块数量
+	__u16 s_firstdatazone; // 第一个逻辑数据块起始号
+	__u16 s_log_zone_size; // 使用2为底的对数表示的每个逻辑数据块包含的磁盘块数
+	__u32 s_max_size;      // 文件最大尺寸
+	__u16 s_magic;         // 魔数
+	__u16 s_state;         // 文件系统状态
+	__u32 s_zones;         // 逻辑数据块个数(v2版)
 };
 
 struct minix_dir_entry {

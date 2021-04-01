@@ -32,51 +32,49 @@
 #endif
 
 struct tun_struct {
-	char 			name[8];
-	unsigned long 		flags;
+    char                    name[8];      // TUN的名字
+    unsigned long           flags;        // 设备类型: TUN或者TAP
+    struct fasync_struct    *fasync;
+    wait_queue_head_t       read_wait;    // 等待此设备可读的进程队列
+    struct net_device       dev;          // 设备结构
+    struct sk_buff_head     txq;          // 数据队列(接收到的数据会保存到这里)
+    struct net_device_stats stats;        // 设备统计数据
 
-	struct fasync_struct    *fasync;
-	wait_queue_head_t	read_wait;
-
-	struct net_device	dev;
-	struct sk_buff_head	txq;
-        struct net_device_stats	stats;
-
-#ifdef TUN_DEBUG	
-	int debug;
-#endif  
+#ifdef TUN_DEBUG
+    int debug;
+#endif
 };
 
 #ifndef MIN
-#define MIN(a,b) ( (a)<(b) ? (a):(b) ) 
+#define MIN(a,b) ( (a)<(b) ? (a):(b) )
 #endif
 
 #endif /* __KERNEL__ */
 
 /* Number of devices */
-#define TUN_MAX_DEV	255
+#define TUN_MAX_DEV     255
 
 /* TX queue size */
-#define TUN_TXQ_SIZE	10
+#define TUN_TXQ_SIZE    10
 
 /* Max frame size */
-#define TUN_MAX_FRAME	4096
+#define TUN_MAX_FRAME   4096
 
 /* TUN device flags */
-#define TUN_TUN_DEV 	0x0001	
-#define TUN_TAP_DEV	0x0002
+#define TUN_TUN_DEV     0x0001
+#define TUN_TAP_DEV     0x0002
 #define TUN_TYPE_MASK   0x000f
 
-#define TUN_FASYNC	0x0010
-#define TUN_NOCHECKSUM	0x0020
-#define TUN_NO_PI	0x0040
+#define TUN_FASYNC      0x0010
+#define TUN_NOCHECKSUM  0x0020
+#define TUN_NO_PI       0x0040
 
-#define TUN_IFF_SET	0x1000
+#define TUN_IFF_SET     0x1000
 
 /* Ioctl defines */
-#define TUNSETNOCSUM (('T'<< 8) | 200) 
-#define TUNSETDEBUG  (('T'<< 8) | 201) 
-#define TUNSETIFF    (('T'<< 8) | 202) 
+#define TUNSETNOCSUM (('T'<< 8) | 200)
+#define TUNSETDEBUG  (('T'<< 8) | 201)
+#define TUNSETIFF    (('T'<< 8) | 202)
 
 /* TUNSETIFF ifr flags */
 #define IFF_TUN		0x0001

@@ -31,8 +31,8 @@ int br_is_root_bridge(struct net_bridge *br)
 /* called under bridge lock */
 int br_is_designated_port(struct net_bridge_port *p)
 {
-	return !memcmp(&p->designated_bridge, &p->br->bridge_id, 8) &&
-		(p->designated_port == p->port_id);
+	return !memcmp(&p->designated_bridge, &p->br->bridge_id, 8)
+		   && (p->designated_port == p->port_id);
 }
 
 /* called under ioctl_lock or bridge lock */
@@ -59,8 +59,7 @@ static int br_should_become_root_port(struct net_bridge_port *p, int root_port)
 	int t;
 
 	br = p->br;
-	if (p->state == BR_STATE_DISABLED ||
-	    br_is_designated_port(p))
+	if (p->state == BR_STATE_DISABLED || br_is_designated_port(p))
 		return 0;
 
 	if (memcmp(&br->bridge_id, &p->designated_root, 8) <= 0)
@@ -315,8 +314,7 @@ void br_config_bpdu_generation(struct net_bridge *br)
 
 	p = br->port_list;
 	while (p != NULL) {
-		if (p->state != BR_STATE_DISABLED &&
-		    br_is_designated_port(p))
+		if (p->state != BR_STATE_DISABLED && br_is_designated_port(p))
 			br_transmit_config(p);
 
 		p = p->next;
@@ -351,10 +349,8 @@ void br_become_designated_port(struct net_bridge_port *p)
 /* called under bridge lock */
 static void br_make_blocking(struct net_bridge_port *p)
 {
-	if (p->state != BR_STATE_DISABLED &&
-	    p->state != BR_STATE_BLOCKING) {
-		if (p->state == BR_STATE_FORWARDING ||
-		    p->state == BR_STATE_LEARNING)
+	if (p->state != BR_STATE_DISABLED && p->state != BR_STATE_BLOCKING) {
+		if (p->state == BR_STATE_FORWARDING || p->state == BR_STATE_LEARNING)
 			br_topology_change_detection(p->br);
 
 		printk(KERN_INFO "%s: port %i(%s) entering %s state\n",
@@ -443,8 +439,8 @@ void br_received_config_bpdu(struct net_bridge_port *p, struct br_config_bpdu *b
 			if (bpdu->topology_change_ack)
 				br_topology_change_acknowledged(br);
 		}
-	} else if (br_is_designated_port(p)) {		
-		br_reply(p);		
+	} else if (br_is_designated_port(p)) {
+		br_reply(p);
 	}
 
 	read_unlock(&br->lock);

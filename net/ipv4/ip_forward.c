@@ -4,15 +4,15 @@
  *		interface as the means of communication with the user level.
  *
  *		The IP forwarding functionality.
- *		
+ *
  * Version:	$Id: ip_forward.c,v 1.47 2000/10/24 22:54:26 davem Exp $
  *
  * Authors:	see ip.c
  *
  * Fixes:
- *		Many		:	Split from ip.c , see ip_input.c for 
+ *		Many		:	Split from ip.c , see ip_input.c for
  *					history.
- *		Dave Gregorich	:	NULL ip_rt_put fix for multicast 
+ *		Dave Gregorich	:	NULL ip_rt_put fix for multicast
  *					routing.
  *		Jos Vos		:	Add call_out_firewall before sending,
  *					use output device for accounting.
@@ -51,9 +51,10 @@ static inline int ip_forward_finish(struct sk_buff *skb)
 #ifdef CONFIG_NET_FASTROUTE
 		struct rtable *rt = (struct rtable*)skb->dst;
 
-		if (rt->rt_flags&RTCF_FAST && !netdev_fastroute_obstacles) {
+		if (rt->rt_flags & RTCF_FAST && !netdev_fastroute_obstacles) {
 			struct dst_entry *old_dst;
-			unsigned h = ((*(u8*)&rt->key.dst)^(*(u8*)&rt->key.src))&NETDEV_FASTROUTE_HMASK;
+			unsigned h = ((*(u8*)&rt->key.dst)^(*(u8*)&rt->key.src))
+											& NETDEV_FASTROUTE_HMASK;
 
 			write_lock_irq(&skb->dev->fastpath_lock);
 			old_dst = skb->dev->fastpath[h];
@@ -67,6 +68,7 @@ static inline int ip_forward_finish(struct sk_buff *skb)
 	}
 
 	ip_forward_options(skb);
+
 	return (ip_send(skb));
 }
 
@@ -83,7 +85,7 @@ int ip_forward(struct sk_buff *skb)
 
 	if (skb->pkt_type != PACKET_HOST)
 		goto drop;
-	
+
 	/*
 	 *	According to the RFC, we must first decrease the TTL field. If
 	 *	that reaches zero, we must reply an ICMP control message telling
@@ -91,13 +93,13 @@ int ip_forward(struct sk_buff *skb)
 	 */
 
 	iph = skb->nh.iph;
-	rt = (struct rtable*)skb->dst;
+	rt = (struct rtable *)skb->dst;
 
 	if (iph->ttl <= 1)
-                goto too_many_hops;
+		goto too_many_hops;
 
 	if (opt->is_strictroute && rt->rt_dst != rt->rt_gateway)
-                goto sr_failed;
+		goto sr_failed;
 
 	/*
 	 *	Having picked a route we can now send the frame out
@@ -142,23 +144,23 @@ int ip_forward(struct sk_buff *skb)
 #endif
 
 	return NF_HOOK(PF_INET, NF_IP_FORWARD, skb, skb->dev, dev2,
-		       ip_forward_finish);
+				   ip_forward_finish);
 
 frag_needed:
 	IP_INC_STATS_BH(IpFragFails);
 	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED, htonl(mtu));
-        goto drop;
+	goto drop;
 
 sr_failed:
-        /*
+	/*
 	 *	Strict routing permits no gatewaying
 	 */
-         icmp_send(skb, ICMP_DEST_UNREACH, ICMP_SR_FAILED, 0);
-         goto drop;
+	icmp_send(skb, ICMP_DEST_UNREACH, ICMP_SR_FAILED, 0);
+	goto drop;
 
 too_many_hops:
-        /* Tell the sender its packet died... */
-        icmp_send(skb, ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, 0);
+	/* Tell the sender its packet died... */
+	icmp_send(skb, ICMP_TIME_EXCEEDED, ICMP_EXC_TTL, 0);
 drop:
 	kfree_skb(skb);
 	return NET_RX_DROP;

@@ -23,7 +23,7 @@
  */
 
 #include <linux/config.h>
- 
+
 #include <asm/uaccess.h>
 #include <asm/system.h>
 #include <asm/bitops.h>
@@ -199,7 +199,7 @@ int inet_addr_onlink(struct in_device *in_dev, u32 a, u32 b)
 	} endfor_ifa(in_dev);
 	read_unlock(&in_dev->lock);
 	return 0;
-} 
+}
 
 static void
 inet_del_ifa(struct in_device *in_dev, struct in_ifaddr **ifap, int destroy)
@@ -437,8 +437,8 @@ inet_rtm_newaddr(struct sk_buff *skb, struct nlmsghdr *nlh, void *arg)
 
 #endif
 
-/* 
- *	Determine a default network mask, based on the IP address. 
+/*
+ *	Determine a default network mask, based on the IP address.
  */
 
 static __inline__ int inet_abc_len(u32 addr)
@@ -447,17 +447,17 @@ static __inline__ int inet_abc_len(u32 addr)
   		return 0;
 
   	addr = ntohl(addr);
-  	if (IN_CLASSA(addr)) 
+  	if (IN_CLASSA(addr))
   		return 8;
-  	if (IN_CLASSB(addr)) 
+  	if (IN_CLASSB(addr))
   		return 16;
-  	if (IN_CLASSC(addr)) 
+  	if (IN_CLASSC(addr))
   		return 24;
 
 	/*
-	 *	Something else, probably a multicast. 
+	 *	Something else, probably a multicast.
 	 */
-  	 
+
   	return -1;
 }
 
@@ -570,7 +570,7 @@ int devinet_ioctl(unsigned int cmd, void *arg)
 			}
 			ret = dev_change_flags(dev, ifr.ifr_flags);
 			break;
-	
+
 		case SIOCSIFADDR:	/* Set interface address (and family) */
 			if (inet_abc_len(sin->sin_addr.s_addr) < 0) {
 				ret = -EINVAL;
@@ -617,7 +617,7 @@ int devinet_ioctl(unsigned int cmd, void *arg)
 				inet_insert_ifa(ifa);
 			}
 			break;
-	
+
 		case SIOCSIFDSTADDR:	/* Set the destination address */
 			if (ifa->ifa_address != sin->sin_addr.s_addr) {
 				if (inet_abc_len(sin->sin_addr.s_addr) < 0) {
@@ -838,7 +838,7 @@ struct notifier_block ip_netdev_notifier={
 #ifdef CONFIG_RTNETLINK
 
 static int inet_fill_ifaddr(struct sk_buff *skb, struct in_ifaddr *ifa,
-			    u32 pid, u32 seq, int event)
+							u32 pid, u32 seq, int event)
 {
 	struct ifaddrmsg *ifm;
 	struct nlmsghdr  *nlh;
@@ -942,14 +942,14 @@ static struct rtnetlink_link inet_rtnetlink_table[RTM_MAX-RTM_BASE+1] =
 	{ NULL,			NULL,			},
 	{ NULL,			NULL,			},
 
-	{ inet_rtm_newaddr,	NULL,			},
-	{ inet_rtm_deladdr,	NULL,			},
-	{ NULL,			inet_dump_ifaddr,	},
+	{ inet_rtm_newaddr,	NULL,		},
+	{ inet_rtm_deladdr,	NULL,		},
+	{ NULL,			inet_dump_ifaddr,},
 	{ NULL,			NULL,			},
 
-	{ inet_rtm_newroute,	NULL,			},
-	{ inet_rtm_delroute,	NULL,			},
-	{ inet_rtm_getroute,	inet_dump_fib,		},
+	{ inet_rtm_newroute,	NULL,	},
+	{ inet_rtm_delroute,	NULL,	},
+	{ inet_rtm_getroute,	inet_dump_fib,},
 	{ NULL,			NULL,			},
 
 	{ NULL,			NULL,			},
@@ -958,9 +958,9 @@ static struct rtnetlink_link inet_rtnetlink_table[RTM_MAX-RTM_BASE+1] =
 	{ NULL,			NULL,			},
 
 #ifdef CONFIG_IP_MULTIPLE_TABLES
-	{ inet_rtm_newrule,	NULL,			},
-	{ inet_rtm_delrule,	NULL,			},
-	{ NULL,			inet_dump_rules,	},
+	{ inet_rtm_newrule,	NULL,		},
+	{ inet_rtm_delrule,	NULL,		},
+	{ NULL,			inet_dump_rules,},
 	{ NULL,			NULL,			},
 #else
 	{ NULL,			NULL,			},

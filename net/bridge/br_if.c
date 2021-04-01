@@ -116,7 +116,7 @@ static struct net_bridge *new_nb(char *name)
 	memset(br->bridge_id.addr, 0, ETH_ALEN);
 
 	br->stp_enabled = 1;
-	br->designated_root = br->bridge_id;
+	br->designated_root = br->bridge_id; // 根桥
 	br->root_path_cost = 0;
 	br->root_port = 0;
 	br->bridge_max_age = br->max_age = 20 * HZ;
@@ -135,7 +135,8 @@ static struct net_bridge *new_nb(char *name)
 }
 
 /* called under bridge lock */
-static struct net_bridge_port *new_nbp(struct net_bridge *br, struct net_device *dev)
+static struct net_bridge_port *
+new_nbp(struct net_bridge *br, struct net_device *dev)
 {
 	int i;
 	struct net_bridge_port *p;
@@ -152,7 +153,7 @@ static struct net_bridge_port *new_nbp(struct net_bridge *br, struct net_device 
 
 	dev->br_port = p;
 
-	for (i=1;i<255;i++)
+	for (i = 1; i < 255; i++)
 		if (br_get_port(br, i) == NULL)
 			break;
 
@@ -175,7 +176,7 @@ int br_add_bridge(char *name)
 {
 	struct net_bridge *br;
 
-	if ((br = new_nb(name)) == NULL)
+	if ((br = new_nb(name)) == NULL) // 创建一个网桥对象
 		return -ENOMEM;
 
 	if (__dev_get_by_name(name) != NULL) {
@@ -183,11 +184,12 @@ int br_add_bridge(char *name)
 		return -EEXIST;
 	}
 
+	// 添加到网桥列表中
 	br->next = bridge_list;
 	bridge_list = br;
 
 	br_inc_use_count();
-	register_netdev(&br->dev);
+	register_netdev(&br->dev); // 把网桥注册到网络设备中
 
 	return 0;
 }
@@ -265,6 +267,7 @@ int br_get_bridge_ifindices(int *indices, int num)
 	i = 0;
 
 	br = bridge_list;
+
 	for (i=0;i<num;i++) {
 		if (br == NULL)
 			break;

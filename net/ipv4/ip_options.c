@@ -8,7 +8,7 @@
  * Version:	$Id: ip_options.c,v 1.20 2000/08/09 09:17:00 davem Exp $
  *
  * Authors:	A.N.Kuznetsov
- *		
+ *
  */
 
 #include <linux/types.h>
@@ -22,7 +22,7 @@
 #include <net/ip.h>
 #include <net/icmp.h>
 
-/* 
+/*
  * Write options to IP header, record destination address to
  * source route option, address of outgoing interface
  * (we should already know it, so that this  function is allowed be
@@ -34,7 +34,7 @@
  */
 
 void ip_options_build(struct sk_buff * skb, struct ip_options * opt,
-			    u32 daddr, struct rtable *rt, int is_frag) 
+			    u32 daddr, struct rtable *rt, int is_frag)
 {
 	unsigned char * iph = skb->nh.raw;
 
@@ -72,7 +72,7 @@ void ip_options_build(struct sk_buff * skb, struct ip_options * opt,
 	}
 }
 
-/* 
+/*
  * Provided (sopt, skb) points to received options,
  * build in dopt compiled option set appropriate for answering.
  * i.e. invert SRR option, copy anothers,
@@ -81,7 +81,7 @@ void ip_options_build(struct sk_buff * skb, struct ip_options * opt,
  * NOTE: dopt cannot point to skb.
  */
 
-int ip_options_echo(struct ip_options * dopt, struct sk_buff * skb) 
+int ip_options_echo(struct ip_options * dopt, struct sk_buff * skb)
 {
 	struct ip_options *sopt;
 	unsigned char *sptr, *dptr;
@@ -204,7 +204,7 @@ int ip_options_echo(struct ip_options * dopt, struct sk_buff * skb)
  *	Simple and stupid 8), but the most efficient way.
  */
 
-void ip_options_fragment(struct sk_buff * skb) 
+void ip_options_fragment(struct sk_buff * skb)
 {
 	unsigned char * optptr = skb->nh.raw;
 	struct ip_options * opt = &(IPCB(skb)->opt);
@@ -242,21 +242,21 @@ void ip_options_fragment(struct sk_buff * skb)
  * If opt == NULL, then skb->data should point to IP header.
  */
 
-int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
+int ip_options_compile(struct ip_options *opt, struct sk_buff *skb)
 {
-	int l;
-	unsigned char * iph;
-	unsigned char * optptr;
+	int l;  // 所有options剩余长度
+	unsigned char *iph;
+	unsigned char *optptr;
 	int optlen;
-	unsigned char * pp_ptr = NULL;
+	unsigned char *pp_ptr = NULL;
 	struct rtable *rt = skb ? (struct rtable*)skb->dst : NULL;
 
 	if (!opt) {
 		opt = &(IPCB(skb)->opt);
 		memset(opt, 0, sizeof(struct ip_options));
-		iph = skb->nh.raw;
-		opt->optlen = ((struct iphdr *)iph)->ihl*4 - sizeof(struct iphdr);
-		optptr = iph + sizeof(struct iphdr);
+		iph = skb->nh.raw; // IP头部
+		opt->optlen = ((struct iphdr *)iph)->ihl*4 - sizeof(struct iphdr); // IP选项长度
+		optptr = iph + sizeof(struct iphdr); // IP选项开始位置
 		opt->is_data = 0;
 	} else {
 		optptr = opt->is_data ? opt->__data : (unsigned char*)&(skb->nh.iph[1]);
@@ -265,107 +265,137 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 
 	for (l = opt->optlen; l > 0; ) {
 		switch (*optptr) {
-		      case IPOPT_END:
-			for (optptr++, l--; l>0; l--) {
-				if (*optptr != IPOPT_END) {
+		case IPOPT_END:
+			for (optptr++, l--; l > 0; l--) {
+				if (*optptr != IPOPT_END) { // 把后面的选项置为: IPOPT_END
 					*optptr = IPOPT_END;
 					opt->is_changed = 1;
 				}
 			}
 			goto eol;
-		      case IPOPT_NOOP:
+		case IPOPT_NOOP:
 			l--;
 			optptr++;
 			continue;
 		}
-		optlen = optptr[1];
-		if (optlen<2 || optlen>l) {
+
+		/*
+		 * option item:
+		 *   .---------- pointer ---------.
+		 *  /                              \
+		 * +------+--------+---------+------+---------------------------+
+		 * | type | length | pointer |      | ......................... |
+		 * +------+--------+---------+------+---------------------------+
+		 *  \_________________________ length _________________________/
+		 */
+
+		optlen = optptr[1];             // 当前option长度
+		if (optlen < 2 || optlen > l) { // 当前option长度不合法
 			pp_ptr = optptr;
 			goto error;
 		}
+
 		switch (*optptr) {
-		      case IPOPT_SSRR:
-		      case IPOPT_LSRR:
+		case IPOPT_SSRR: // 严格路由选项
+		case IPOPT_LSRR: // 松散路由选项
 			if (optlen < 3) {
 				pp_ptr = optptr + 1;
 				goto error;
 			}
+
 			if (optptr[2] < 4) {
 				pp_ptr = optptr + 2;
 				goto error;
 			}
+
 			/* NB: cf RFC-1812 5.2.4.1 */
-			if (opt->srr) {
+			if (opt->srr) { // 不能重复设置option
 				pp_ptr = optptr;
 				goto error;
 			}
+
 			if (!skb) {
 				if (optptr[2] != 4 || optlen < 7 || ((optlen-3) & 3)) {
 					pp_ptr = optptr + 1;
 					goto error;
 				}
-				memcpy(&opt->faddr, &optptr[3], 4);
+
+				memcpy(&opt->faddr, &optptr[3], 4); // 复制第一个IP地址到faddr
 				if (optlen > 7)
 					memmove(&optptr[3], &optptr[7], optlen-7);
 			}
+
 			opt->is_strictroute = (optptr[0] == IPOPT_SSRR);
-			opt->srr = optptr - iph;
+			opt->srr = optptr - iph; // 设置srr偏移量
 			break;
-		      case IPOPT_RR:
-			if (opt->rr) {
+
+		case IPOPT_RR:     // 记录路由选项
+			if (opt->rr) { // 不能重复设置option
 				pp_ptr = optptr;
 				goto error;
 			}
+
 			if (optlen < 3) {
 				pp_ptr = optptr + 1;
 				goto error;
 			}
-			if (optptr[2] < 4) {
+
+			if (optptr[2] < 4) { // pointer偏移量
 				pp_ptr = optptr + 2;
 				goto error;
 			}
+
 			if (optptr[2] <= optlen) {
 				if (optptr[2]+3 > optlen) {
 					pp_ptr = optptr + 2;
 					goto error;
 				}
+
 				if (skb) {
-					memcpy(&optptr[optptr[2]-1], &rt->rt_spec_dst, 4);
+					memcpy(&optptr[optptr[2]-1], &rt->rt_spec_dst, 4); // 把当前路由IP添加到options中
 					opt->is_changed = 1;
 				}
-				optptr[2] += 4;
+
+				optptr[2] += 4; // 移动pointer偏移量
 				opt->rr_needaddr = 1;
 			}
+
 			opt->rr = optptr - iph;
 			break;
-		      case IPOPT_TIMESTAMP:
+
+		case IPOPT_TIMESTAMP: // 时间戳选项
 			if (opt->ts) {
 				pp_ptr = optptr;
 				goto error;
 			}
+
 			if (optlen < 4) {
 				pp_ptr = optptr + 1;
 				goto error;
 			}
+
 			if (optptr[2] < 5) {
 				pp_ptr = optptr + 2;
 				goto error;
 			}
+
 			if (optptr[2] <= optlen) {
 				__u32 * timeptr = NULL;
+
 				if (optptr[2]+3 > optptr[1]) {
 					pp_ptr = optptr + 2;
 					goto error;
 				}
+
 				switch (optptr[3]&0xF) {
-				      case IPOPT_TS_TSONLY:
+				case IPOPT_TS_TSONLY:
 					opt->ts = optptr - iph;
-					if (skb) 
+					if (skb)
 						timeptr = (__u32*)&optptr[optptr[2]-1];
 					opt->ts_needtime = 1;
 					optptr[2] += 4;
 					break;
-				      case IPOPT_TS_TSANDADDR:
+				case IPOPT_TS_TSANDADDR:
 					if (optptr[2]+7 > optptr[1]) {
 						pp_ptr = optptr + 2;
 						goto error;
@@ -379,7 +409,7 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 					opt->ts_needtime = 1;
 					optptr[2] += 8;
 					break;
-				      case IPOPT_TS_PRESPEC:
+				case IPOPT_TS_PRESPEC:
 					if (optptr[2]+7 > optptr[1]) {
 						pp_ptr = optptr + 2;
 						goto error;
@@ -396,13 +426,14 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 					opt->ts_needtime = 1;
 					optptr[2] += 8;
 					break;
-				      default:
+				default:
 					if (!skb && !capable(CAP_NET_RAW)) {
 						pp_ptr = optptr + 3;
 						goto error;
 					}
 					break;
 				}
+
 				if (timeptr) {
 					struct timeval tv;
 					__u32  midtime;
@@ -411,6 +442,7 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 					memcpy(timeptr, &midtime, sizeof(__u32));
 					opt->is_changed = 1;
 				}
+
 			} else {
 				unsigned overflow = optptr[3]>>4;
 				if (overflow == 15) {
@@ -424,23 +456,27 @@ int ip_options_compile(struct ip_options * opt, struct sk_buff * skb)
 				}
 			}
 			break;
-		      case IPOPT_RA:
+
+		case IPOPT_RA:
 			if (optlen < 4) {
 				pp_ptr = optptr + 1;
 				goto error;
 			}
+
 			if (optptr[2] == 0 && optptr[3] == 0)
 				opt->router_alert = optptr - iph;
 			break;
-		      case IPOPT_SEC:
-		      case IPOPT_SID:
-		      default:
+
+		case IPOPT_SEC:
+		case IPOPT_SID:
+		default:
 			if (!skb && !capable(CAP_NET_RAW)) {
 				pp_ptr = optptr;
 				goto error;
 			}
 			break;
 		}
+
 		l -= optlen;
 		optptr += optlen;
 	}
@@ -450,7 +486,7 @@ eol:
 		return 0;
 
 error:
-	if (skb) {
+	if (skb) { // 发送错误的 ICMP 包给对端连接
 		icmp_send(skb, ICMP_PARAMETERPROB, 0, htonl((pp_ptr-iph)<<24));
 	}
 	return -EINVAL;
@@ -488,7 +524,8 @@ void ip_options_undo(struct ip_options * opt)
 	}
 }
 
-int ip_options_get(struct ip_options **optp, unsigned char *data, int optlen, int user)
+int ip_options_get(struct ip_options **optp, unsigned char *data, int optlen,
+				   int user)
 {
 	struct ip_options *opt;
 
@@ -588,7 +625,10 @@ int ip_options_rcv_srr(struct sk_buff *skb)
 	if (rt->rt_type != RTN_LOCAL)
 		return -EINVAL;
 
-	for (srrptr=optptr[2], srrspace = optptr[1]; srrptr <= srrspace; srrptr += 4) {
+	for (srrptr = optptr[2], srrspace = optptr[1];
+		 srrptr <= srrspace;
+		 srrptr += 4)
+	{
 		if (srrptr + 3 > srrspace) {
 			icmp_send(skb, ICMP_PARAMETERPROB, 0, htonl((opt->srr+2)<<24));
 			return -EINVAL;

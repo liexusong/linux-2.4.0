@@ -22,10 +22,8 @@
 
 static inline int should_forward(struct net_bridge_port *p, struct sk_buff *skb)
 {
-	if (skb->dev == p->dev ||
-	    p->state != BR_STATE_FORWARDING)
+	if (skb->dev == p->dev || p->state != BR_STATE_FORWARDING)
 		return 0;
-
 	return 1;
 }
 
@@ -42,7 +40,6 @@ void br_forward(struct net_bridge_port *to, struct sk_buff *skb)
 		__br_forward(to, skb);
 		return;
 	}
-
 	kfree_skb(skb);
 }
 
@@ -66,18 +63,18 @@ void br_flood(struct net_bridge *br, struct sk_buff *skb, int clone)
 	prev = NULL;
 
 	p = br->port_list;
-	while (p != NULL) {
+	while (p != NULL) { // 遍历网桥连接所有的设备
 		if (should_forward(p, skb)) {
 			if (prev != NULL) {
 				struct sk_buff *skb2;
 
-				if ((skb2 = skb_clone(skb, GFP_ATOMIC)) == NULL) {
+				if ((skb2 = skb_clone(skb, GFP_ATOMIC)) == NULL) { // 克隆一个数据包
 					br->statistics.tx_dropped++;
 					kfree_skb(skb);
 					return;
 				}
 
-				__br_forward(prev, skb2);
+				__br_forward(prev, skb2); // 把数据包发送给设备
 			}
 
 			prev = p;
