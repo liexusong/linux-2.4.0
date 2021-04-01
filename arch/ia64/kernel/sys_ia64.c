@@ -49,7 +49,7 @@ get_unmapped_area (unsigned long addr, unsigned long len)
 }
 
 asmlinkage long
-ia64_getpriority (int which, int who, long arg2, long arg3, long arg4, long arg5, long arg6, 
+ia64_getpriority (int which, int who, long arg2, long arg3, long arg4, long arg5, long arg6,
 		  long arg7, long stack)
 {
 	struct pt_regs *regs = (struct pt_regs *) &stack;
@@ -217,7 +217,7 @@ do_mmap2 (unsigned long addr, unsigned long len, int prot, int flags, int fd, un
  * of) files that are larger than the address space of the CPU.
  */
 asmlinkage unsigned long
-sys_mmap2 (unsigned long addr, unsigned long len, int prot, int flags, int fd, long pgoff,
+sys_mmap2(unsigned long addr, unsigned long len, int prot, int flags, int fd, long pgoff,
 	   long arg6, long arg7, long stack)
 {
 	struct pt_regs *regs = (struct pt_regs *) &stack;
@@ -229,7 +229,7 @@ sys_mmap2 (unsigned long addr, unsigned long len, int prot, int flags, int fd, l
 }
 
 asmlinkage unsigned long
-sys_mmap (unsigned long addr, unsigned long len, int prot, int flags,
+sys_mmap(unsigned long addr, unsigned long len, int prot, int flags,
 	  int fd, long off, long arg6, long arg7, long stack)
 {
 	struct pt_regs *regs = (struct pt_regs *) &stack;
@@ -392,7 +392,7 @@ ia64_oldfstat (unsigned int fd, struct ia64_oldstat *statbuf)
 	}
 	return err;
 }
- 
+
 #endif
 
 #ifndef CONFIG_PCI

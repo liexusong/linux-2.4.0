@@ -37,8 +37,8 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  */
- 
-#include <linux/config.h> 
+
+#include <linux/config.h>
 #include <asm/system.h>
 #include <asm/uaccess.h>
 #include <linux/types.h>
@@ -138,18 +138,19 @@ struct sock *raw_v4_input(struct sk_buff *skb, struct iphdr *iph, int hash)
 	struct sock *sk;
 
 	read_lock(&raw_v4_lock);
+
 	if ((sk = raw_v4_htable[hash]) == NULL)
 		goto out;
-	sk = __raw_v4_lookup(sk, iph->protocol,
-			     iph->saddr, iph->daddr,
-			     skb->dev->ifindex);
+
+	sk = __raw_v4_lookup(sk, iph->protocol, iph->saddr, iph->daddr,
+						 skb->dev->ifindex);
 
 	while(sk != NULL) {
 		struct sock *sknext = __raw_v4_lookup(sk->next, iph->protocol,
-						      iph->saddr, iph->daddr,
-						      skb->dev->ifindex);
-		if (iph->protocol != IPPROTO_ICMP ||
-		    ! icmp_filter(sk, skb)) {
+										      iph->saddr, iph->daddr,
+										      skb->dev->ifindex);
+
+		if (iph->protocol != IPPROTO_ICMP || !icmp_filter(sk, skb)) {
 			struct sk_buff *clone;
 
 			if(sknext == NULL)
@@ -222,7 +223,7 @@ void raw_err (struct sock *sk, struct sk_buff *skb)
 static int raw_rcv_skb(struct sock * sk, struct sk_buff * skb)
 {
 	/* Charge it to the socket. */
-	
+
 	if (sock_queue_rcv_skb(sk,skb)<0)
 	{
 		IP_INC_STATS(IpInDiscards);
@@ -244,14 +245,14 @@ int raw_rcv(struct sock *sk, struct sk_buff *skb)
 {
 	/* Now we need to copy this into memory. */
 	skb_trim(skb, ntohs(skb->nh.iph->tot_len));
-	
+
 	skb->h.raw = skb->nh.raw;
 
 	raw_rcv_skb(sk, skb);
 	return 0;
 }
 
-struct rawfakehdr 
+struct rawfakehdr
 {
 	struct  iovec *iov;
 	u32	saddr;
@@ -265,7 +266,7 @@ struct rawfakehdr
 /*
  *	Callback support is trivial for SOCK_RAW
  */
-  
+
 static int raw_getfrag(const void *p, char *to, unsigned int offset, unsigned int fraglen)
 {
 	struct rawfakehdr *rfh = (struct rawfakehdr *) p;
@@ -275,7 +276,7 @@ static int raw_getfrag(const void *p, char *to, unsigned int offset, unsigned in
 /*
  *	IPPROTO_RAW needs extra work.
  */
- 
+
 static int raw_getrawfrag(const void *p, char *to, unsigned int offset, unsigned int fraglen)
 {
 	struct rawfakehdr *rfh = (struct rawfakehdr *) p;
@@ -291,7 +292,7 @@ static int raw_getrawfrag(const void *p, char *to, unsigned int offset, unsigned
 		iph->tot_len=htons(fraglen);	/* This is right as you can't frag
 						   RAW packets */
 		/*
-	 	 *	Deliberate breach of modularity to keep 
+	 	 *	Deliberate breach of modularity to keep
 	 	 *	ip_build_xmit clean (well less messy).
 		 */
 		if (!iph->id)
@@ -331,9 +332,9 @@ static int raw_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 
 	if (msg->msg_flags & MSG_OOB)		/* Mirror BSD error message compatibility */
 		return -EOPNOTSUPP;
-			 
+
 	/*
-	 *	Get and verify the address. 
+	 *	Get and verify the address.
 	 */
 
 	if (msg->msg_namelen) {
@@ -353,7 +354,7 @@ static int raw_sendmsg(struct sock *sk, struct msghdr *msg, int len)
 		 * IP_HDRINCL is much more convenient.
 		 */
 	} else {
-		if (sk->state != TCP_ESTABLISHED) 
+		if (sk->state != TCP_ESTABLISHED)
 			return(-EINVAL);
 		daddr = sk->daddr;
 	}
@@ -497,7 +498,7 @@ int raw_recvmsg(struct sock *sk, struct msghdr *msg, int len,
 		msg->msg_flags |= MSG_TRUNC;
 		copied = len;
 	}
-	
+
 	err = skb_copy_datagram_iovec(skb, 0, msg->msg_iov, copied);
 	if (err)
 		goto done;
@@ -548,7 +549,7 @@ static int raw_geticmpfilter(struct sock *sk, char *optval, int *optlen)
 	return 0;
 }
 
-static int raw_setsockopt(struct sock *sk, int level, int optname, 
+static int raw_setsockopt(struct sock *sk, int level, int optname,
 			  char *optval, int optlen)
 {
 	if (level != SOL_RAW)
@@ -564,7 +565,7 @@ static int raw_setsockopt(struct sock *sk, int level, int optname,
 	return -ENOPROTOOPT;
 }
 
-static int raw_getsockopt(struct sock *sk, int level, int optname, 
+static int raw_getsockopt(struct sock *sk, int level, int optname,
 			  char *optval, int *optlen)
 {
 	if (level != SOL_RAW)
@@ -621,7 +622,7 @@ static void get_raw_sock(struct sock *sp, char *tmpbuf, int i)
 	srcp  = sp->num;
 	sprintf(tmpbuf, "%4d: %08X:%04X %08X:%04X"
 		" %02X %08X:%08X %02X:%08lX %08X %5d %8d %ld %d %p",
-		i, src, srcp, dest, destp, sp->state, 
+		i, src, srcp, dest, destp, sp->state,
 		atomic_read(&sp->wmem_alloc), atomic_read(&sp->rmem_alloc),
 		0, 0L, 0,
 		sock_i_uid(sp), 0,
@@ -636,7 +637,7 @@ int raw_get_info(char *buffer, char **start, off_t offset, int length)
 	off_t begin;
 	char tmpbuf[129];
 
-	if (offset < 128) 
+	if (offset < 128)
 		len += sprintf(buffer, "%-127s\n",
 			       "  sl  local_address rem_address   st tx_queue "
 			       "rx_queue tr tm->when retrnsmt   uid  timeout inode");
@@ -665,7 +666,7 @@ out:
 	if(len > length)
 		len = length;
 	if (len < 0)
-		len = 0; 
+		len = 0;
 	return len;
 }
 
