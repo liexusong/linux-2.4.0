@@ -55,7 +55,11 @@ static int neigh_glbl_allocs;
 static struct neigh_table *neigh_tables;
 
 #if defined(__i386__) && defined(CONFIG_SMP)
-#define ASSERT_WL(n) if ((int)((n)->lock.lock) > 0) { printk("WL assertion failed at " __FILE__ "(%d):" __FUNCTION__ "\n", __LINE__); }
+#define ASSERT_WL(n)														\
+if ((int)((n)->lock.lock) > 0) {											\
+	printk("WL assertion failed at " __FILE__ "(%d):" __FUNCTION__ "\n",	\
+		__LINE__);															\
+}
 #else
 #define ASSERT_WL(n) do { } while(0)
 #endif

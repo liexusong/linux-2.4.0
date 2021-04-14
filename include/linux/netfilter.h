@@ -36,54 +36,54 @@ struct sk_buff;
 struct net_device;
 
 typedef unsigned int nf_hookfn(unsigned int hooknum,
-			       struct sk_buff **skb,
-			       const struct net_device *in,
-			       const struct net_device *out,
-			       int (*okfn)(struct sk_buff *));
+                               struct sk_buff **skb,
+                               const struct net_device *in,
+                               const struct net_device *out,
+                               int (*okfn)(struct sk_buff *));
 
 struct nf_hook_ops
 {
-	struct list_head list; // 连接相同协议和类型的钩子
+    struct list_head list; // 连接相同协议和类型的钩子
 
-	/* User fills in from here down. */
-	nf_hookfn *hook;   // 钩子函数
-	int pf;            // 协议类型, 如: PF_INET, PF_INET6
-	int hooknum;       // 钩子所在链(LOCAL_IN, FORWARD...)
-	/* Hooks are ordered in ascending priority. */
-	int priority;      // 优先级(通过优先级来管理钩子的顺序)
+    /* User fills in from here down. */
+    nf_hookfn *hook;   // 钩子函数
+    int pf;            // 协议类型, 如: PF_INET, PF_INET6
+    int hooknum;       // 钩子所在链(LOCAL_IN, FORWARD...)
+    /* Hooks are ordered in ascending priority. */
+    int priority;      // 优先级(通过优先级来管理钩子的顺序)
 };
 
 struct nf_sockopt_ops
 {
-	struct list_head list;
+    struct list_head list;
 
-	int pf;
+    int pf;
 
-	/* Non-inclusive ranges: use 0/0/NULL to never get called. */
-	int set_optmin;
-	int set_optmax;
-	int (*set)(struct sock *sk, int optval, void *user, unsigned int len);
+    /* Non-inclusive ranges: use 0/0/NULL to never get called. */
+    int set_optmin;
+    int set_optmax;
+    int (*set)(struct sock *sk, int optval, void *user, unsigned int len);
 
-	int get_optmin;
-	int get_optmax;
-	int (*get)(struct sock *sk, int optval, void *user, int *len);
+    int get_optmin;
+    int get_optmax;
+    int (*get)(struct sock *sk, int optval, void *user, int *len);
 
-	/* Number of users inside set() or get(). */
-	unsigned int use;
-	struct task_struct *cleanup_task;
+    /* Number of users inside set() or get(). */
+    unsigned int use;
+    struct task_struct *cleanup_task;
 };
 
 /* Each queued (to userspace) skbuff has one of these. */
 struct nf_info
 {
-	/* The ops struct which sent us to userspace. */
-	struct nf_hook_ops *elem;
+    /* The ops struct which sent us to userspace. */
+    struct nf_hook_ops *elem;
 
-	/* If we're sent to userspace, this keeps housekeeping info */
-	int pf;
-	unsigned int hook;
-	struct net_device *indev, *outdev;
-	int (*okfn)(struct sk_buff *);
+    /* If we're sent to userspace, this keeps housekeeping info */
+    int pf;
+    unsigned int hook;
+    struct net_device *indev, *outdev;
+    int (*okfn)(struct sk_buff *);
 };
 
 /* Function to register/unregister hook points. */
@@ -125,28 +125,28 @@ extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
 // indev: 输入设备对象
 // outdev: 输出设备对象
 // okfn: 如果钩子函数执行成功, 那么将会调用这个函数
-#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)	\
-    (list_empty(&nf_hooks[(pf)][(hook)])			\
-        ? (okfn)(skb)								\
+#define NF_HOOK(pf, hook, skb, indev, outdev, okfn)    \
+    (list_empty(&nf_hooks[(pf)][(hook)])               \
+        ? (okfn)(skb)                                  \
         : nf_hook_slow((pf), (hook), (skb), (indev), (outdev), (okfn)))
 #endif
 
 int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
-		 struct net_device *indev, struct net_device *outdev,
-		 int (*okfn)(struct sk_buff *));
+                 struct net_device *indev, struct net_device *outdev,
+                 int (*okfn)(struct sk_buff *));
 
 /* Call setsockopt() */
-int nf_setsockopt(struct sock *sk, int pf, int optval, char *opt,
-		  int len);
-int nf_getsockopt(struct sock *sk, int pf, int optval, char *opt,
-		  int *len);
+int nf_setsockopt(struct sock *sk, int pf, int optval, char *opt, int len);
+int nf_getsockopt(struct sock *sk, int pf, int optval, char *opt, int *len);
 
 /* Packet queuing */
-typedef int (*nf_queue_outfn_t)(struct sk_buff *skb,
-                                struct nf_info *info, void *data);
+typedef int (*nf_queue_outfn_t)(struct sk_buff *skb, struct nf_info *info,
+                                void *data);
+
 extern int nf_register_queue_handler(int pf, nf_queue_outfn_t outfn, void *data);
 extern int nf_unregister_queue_handler(int pf);
-extern void nf_reinject(struct sk_buff *skb, struct nf_info *info, unsigned int verdict);
+extern void nf_reinject(struct sk_buff *skb, struct nf_info *info,
+                        unsigned int verdict);
 
 #ifdef CONFIG_NETFILTER_DEBUG
 extern void nf_dump_skb(int pf, struct sk_buff *skb);
@@ -161,11 +161,11 @@ extern void nf_invalidate_cache(int pf);
 
 /* From arch/i386/kernel/smp.c:
  *
- *	Why isn't this somewhere standard ??
+ *    Why isn't this somewhere standard ??
  *
  * Maybe because this procedure is horribly buggy, and does
  * not deserve to live.  Think about signedness issues for five
- * seconds to see why.		- Linus
+ * seconds to see why.        - Linus
  */
 
 /* Two signed, return a signed. */

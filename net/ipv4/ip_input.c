@@ -209,21 +209,13 @@ static int ip_run_ipprot(struct sk_buff *skb, struct iphdr *iph,
 
 			if (skb2 != NULL) {
 				ret = 1;
-<<<<<<< HEAD
-				ipprot->handler(skb2, ntohs(iph->tot_len)-(iph->ihl*4));
-=======
 				ipprot->handler(skb2, ntohs(iph->tot_len) - (iph->ihl * 4));
->>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 			}
 		}
 
 		ipprot = (struct inet_protocol *)ipprot->next;
 
-<<<<<<< HEAD
-	} while(ipprot != NULL);
-=======
 	} while (ipprot != NULL);
->>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 	return ret;
 }
@@ -261,13 +253,6 @@ static inline int ip_local_deliver_finish(struct sk_buff *skb)
 			   && ipprot->protocol == iph->protocol)
 			{
 				int ret;
-<<<<<<< HEAD
-
-				/* Fast path... */
-				ret = ipprot->handler(skb, (ntohs(iph->tot_len) -
-							    (iph->ihl * 4)));
-=======
->>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 
 				/* Fast path... */
 				ret = ipprot->handler(skb, (ntohs(iph->tot_len) - iph->ihl*4));
@@ -393,12 +378,7 @@ drop:
 /*
  * 	Main IP Receive routine.
  */
-<<<<<<< HEAD
 int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
-=======
-int
-ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
->>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 {
 	struct iphdr *iph = skb->nh.iph;
 
@@ -427,10 +407,7 @@ ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 	if (skb->len < sizeof(struct iphdr) || skb->len < (iph->ihl<<2))
 		goto inhdr_error;
 
-<<<<<<< HEAD
-=======
 	// IP头部不合法
->>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	if (iph->ihl < 5
 		|| iph->version != 4
 		|| ip_fast_csum((u8 *)iph, iph->ihl) != 0)
@@ -448,13 +425,10 @@ ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt)
 		__skb_trim(skb, len);
 	}
 
-<<<<<<< HEAD
-=======
 	/*
 	 * 运行 nf_hooks[PF_INET][NF_IP_PRE_ROUTING] 链上的钩子函数
 	 * 如果所有钩子函数都通过, 那么执行: ip_rcv_finish() 函数
 	 */
->>>>>>> 9eb42be2dae8a2e7c03c0bd8ea0d96f03b797017
 	return NF_HOOK(PF_INET, NF_IP_PRE_ROUTING, skb, dev, NULL, ip_rcv_finish);
 
 inhdr_error:

@@ -14,15 +14,15 @@
 /* Dest IP address. */
 #define NFC_IP_DST		0x0002
 /* Input device. */
-#define NFC_IP_IF_IN		0x0004
+#define NFC_IP_IF_IN	0x0004
 /* Output device. */
-#define NFC_IP_IF_OUT		0x0008
+#define NFC_IP_IF_OUT	0x0008
 /* TOS. */
 #define NFC_IP_TOS		0x0010
 /* Protocol. */
-#define NFC_IP_PROTO		0x0020
+#define NFC_IP_PROTO	0x0020
 /* IP options. */
-#define NFC_IP_OPTIONS		0x0040
+#define NFC_IP_OPTIONS	0x0040
 /* Frag & flags. */
 #define NFC_IP_FRAG		0x0080
 

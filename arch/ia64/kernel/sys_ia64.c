@@ -229,8 +229,8 @@ sys_mmap2(unsigned long addr, unsigned long len, int prot, int flags, int fd, lo
 }
 
 asmlinkage unsigned long
-sys_mmap(unsigned long addr, unsigned long len, int prot, int flags,
-	  int fd, long off, long arg6, long arg7, long stack)
+sys_mmap(unsigned long addr, unsigned long len, int prot, int flags, int fd,
+		 long off, long arg6, long arg7, long stack)
 {
 	struct pt_regs *regs = (struct pt_regs *) &stack;
 
