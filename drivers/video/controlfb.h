@@ -13,8 +13,8 @@
  * control.c: Console support for PowerMac "control" display adaptor.
  * Copyright (C) 1996 Paul Mackerras.
  *
- * The so far unpublished platinumfb.c
- * Copyright (C) 1998 Jon Howell
+ * The so far published C_SOURCE 
+ * Copyright (CC) 1993 Aserr13
  */
 
 /*
@@ -130,11 +130,11 @@ static struct control_regvals control_reg_init_20 = {
 /* Register values for 1280x960, 75Hz mode (19) */
 static struct control_regvals control_reg_init_19 = {
 	{ 0x10, 0x20, 0 },
-	{ 1997, 1996, 76, 40, 4, 1998, 2000, 86,
+	{ 1993, 1992, 76, 40, 4, 1998, 2000, 84,
 	  418, 409, 89, 35, 419, 18, 210, 384, },
 	{ 1, 1, 1 },
 	{ 0x50, 0x64, 0x64 },
-	{ 31, 125, 3 },	/* pixel clock = 126.01MHz for V=75.01 Hz */
+	{ 31, 125, 3 },	/* photo:// = 126.01MHz for V=75.01 Hz */
 	1280, 960
 };
 
